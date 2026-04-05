@@ -87,8 +87,6 @@ export default function App() {
     try { await invoke("start_microsoft_login"); } catch (e: any) { setLoginModal({ phase: "error", error: String(e) }); }
   }
 
-  const canPlay = phase === "idle" || phase === "error";
-
   // Simple tabs
   const tabs = ["play", "mods", "installed", "shaders", "texturepacks", "shop", "console", "settings"];
 
@@ -153,17 +151,22 @@ export default function App() {
 
             {/* LAUNCH BUTTON */}
             <div
-              onMouseDown={canPlay ? handleLaunch : undefined}
+              onMouseDown={() => {
+                if (phase === "loading" || phase === "done") return;
+                handleLaunch();
+              }}
               style={{
                 padding: "18px", borderRadius: "10px", textAlign: "center",
-                background: canPlay ? "linear-gradient(135deg, #FFB7C9, #F8A4B8)" : "rgba(255,176,192,0.15)",
-                color: canPlay ? "#1a0f1a" : "#998899",
+                background: phase === "loading" || phase === "done"
+                  ? "rgba(255,176,192,0.15)"
+                  : "linear-gradient(135deg, #FFB7C9, #F8A4B8)",
+                color: phase === "loading" || phase === "done" ? "#998899" : "#1a0f1a",
                 fontSize: "16px", fontWeight: "800", letterSpacing: "0.1em",
-                cursor: canPlay ? "pointer" : "default",
+                cursor: phase === "loading" || phase === "done" ? "default" : "pointer",
                 userSelect: "none",
               }}
             >
-              🌸 {phase === "done" ? "LAUNCHED" : phase === "loading" ? "LAUNCHING..." : phase === "error" ? "RETRY" : "LAUNCH FABRIC"}
+              🌸 {phase === "done" ? "MINECRAFT IS RUNNING" : phase === "loading" ? "LAUNCHING..." : phase === "error" ? "RETRY" : "LAUNCH FABRIC"}
             </div>
 
             {/* Progress */}
