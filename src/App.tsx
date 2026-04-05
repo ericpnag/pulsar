@@ -151,9 +151,15 @@ export default function App() {
 
             {/* LAUNCH BUTTON */}
             <div
-              onMouseDown={() => {
-                if (phase === "loading" || phase === "done") return;
-                handleLaunch();
+              id="launch-btn"
+              ref={(el) => {
+                if (el && !el.dataset.bound) {
+                  el.dataset.bound = "1";
+                  el.addEventListener("click", () => {
+                    document.getElementById("launch-btn")!.textContent = "🌸 LAUNCHING...";
+                    handleLaunch();
+                  });
+                }
               }}
               style={{
                 padding: "18px", borderRadius: "10px", textAlign: "center",
@@ -162,7 +168,7 @@ export default function App() {
                   : "linear-gradient(135deg, #FFB7C9, #F8A4B8)",
                 color: phase === "loading" || phase === "done" ? "#998899" : "#1a0f1a",
                 fontSize: "16px", fontWeight: "800", letterSpacing: "0.1em",
-                cursor: phase === "loading" || phase === "done" ? "default" : "pointer",
+                cursor: "pointer",
                 userSelect: "none",
               }}
             >

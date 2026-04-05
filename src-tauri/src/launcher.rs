@@ -285,6 +285,16 @@ pub fn get_versions() -> Result<Vec<String>, String> {
 
 #[tauri::command]
 pub fn launch_minecraft(app: AppHandle, version: String, username: Option<String>, uuid: Option<String>, access_token: Option<String>) -> Result<(), String> {
+    // Run everything in a background thread so we don't block Tauri IPC
+    std::thread::spawn(move || {
+        if let Err(e) = do_launch(&app, &version, username, uuid, access_token) {
+            let _ = app.emit("launch_progress", serde_json::json!({ "pct": 0, "msg": format!("Error: {}", e) }));
+        }
+    });
+    Ok(())
+}
+
+fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Option<String>, access_token: Option<String>) -> Result<(), String> {
     let client = Client::new();
     let game_dir = game_dir();
     let versions_dir = game_dir.join(format!("versions/{}", version));
@@ -564,7 +574,7 @@ pub fn launch_minecraft(app: AppHandle, version: String, username: Option<String
     jvm_args.push(fabric_json.main_class.clone());
     let user_type = if access_token.is_some() { "msa" } else { "offline" };
     jvm_args.push("--username".to_string()); jvm_args.push(username.as_deref().unwrap_or("Player").to_string());
-    jvm_args.push("--version".to_string()); jvm_args.push(version.clone());
+    jvm_args.push("--version".to_string()); jvm_args.push(version.to_string());
     jvm_args.push("--gameDir".to_string()); jvm_args.push(game_dir_str);
     jvm_args.push("--assetsDir".to_string()); jvm_args.push(assets_dir_str);
     jvm_args.push("--assetIndex".to_string()); jvm_args.push(version_json.asset_index.id.clone());
