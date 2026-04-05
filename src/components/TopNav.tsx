@@ -3,7 +3,9 @@ import type { Page } from "../App";
 const TABS: { id: Page; label: string; icon: string }[] = [
   { id: "play", label: "Play", icon: "▶" },
   { id: "mods", label: "Mods", icon: "⊞" },
-  { id: "texturepacks", label: "Skins", icon: "◈" },
+  { id: "installed", label: "Installed", icon: "≡" },
+  { id: "shaders", label: "Shaders", icon: "◆" },
+  { id: "texturepacks", label: "Textures", icon: "◈" },
   { id: "settings", label: "Settings", icon: "⚙" },
 ];
 

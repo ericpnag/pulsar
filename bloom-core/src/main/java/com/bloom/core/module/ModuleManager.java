@@ -14,6 +14,10 @@ public class ModuleManager {
         modules.add(new Coordinates());
         modules.add(new Zoom());
         modules.add(new ArmorStatus());
+        modules.add(new PingDisplay());
+        modules.add(new CpsCounter());
+        modules.add(new PotionEffects());
+        modules.add(new Keystrokes());
     }
 
     public List<Module> getModules() {
