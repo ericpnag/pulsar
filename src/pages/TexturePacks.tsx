@@ -10,7 +10,7 @@ interface Props {
   onVersionChange: (v: string) => void;
 }
 
-export function TexturePacksPage({ versions, selectedVersion, onVersionChange }: Props) {
+export function TexturePacksPage({ versions, selectedVersion, onVersionChange: _onVersionChange }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Pack[]>([]);
   const [loading, setLoading] = useState(false);

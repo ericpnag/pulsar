@@ -10,7 +10,7 @@ interface Props {
   onVersionChange: (v: string) => void;
 }
 
-export function ModStorePage({ versions, selectedVersion, onVersionChange }: Props) {
+export function ModStorePage({ versions, selectedVersion, onVersionChange: _onVersionChange }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Mod[]>([]);
   const [loading, setLoading] = useState(false);
