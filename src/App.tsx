@@ -73,20 +73,24 @@ export default function App() {
   }
 
   async function play() {
+    console.log("PLAY clicked, version:", selectedVersion);
     setLaunch({ phase: "loading", progress: 0, status: "Checking files..." });
     const unlisten = await listen<{ pct: number; msg: string }>("launch_progress", e => {
       setLaunch(prev => ({ ...prev, progress: e.payload.pct, status: e.payload.msg }));
     });
     try {
+      console.log("Invoking launch_minecraft...");
       await invoke("launch_minecraft", {
         version: selectedVersion,
         username: account?.username ?? null,
         uuid: account?.uuid ?? null,
         accessToken: account?.accessToken ?? null,
       });
+      console.log("Launch success!");
       setLaunch({ phase: "done", progress: 100, status: "Game launched!" });
       setTimeout(() => setLaunch({ phase: "idle", progress: 0, status: "" }), 3000);
     } catch (e: any) {
+      console.error("Launch error:", e);
       setLaunch({ phase: "error", progress: 0, status: String(e) });
     } finally {
       unlisten();
