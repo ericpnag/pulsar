@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Rust/Tauri
+src-tauri/target/
+
+# Gradle/Java
+bloom-core/build/
+bloom-core/.gradle/
+bloom-core-1.21.11/build/
+bloom-core-1.21.11/.gradle/
+*.class
+*.jar

@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.bloom.core.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "TitleScreenMixin",
+    "GameMenuMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
