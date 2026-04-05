@@ -9,8 +9,9 @@ import { TexturePacksPage } from "./pages/TexturePacks";
 import { SettingsPage } from "./pages/Settings";
 import { InstalledModsPage } from "./pages/InstalledMods";
 import { ShadersPage } from "./pages/Shaders";
+import { ShopPage } from "./pages/Shop";
 
-export type Page = "play" | "mods" | "texturepacks" | "installed" | "shaders" | "settings";
+export type Page = "play" | "mods" | "texturepacks" | "installed" | "shaders" | "shop" | "settings";
 export type LaunchPhase = "idle" | "loading" | "done" | "error";
 
 export interface LaunchState {
@@ -114,6 +115,7 @@ export default function App() {
         {page === "texturepacks" && <TexturePacksPage versions={versions} selectedVersion={selectedVersion} onVersionChange={setSelectedVersion} />}
         {page === "installed" && <InstalledModsPage versions={versions} selectedVersion={selectedVersion} />}
         {page === "shaders" && <ShadersPage versions={versions} selectedVersion={selectedVersion} onVersionChange={setSelectedVersion} />}
+        {page === "shop" && <ShopPage />}
         {page === "settings" && <SettingsPage />}
       </main>
       {loginModal && <LoginModal {...loginModal} onClose={() => setLoginModal(null)} />}

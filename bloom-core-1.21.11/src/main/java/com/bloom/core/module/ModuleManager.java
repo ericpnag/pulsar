@@ -18,6 +18,7 @@ public class ModuleManager {
         modules.add(new CpsCounter());
         modules.add(new PotionEffects());
         modules.add(new Keystrokes());
+        modules.add(new CosmeticsCape());
     }
 
     public List<Module> getModules() {

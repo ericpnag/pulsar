@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "TitleScreenMixin",
-    "GameMenuMixin"
+    "GameMenuMixin",
+    "CapeRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
