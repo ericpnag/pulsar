@@ -15,9 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(AbstractClientPlayerEntity.class)
 public class CapeRendererMixin {
     @Unique
-    private static boolean textureRegistered = false;
-    @Unique
-    private static final Identifier BLOOM_CAPE = Identifier.of("bloom-core", "textures/cape/bloom_cape.png");
+    private static String lastRegisteredCape = null;
 
     @Inject(method = "getSkinTextures", at = @At("RETURN"), cancellable = true)
     private void onGetSkinTextures(CallbackInfoReturnable<SkinTextures> cir) {
@@ -25,18 +23,19 @@ public class CapeRendererMixin {
         AbstractClientPlayerEntity player = (AbstractClientPlayerEntity) (Object) this;
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null && player.getUuid().equals(client.player.getUuid())) {
-            // Register texture on first use
-            if (!textureRegistered) {
-                client.getTextureManager().registerTexture(BLOOM_CAPE, new ResourceTexture(BLOOM_CAPE));
-                textureRegistered = true;
+            Identifier capePath = Identifier.of("bloom-core", "textures/cape/" + CosmeticsCape.capeFile);
+
+            if (!CosmeticsCape.capeFile.equals(lastRegisteredCape)) {
+                client.getTextureManager().registerTexture(capePath, new ResourceTexture(capePath));
+                lastRegisteredCape = CosmeticsCape.capeFile;
             }
 
             SkinTextures original = cir.getReturnValue();
             cir.setReturnValue(new SkinTextures(
                 original.texture(),
                 original.textureUrl(),
-                BLOOM_CAPE,
-                BLOOM_CAPE,
+                capePath,
+                capePath,
                 original.model(),
                 original.secure()
             ));

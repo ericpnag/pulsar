@@ -6,7 +6,8 @@
     "TitleScreenMixin",
     "GameMenuMixin",
     "CapeRendererMixin",
-    "LowFireMixin"
+    "LowFireMixin",
+    "LowShieldMixin"
   ],
   "injectors": {
     "defaultRequire": 1

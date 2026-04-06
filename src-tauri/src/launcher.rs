@@ -272,6 +272,36 @@ fn install_mods(client: &Client, _game_dir: &PathBuf, mc_version: &str) -> Resul
         }
     }
 
+    // Auto-install bundled mods from Modrinth
+    let bundled_mods = [
+        ("betterhitreg", "better-hitreg.jar"),  // Better Hitreg
+    ];
+    for (project_id, filename) in &bundled_mods {
+        let dest = mods_dir.join(filename);
+        if !dest.exists() {
+            let url = format!(
+                "https://api.modrinth.com/v2/project/{}/version?game_versions=[\"{}\"]&loaders=[\"fabric\"]",
+                project_id, mc_version
+            );
+            if let Ok(resp) = client.get(&url)
+                .header("User-Agent", "bloom-launcher/1.0")
+                .send().and_then(|r| r.text())
+            {
+                #[derive(Deserialize)]
+                struct MV { files: Vec<MF> }
+                #[derive(Deserialize)]
+                struct MF { url: String }
+                if let Ok(versions) = serde_json::from_str::<Vec<MV>>(&resp) {
+                    if let Some(ver) = versions.first() {
+                        if let Some(file) = ver.files.first() {
+                            let _ = download_file(client, &file.url, &dest);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     Ok(())
 }
 

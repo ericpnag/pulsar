@@ -6,7 +6,8 @@ import net.minecraft.client.gui.DrawContext;
 
 public class CosmeticsCape extends Module {
     public static boolean showCape = true;
-    public static int capeColor = 0xFFB7C9; // Cherry blossom pink
+    public static int capeColor = 0xFFB7C9;
+    public static String capeFile = "bloom_cape.png";
 
     public CosmeticsCape() {
         super("Bloom Cape", "Show your Bloom cosmetic cape", true);

@@ -16,9 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(PlayerListEntry.class)
 public class CapeRendererMixin {
     @Unique
-    private static boolean textureRegistered = false;
-    @Unique
-    private static final Identifier BLOOM_CAPE_PATH = Identifier.of("bloom-core", "textures/cape/bloom_cape.png");
+    private static String lastRegisteredCape = null;
 
     @Inject(method = "getSkinTextures", at = @At("RETURN"), cancellable = true)
     private void onGetSkinTextures(CallbackInfoReturnable<SkinTextures> cir) {
@@ -27,16 +25,16 @@ public class CapeRendererMixin {
         if (client.player == null) return;
         PlayerListEntry self = (PlayerListEntry) (Object) this;
         if (self.getProfile().id().equals(client.player.getUuid())) {
-            // Register texture on first use
-            if (!textureRegistered) {
-                client.getTextureManager().registerTexture(BLOOM_CAPE_PATH, new ResourceTexture(BLOOM_CAPE_PATH));
-                textureRegistered = true;
+            Identifier capePath = Identifier.of("bloom-core", "textures/cape/" + CosmeticsCape.capeFile);
+
+            // Register texture if changed or first use
+            if (!CosmeticsCape.capeFile.equals(lastRegisteredCape)) {
+                client.getTextureManager().registerTexture(capePath, new ResourceTexture(capePath));
+                lastRegisteredCape = CosmeticsCape.capeFile;
             }
 
             SkinTextures original = cir.getReturnValue();
-            AssetInfo.TextureAssetInfo bloomCape = new AssetInfo.TextureAssetInfo(
-                BLOOM_CAPE_PATH, BLOOM_CAPE_PATH
-            );
+            AssetInfo.TextureAssetInfo bloomCape = new AssetInfo.TextureAssetInfo(capePath, capePath);
             cir.setReturnValue(SkinTextures.create(
                 original.body(),
                 bloomCape,
