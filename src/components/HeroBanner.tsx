@@ -65,12 +65,12 @@ function Petals({ width, height }: { width: number; height: number }) {
 
 interface Props {
   selectedVersion: string;
-  versions: string[];
-  onVersionChange: (v: string) => void;
+  versions?: string[];
+  onVersionChange?: (v: string) => void;
   onOpenPicker?: () => void;
 }
 
-export function HeroBanner({ selectedVersion, versions, onVersionChange, onOpenPicker }: Props) {
+export function HeroBanner({ selectedVersion, onOpenPicker }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (
