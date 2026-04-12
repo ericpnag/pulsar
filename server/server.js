@@ -14,8 +14,8 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: ALLOWED_ORIGIN === '*' ? true : ALLOWED_ORIGIN,
-  methods: ['POST'],
+  origin: (origin, cb) => cb(null, true), // allow all origins for payment
+  methods: ['GET', 'POST'],
 }));
 
 // ---------------------------------------------------------------------------

@@ -246,8 +246,46 @@ async function initStripe() {
   }
 }
 
-// Initialize on page load
-initStripe();
+// Check if returning from a redirect-based payment (PayPal, etc.)
+const redirectStatus = params.get('redirect_status');
+const piClientSecret = params.get('payment_intent_client_secret');
+
+if (redirectStatus === 'succeeded' && piClientSecret) {
+  // Returning from redirect payment — verify it
+  document.getElementById('purchase-view').style.display = 'none';
+  document.getElementById('processing-view').style.display = 'block';
+
+  (async () => {
+    try {
+      const tmpStripe = Stripe(params.get('pk') || '');
+      const { paymentIntent } = await tmpStripe.retrievePaymentIntent(piClientSecret);
+
+      if (paymentIntent && paymentIntent.status === 'succeeded') {
+        const verifyRes = await fetch(`${API_BASE}/verify-payment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paymentIntentId: paymentIntent.id }),
+        });
+        const verifyData = await verifyRes.json();
+        if (verifyData.success) {
+          document.getElementById('processing-view').style.display = 'none';
+          document.getElementById('success-view').style.display = 'block';
+          document.getElementById('success-amount').textContent =
+            verifyData.totalPoints.toLocaleString() + ' Bloom Points';
+        } else {
+          throw new Error('Verification failed');
+        }
+      }
+    } catch (e) {
+      document.getElementById('processing-view').style.display = 'none';
+      document.getElementById('purchase-view').style.display = 'block';
+      showError('Payment verification failed. Please contact support.');
+    }
+  })();
+} else {
+  // Normal page load — initialize Stripe
+  initStripe();
+}
 
 // ---------------------------------------------------------------------------
 // Payment handler
@@ -273,10 +311,15 @@ async function handlePayment() {
 
   try {
     // Confirm the payment using Stripe.js (card details never touch our server)
+    // Build return URL with tier + publishable key for redirect-based methods
+    const returnUrl = new URL(window.location.href);
+    returnUrl.searchParams.set('tier', tierKey);
+    returnUrl.searchParams.set('pk', stripe._apiKey || '');
+
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements: cardElement._elements,
       confirmParams: {
-        return_url: window.location.href,
+        return_url: returnUrl.toString(),
       },
       redirect: 'if_required',
     });
