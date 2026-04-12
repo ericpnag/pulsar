@@ -1,10 +1,10 @@
-const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const TIERS = {
-  '500':  { points: 500,  bonus: 0,    priceCents: 35, label: '500 Pulsar Points' },
-  '1500': { points: 1500, bonus: 200,  priceCents: 35, label: '1500 Pulsar Points' },
-  '3500': { points: 3500, bonus: 500,  priceCents: 35, label: '3500 Pulsar Points' },
-  '8000': { points: 8000, bonus: 1500, priceCents: 35, label: '8000 Pulsar Points' },
+  '500':  { points: 500,  bonus: 0,    priceCents: 50, label: '500 Pulsar Points' },
+  '1500': { points: 1500, bonus: 200,  priceCents: 50, label: '1500 Pulsar Points' },
+  '3500': { points: 3500, bonus: 500,  priceCents: 50, label: '3500 Pulsar Points' },
+  '8000': { points: 8000, bonus: 1500, priceCents: 50, label: '8000 Pulsar Points' },
 };
 
 module.exports = async (req, res) => {
@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
     const tier = TIERS[tierKey];
     if (!tier) return res.status(400).json({ error: 'Invalid tier' });
 
-    const paymentIntent = await Stripe.paymentIntents.create({
+    const paymentIntent = await stripe.paymentIntents.create({
       amount: tier.priceCents,
       currency: 'usd',
       description: tier.label,

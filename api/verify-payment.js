@@ -1,4 +1,4 @@
-const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
     const { paymentIntentId } = req.body;
     if (!paymentIntentId) return res.status(400).json({ error: 'Missing paymentIntentId' });
 
-    const paymentIntent = await Stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     if (paymentIntent.status === 'succeeded') {
       const { points, bonus, totalPoints } = paymentIntent.metadata;
