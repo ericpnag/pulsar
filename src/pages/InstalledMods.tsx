@@ -61,7 +61,7 @@ async function fetchIconsForHashes(
   return result;
 }
 
-function ModIcon({ filename, iconUrl }: { filename: string; iconUrl: string | null | undefined; isCore: boolean }) {
+function ModIcon({ iconUrl }: { filename?: string; iconUrl: string | null | undefined; isCore: boolean }) {
   if (iconUrl === undefined) {
     return (
       <div style={{

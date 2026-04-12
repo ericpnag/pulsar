@@ -27,10 +27,10 @@ app.use(express.static(path.join(__dirname, '..', 'docs')));
 // ---------------------------------------------------------------------------
 
 const TIERS = {
-  '500':  { points: 500,  bonus: 0,    priceCents: 10,  label: '500 Pulsar Points' },
-  '1500': { points: 1500, bonus: 200,  priceCents: 10,  label: '1500 Pulsar Points' },
-  '3500': { points: 3500, bonus: 500,  priceCents: 10,  label: '3500 Pulsar Points' },
-  '8000': { points: 8000, bonus: 1500, priceCents: 10,  label: '8000 Pulsar Points' },
+  '500':  { points: 500,  bonus: 0,    priceCents: 35,  label: '500 Pulsar Points' },
+  '1500': { points: 1500, bonus: 200,  priceCents: 35,  label: '1500 Pulsar Points' },
+  '3500': { points: 3500, bonus: 500,  priceCents: 35,  label: '3500 Pulsar Points' },
+  '8000': { points: 8000, bonus: 1500, priceCents: 35,  label: '8000 Pulsar Points' },
 };
 
 // ---------------------------------------------------------------------------
