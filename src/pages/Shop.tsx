@@ -133,6 +133,42 @@ export function ShopPage() {
 
   const filtered = filter === "all" ? COSMETICS : COSMETICS.filter(c => c.type === filter);
 
+  // Redeem code system
+  const [redeemCode, setRedeemCode] = useState("");
+  const [redeemMsg, setRedeemMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [showRedeem, setShowRedeem] = useState(false);
+  const [usedCodes, setUsedCodes] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem("pulsar-used-codes") || "[]"); } catch { return []; }
+  });
+
+  function redeemPoints() {
+    const code = redeemCode.trim().toUpperCase();
+    if (!code) return;
+    if (usedCodes.includes(code)) { setRedeemMsg({ text: "Code already used", ok: false }); return; }
+
+    // Valid codes: PULSAR-{amount}-{secret}
+    const VALID_CODES: Record<string, number> = {
+      "ANGRYBANGRY500": 500,
+      "PULSAR-500-GIFT": 500,
+      "PULSAR-1500-GIFT": 1500,
+      "PULSAR-3500-GIFT": 3500,
+      "PULSAR-8000-GIFT": 8000,
+      "WELCOME100": 100,
+    };
+
+    const reward = VALID_CODES[code];
+    if (reward) {
+      const newUsed = [...usedCodes, code];
+      setUsedCodes(newUsed);
+      localStorage.setItem("pulsar-used-codes", JSON.stringify(newUsed));
+      save(points + reward, purchased, equipped);
+      setRedeemMsg({ text: `+${reward} points added!`, ok: true });
+      setRedeemCode("");
+    } else {
+      setRedeemMsg({ text: "Invalid code", ok: false });
+    }
+  }
+
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", height: "100%", padding: "28px", gap: "16px", overflowY: "auto" }}>
       {/* Header */}
@@ -192,6 +228,38 @@ export function ShopPage() {
             }}>{tier.price}</div>
           </div>
         ))}
+      </div>
+
+      {/* Redeem Code */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <button onClick={() => setShowRedeem(!showRedeem)} style={{
+          background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "8px", padding: "7px 14px", fontSize: "12px", fontWeight: "600",
+          color: "var(--text-secondary)", cursor: "pointer", fontFamily: "inherit",
+          transition: "all 0.15s",
+        }}>
+          Redeem Code
+        </button>
+        {showRedeem && (
+          <>
+            <input
+              className="bloom-input"
+              value={redeemCode}
+              onChange={e => { setRedeemCode(e.target.value); setRedeemMsg(null); }}
+              onKeyDown={e => e.key === "Enter" && redeemPoints()}
+              placeholder="Enter code..."
+              style={{ flex: 1, padding: "7px 12px", fontSize: "12px" }}
+            />
+            <button onClick={redeemPoints} className="bloom-btn" style={{ padding: "7px 16px", fontSize: "12px" }}>
+              Redeem
+            </button>
+          </>
+        )}
+        {redeemMsg && (
+          <span style={{ fontSize: "12px", fontWeight: "600", color: redeemMsg.ok ? "var(--accent-green)" : "var(--accent-red)" }}>
+            {redeemMsg.text}
+          </span>
+        )}
       </div>
 
       <div style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
