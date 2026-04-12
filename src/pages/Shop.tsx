@@ -52,17 +52,16 @@ const COSMETICS: Cosmetic[] = [
 
 const TYPE_LABELS: Record<string, string> = { cape: "Capes", wings: "Wings", hat: "Hats", aura: "Auras" };
 
-// Store URL — pulsarclient.com (hosted on Vercel)
-const STORE_BASE_URL = "https://pulsarclient.com";
+// Stripe Payment Links — hosted by Stripe, no backend needed
 const POINT_TIERS = [
-  { amount: 500, price: "$2.99", priceNum: 2.99, color: "#FFFFFF", popular: false, bonus: "",
-    payUrl: `${STORE_BASE_URL}/store.html?tier=500` },
-  { amount: 1500, price: "$6.99", priceNum: 6.99, color: "#FFFFFF", popular: true, bonus: "+200 bonus",
-    payUrl: `${STORE_BASE_URL}/store.html?tier=1500` },
-  { amount: 3500, price: "$12.99", priceNum: 12.99, color: "#E0E0E0", popular: false, bonus: "+500 bonus",
-    payUrl: `${STORE_BASE_URL}/store.html?tier=3500` },
-  { amount: 8000, price: "$24.99", priceNum: 24.99, color: "#A0A0A0", popular: false, bonus: "+1500 bonus",
-    payUrl: `${STORE_BASE_URL}/store.html?tier=8000` },
+  { amount: 500, price: "$0.35", priceNum: 0.35, color: "#FFFFFF", popular: false, bonus: "",
+    payUrl: "https://buy.stripe.com/3cIdR1eEaaTu5ML72Y9MY00" },
+  { amount: 1500, price: "$0.35", priceNum: 0.35, color: "#FFFFFF", popular: true, bonus: "+200 bonus",
+    payUrl: "https://buy.stripe.com/8x23cn53A3r27UT72Y9MY01" },
+  { amount: 3500, price: "$0.35", priceNum: 0.35, color: "#E0E0E0", popular: false, bonus: "+500 bonus",
+    payUrl: "https://buy.stripe.com/14AdR1anUbXycb9evq9MY02" },
+  { amount: 8000, price: "$0.35", priceNum: 0.35, color: "#A0A0A0", popular: false, bonus: "+1500 bonus",
+    payUrl: "https://buy.stripe.com/aFa14f7bI1iU5MLevq9MY03" },
 ];
 
 // Bump this when the data format changes to force a clean slate
