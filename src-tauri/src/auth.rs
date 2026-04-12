@@ -219,6 +219,94 @@ pub fn start_microsoft_login(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// Refresh the Minecraft access token using the saved refresh_token.
+/// This must be called before launching if the token may have expired.
+#[tauri::command]
+pub fn refresh_account(state: State<AccountState>) -> Result<Account, String> {
+    let guard = state.0.lock().unwrap();
+    let account = guard.clone().or_else(|| load_account())
+        .ok_or("No account saved")?;
+    drop(guard);
+
+    if account.refresh_token.is_empty() {
+        return Err("No refresh token — please log in again".to_string());
+    }
+
+    let client = Client::new();
+
+    // Step 1: Refresh Microsoft token
+    let ms_resp: MsTokenResp = client
+        .post("https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
+        .form(&[
+            ("client_id", CLIENT_ID),
+            ("grant_type", "refresh_token"),
+            ("refresh_token", &account.refresh_token),
+            ("scope", "XboxLive.signin offline_access"),
+        ])
+        .send().map_err(|e| format!("MS refresh: {}", e))?
+        .json().map_err(|e| format!("MS refresh parse: {}", e))?;
+
+    if let Some(err) = ms_resp.error {
+        return Err(format!("MS refresh error: {} — please log in again", err));
+    }
+
+    let ms_token = ms_resp.access_token.ok_or("No MS access token from refresh")?;
+    let new_refresh = ms_resp.refresh_token.unwrap_or(account.refresh_token.clone());
+
+    // Step 2: XBL
+    let xbl: XblResp = client
+        .post("https://user.auth.xboxlive.com/user/authenticate")
+        .header("Accept", "application/json")
+        .json(&serde_json::json!({
+            "Properties": { "AuthMethod": "RPS", "SiteName": "user.auth.xboxlive.com", "RpsTicket": format!("d={}", ms_token) },
+            "RelyingParty": "http://auth.xboxlive.com",
+            "TokenType": "JWT"
+        }))
+        .send().map_err(|e| format!("XBL: {}", e))?
+        .json().map_err(|e| format!("XBL parse: {}", e))?;
+
+    let uhs = xbl.display_claims.xui.first().map(|x| x.uhs.clone()).ok_or("No UHS")?;
+
+    // Step 3: XSTS
+    let xsts: XblResp = client
+        .post("https://xsts.auth.xboxlive.com/xsts/authorize")
+        .header("Accept", "application/json")
+        .json(&serde_json::json!({
+            "Properties": { "SandboxId": "RETAIL", "UserTokens": [xbl.token] },
+            "RelyingParty": "rp://api.minecraftservices.com/",
+            "TokenType": "JWT"
+        }))
+        .send().map_err(|e| format!("XSTS: {}", e))?
+        .json().map_err(|e| format!("XSTS parse: {}", e))?;
+
+    // Step 4: Minecraft token
+    let mc: McTokenResp = client
+        .post("https://api.minecraftservices.com/authentication/login_with_xbox")
+        .header("Accept", "application/json")
+        .json(&serde_json::json!({ "identityToken": format!("XBL3.0 x={};{}", uhs, xsts.token) }))
+        .send().map_err(|e| format!("MC token: {}", e))?
+        .json().map_err(|e| format!("MC token parse: {}", e))?;
+
+    // Step 5: Get profile (username may have changed)
+    let profile: McProfile = client
+        .get("https://api.minecraftservices.com/minecraft/profile")
+        .bearer_auth(&mc.access_token)
+        .send().map_err(|e| format!("Profile: {}", e))?
+        .json().map_err(|e| format!("Profile parse: {}", e))?;
+
+    let new_account = Account {
+        username: profile.name,
+        uuid: profile.id,
+        access_token: mc.access_token,
+        refresh_token: new_refresh,
+    };
+
+    save_account_to_disk(&new_account);
+    *state.0.lock().unwrap() = Some(new_account.clone());
+
+    Ok(new_account)
+}
+
 #[tauri::command]
 pub fn get_account(state: State<AccountState>) -> Option<Account> {
     let mut guard = state.0.lock().unwrap();

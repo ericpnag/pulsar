@@ -9,10 +9,18 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import java.util.List;
 
+import static com.bloom.core.gui.BloomGui.*;
+
 public class ModuleScreen extends Screen {
     private int scrollOffset = 0;
     private int selectedModule = -1;
     private boolean waitingForKey = false; // true when listening for keybind press
+
+    /** Draw text using Inter font */
+    private void drawT(DrawContext ctx, String s, int x, int y, int color, boolean shadow) {
+        ctx.drawText(this.textRenderer, text(s, color & 0xFFFFFF), x, y, -1, false);
+    }
+    private int tw(String s) { return textW(this.textRenderer, s); }
 
     // Icon symbols for each module (matched by index in ModuleManager)
     private static final String[] ICONS = {
@@ -86,8 +94,8 @@ public class ModuleScreen extends Screen {
 
         // Title
         String title = "BLOOM MODS";
-        int tw = this.textRenderer.getWidth(title);
-        ctx.drawText(this.textRenderer, title, cx - tw / 2, 8, 0xFFFFD1DC, false);
+        int tw = tw(title);
+        drawT(ctx, title, cx - tw / 2, 8, 0xFFFFD1DC, false);
         ctx.fill(cx - 40, 19, cx + 40, 20, 0x22FFB7C9);
 
         List<Module> modules = BloomCore.MODULES.getModules();
@@ -130,22 +138,22 @@ public class ModuleScreen extends Screen {
             // Icon text
             String ico = i < ICONS.length ? ICONS[i] : "?";
             if (ico.length() > 2) ico = ico.substring(0, 2);
-            int iw = this.textRenderer.getWidth(ico);
-            ctx.drawText(this.textRenderer, ico, iconX + (iconSize - iw) / 2, iconY + 6, iconCol, false);
+            int iw = tw(ico);
+            drawT(ctx, ico, iconX + (iconSize - iw) / 2, iconY + 6, iconCol, false);
 
             // Name (right of icon)
             String name = m.getName();
-            if (this.textRenderer.getWidth(name) > cardW - iconSize - 12) {
-                while (this.textRenderer.getWidth(name + "..") > cardW - iconSize - 12 && name.length() > 3)
+            if (tw(name) > cardW - iconSize - 12) {
+                while (tw(name + "..") > cardW - iconSize - 12 && name.length() > 3)
                     name = name.substring(0, name.length() - 1);
                 name += "..";
             }
-            ctx.drawText(this.textRenderer, name, iconX + iconSize + 4, iconY + 1, hov || sel ? 0xFFF0E4E8 : 0xFFBBA4AC, false);
+            drawT(ctx, name, iconX + iconSize + 4, iconY + 1, hov || sel ? 0xFFF0E4E8 : 0xFFBBA4AC, false);
 
             // Status
             String status = on ? "ON" : "OFF";
             int statusCol = on ? 0xFF6EE7A0 : 0xFF5A4550;
-            ctx.drawText(this.textRenderer, status, iconX + iconSize + 4, iconY + 11, statusCol, false);
+            drawT(ctx, status, iconX + iconSize + 4, iconY + 11, statusCol, false);
 
             // Toggle bar at bottom
             int barY = y + cardH - 4;
@@ -160,15 +168,15 @@ public class ModuleScreen extends Screen {
             ctx.fill(px, 26, px + pw, 27, 0x33FFB7C9);
 
             // Module name
-            ctx.drawText(this.textRenderer, m.getName(), px + 10, 34, 0xFFFFD1DC, false);
-            ctx.drawText(this.textRenderer, m.getDescription(), px + 10, 46, 0xFF8A7080, false);
+            drawT(ctx, m.getName(), px + 10, 34, 0xFFFFD1DC, false);
+            drawT(ctx, m.getDescription(), px + 10, 46, 0xFF8A7080, false);
 
             // Icon
             int iconCol = selectedModule < ICON_COLORS.length ? ICON_COLORS[selectedModule] : 0xFFBBA4AC;
             ctx.fill(px + pw - 30, 30, px + pw - 6, 54, (iconCol & 0x00FFFFFF) | 0x33000000);
             String ico = selectedModule < ICONS.length ? ICONS[selectedModule] : "?";
-            int iw = this.textRenderer.getWidth(ico);
-            ctx.drawText(this.textRenderer, ico, px + pw - 18 - iw / 2, 38, iconCol, false);
+            int iw = tw(ico);
+            drawT(ctx, ico, px + pw - 18 - iw / 2, 38, iconCol, false);
 
             ctx.fill(px + 10, 58, px + pw - 10, 59, 0x22FFB7C9);
 
@@ -178,24 +186,24 @@ public class ModuleScreen extends Screen {
             boolean on = m.isEnabled();
             ctx.fill(btnX, btnY, btnX + btnW, btnY + btnH, on ? (btnHov ? 0x885ECC70 : 0x6644AA55) : (btnHov ? 0x44FFFFFF : 0x22FFFFFF));
             String toggleText = on ? "Enabled — Click to Disable" : "Disabled — Click to Enable";
-            int ttw = this.textRenderer.getWidth(toggleText);
-            ctx.drawText(this.textRenderer, toggleText, btnX + btnW / 2 - ttw / 2, btnY + 5, on ? 0xFFFFFFFF : 0xFF8A7080, false);
+            int ttw = tw(toggleText);
+            drawT(ctx, toggleText, btnX + btnW / 2 - ttw / 2, btnY + 5, on ? 0xFFFFFFFF : 0xFF8A7080, false);
 
             // Info section
             int infoY = 94;
-            ctx.drawText(this.textRenderer, "Status:", px + 10, infoY, 0xFF8A7080, false);
-            ctx.drawText(this.textRenderer, on ? "Active" : "Inactive", px + 50, infoY, on ? 0xFF6EE7A0 : 0xFF5A4550, false);
+            drawT(ctx, "Status:", px + 10, infoY, 0xFF8A7080, false);
+            drawT(ctx, on ? "Active" : "Inactive", px + 50, infoY, on ? 0xFF6EE7A0 : 0xFF5A4550, false);
 
-            ctx.drawText(this.textRenderer, "Type:", px + 10, infoY + 14, 0xFF8A7080, false);
+            drawT(ctx, "Type:", px + 10, infoY + 14, 0xFF8A7080, false);
             String type = m.hasHud() ? "HUD Overlay" : "Toggle";
-            ctx.drawText(this.textRenderer, type, px + 50, infoY + 14, 0xFFBBA4AC, false);
+            drawT(ctx, type, px + 50, infoY + 14, 0xFFBBA4AC, false);
 
             // Keybind section (if this module has one)
             String bindId = KeyBindConfig.getBindId(m.getName());
             if (bindId != null) {
                 int kbY = infoY + 32;
                 ctx.fill(px + 10, kbY - 4, px + pw - 10, kbY - 3, 0x15FFB7C9);
-                ctx.drawText(this.textRenderer, "Keybind:", px + 10, kbY, 0xFF8A7080, false);
+                drawT(ctx, "Keybind:", px + 10, kbY, 0xFF8A7080, false);
 
                 // Keybind button
                 int kbBtnX = px + 60, kbBtnW = pw - 80, kbBtnH = 16;
@@ -203,14 +211,14 @@ public class ModuleScreen extends Screen {
                 ctx.fill(kbBtnX, kbY - 2, kbBtnX + kbBtnW, kbY + kbBtnH - 2, waitingForKey ? 0x66FFB7C9 : (kbHov ? 0x33FFB7C9 : 0x22FFFFFF));
 
                 String keyText = waitingForKey ? "> Press a key <" : KeyBindConfig.getKeyName(KeyBindConfig.getKey(bindId));
-                int ktw = this.textRenderer.getWidth(keyText);
-                ctx.drawText(this.textRenderer, keyText, kbBtnX + kbBtnW / 2 - ktw / 2, kbY + 2, waitingForKey ? 0xFFFFB7C9 : 0xFFF0E4E8, false);
+                int ktw = tw(keyText);
+                drawT(ctx, keyText, kbBtnX + kbBtnW / 2 - ktw / 2, kbY + 2, waitingForKey ? 0xFFFFB7C9 : 0xFFF0E4E8, false);
             }
 
             // Close button
             int closeX = px + pw - 14, closeY = 28;
             boolean closeHov = mx >= closeX && mx <= closeX + 10 && my >= closeY && my <= closeY + 10;
-            ctx.drawText(this.textRenderer, "x", closeX + 1, closeY, closeHov ? 0xFFFF7070 : 0xFF5A4550, false);
+            drawT(ctx, "x", closeX + 1, closeY, closeHov ? 0xFFFF7070 : 0xFF5A4550, false);
         }
 
         // Bottom bar
@@ -218,8 +226,8 @@ public class ModuleScreen extends Screen {
         ctx.fill(0, h - 16, w, h - 15, 0x15FFB7C9);
         long enabled = modules.stream().filter(Module::isEnabled).count();
         String info = modules.size() + " mods | " + enabled + " active | Right Shift to close";
-        int infoW = this.textRenderer.getWidth(info);
-        ctx.drawText(this.textRenderer, info, cx - infoW / 2, h - 12, 0xFF5A4550, false);
+        int infoW = tw(info);
+        drawT(ctx, info, cx - infoW / 2, h - 12, 0xFF5A4550, false);
 
         super.render(ctx, mx, my, delta);
     }

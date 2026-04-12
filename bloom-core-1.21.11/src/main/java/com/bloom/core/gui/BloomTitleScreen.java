@@ -13,10 +13,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static com.bloom.core.gui.BloomGui.*;
+
 public class BloomTitleScreen extends Screen {
     private long openTime;
     private final List<Petal> petals = new ArrayList<>();
     private final Random rng = new Random();
+
+    private static final int BTN_COUNT = 6;
+    private final float[] hoverAnim = new float[BTN_COUNT];
+    private static final String[] BTN_LABELS = {"Singleplayer", "Multiplayer", "Bloom Mods", "Cosmetics", "Settings", "Quit Game"};
+    private static final boolean[] BTN_DANGER = {false, false, false, false, false, true};
 
     public BloomTitleScreen() {
         super(Text.literal("Bloom Client"));
@@ -27,6 +34,7 @@ public class BloomTitleScreen extends Screen {
         openTime = System.currentTimeMillis();
         petals.clear();
         for (int i = 0; i < 50; i++) petals.add(newPetal(true));
+        for (int i = 0; i < BTN_COUNT; i++) hoverAnim[i] = 0;
     }
 
     private Petal newPetal(boolean randomY) {
@@ -38,7 +46,7 @@ public class BloomTitleScreen extends Screen {
         p.vy = 0.3f + rng.nextFloat() * 0.4f;
         p.phase = rng.nextFloat() * 6.28f;
         p.wobble = 1 + rng.nextFloat() * 2;
-        p.alpha = 0.2f + rng.nextFloat() * 0.4f;
+        p.alpha = 0.15f + rng.nextFloat() * 0.35f;
         int[] pinks = {0xFFB7C9, 0xFFC0CB, 0xFFD1DC, 0xF8A4B8, 0xFFE4E9};
         p.color = pinks[rng.nextInt(pinks.length)];
         return p;
@@ -48,116 +56,133 @@ public class BloomTitleScreen extends Screen {
     public void render(DrawContext ctx, int mx, int my, float delta) {
         int w = this.width, h = this.height, cx = w / 2;
         float time = (System.currentTimeMillis() - openTime) / 1000f;
+        float openProgress = Math.min(1.0f, time / 0.4f);
+        float ease = easeOutCubic(openProgress);
 
-        // Dark purple gradient matching launcher
+        // Background gradient
         ctx.fillGradient(0, 0, w, h / 4, 0xFF120a18, 0xFF1a1028);
         ctx.fillGradient(0, h / 4, w, h / 2, 0xFF1a1028, 0xFF261438);
         ctx.fillGradient(0, h / 2, w, h * 3 / 4, 0xFF261438, 0xFF1e1030);
         ctx.fillGradient(0, h * 3 / 4, w, h, 0xFF1e1030, 0xFF0e0814);
 
-        // Radial glow in center
+        // Radial glow
         int glowA = (int)(6 + Math.sin(time * 0.8) * 3);
-        ctx.fill(cx - w/3, h/4, cx + w/3, h*3/4, (glowA << 24) | 0x301020);
+        ctx.fill(cx - w / 3, h / 4, cx + w / 3, h * 3 / 4, (glowA << 24) | 0x301020);
 
-        // Soft petals (round, not diamond)
+        // Petals
         for (int i = petals.size() - 1; i >= 0; i--) {
             Petal p = petals.get(i);
             p.x += p.vx * delta; p.y += p.vy * delta;
             p.phase += p.wobble * delta * 0.04f;
             p.x += (float) Math.sin(p.phase) * 0.12f * delta;
             if (p.y > h + 15 || p.x > w + 40) { petals.set(i, newPetal(false)); continue; }
-            int a = (int)(p.alpha * 200) << 24;
+            int a = (int)(p.alpha * 200 * ease) << 24;
             int col = a | (p.color & 0x00FFFFFF);
             int s = (int) p.size;
-            // Round petal (small filled circle approximation)
-            ctx.fill((int)p.x - s, (int)p.y - s/2, (int)p.x + s, (int)p.y + s/2, col);
+            // Round petal shape
+            ctx.fill((int) p.x - s, (int) p.y - s / 2 + 1, (int) p.x + s, (int) p.y + s / 2 - 1, col);
+            ctx.fill((int) p.x - s + 1, (int) p.y - s / 2, (int) p.x + s - 1, (int) p.y + s / 2, col);
         }
         if (rng.nextFloat() < 0.15f) petals.add(newPetal(false));
         if (petals.size() > 40) petals.subList(40, petals.size()).clear();
 
-        // Big BLOOM title
+        // Logo area
         int logoY = h / 4 - 20;
 
-        // Subtle glow behind text
-        int ga = (int)(6 + Math.sin(time * 1.0) * 4);
-        ctx.fill(cx - 80, logoY - 4, cx + 80, logoY + 46, (ga << 24) | 0xFFB0C0);
+        // Breathing glow behind logo
+        int ga = (int)((8 + Math.sin(time * 1.0) * 5) * ease);
+        drawRoundRect(ctx, cx - 90, logoY - 6, 180, 55, (ga << 24) | 0xFFB0C0);
 
-        // Draw "BLOOM" scaled up 3x
+        // "BLOOM" title in Inter at 3x
         ctx.getMatrices().pushMatrix();
         ctx.getMatrices().scale(3.0f, 3.0f);
-        String bloom = "BLOOM";
-        int bw3 = this.textRenderer.getWidth(bloom);
-        ctx.drawText(this.textRenderer, bloom, (int)(cx / 3.0f - bw3 / 2.0f), (int)(logoY / 3.0f), 0xFFFFD1DC, false);
+        int bw3 = textW(this.textRenderer, "BLOOM");
+        ctx.drawText(this.textRenderer, text("BLOOM", 0xFFD1DC), (int)(cx / 3.0f - bw3 / 2.0f), (int)(logoY / 3.0f), -1, false);
         ctx.getMatrices().popMatrix();
 
-        // Draw "MINECRAFT CLIENT" at normal size, spaced out
-        String sub = "M I N E C R A F T   C L I E N T";
-        int sw2 = this.textRenderer.getWidth(sub);
-        ctx.drawText(this.textRenderer, sub, cx - sw2 / 2, logoY + 30, 0xFF6A5060, false);
+        // Subtitle in Inter
+        String sub = "MINECRAFT CLIENT";
+        int sw = textW(this.textRenderer, sub);
+        ctx.drawText(this.textRenderer, text(sub, 0x6A5060), cx - sw / 2, logoY + 30, -1, false);
 
-        // Thin glowing separator
+        // Separator
         int sa = (int)(15 + Math.sin(time * 1.8) * 8);
         ctx.fill(cx - 50, logoY + 44, cx + 50, logoY + 45, (sa << 24) | 0xFFB0C0);
 
-        int btnW = 150;
-        int btnH = 16;
-        int gap = 3;
-        int startY = h / 4 + 40;
+        // Buttons
+        int btnW = 160, btnH = 22, gap = 4;
+        int startY = h / 4 + 44;
 
-        ctx.fill(cx - btnW/2 - 6, startY - 4, cx + btnW/2 + 6, startY + (btnH + gap) * 5 + gap + 20, 0x880a0611);
+        // Panel behind buttons
+        int panelAlpha = (int)(0x88 * ease);
+        drawRoundRect(ctx, cx - btnW / 2 - 10, startY - 6, btnW + 20,
+            (btnH + gap) * 5 + gap + btnH + 18, (panelAlpha << 24) | 0x0A0611);
 
-        drawBtn(ctx, "Singleplayer", cx, startY, btnW, btnH, mx, my, false);
-        drawBtn(ctx, "Multiplayer", cx, startY + (btnH+gap), btnW, btnH, mx, my, false);
-        drawBtn(ctx, "Bloom Mods", cx, startY + (btnH+gap)*2, btnW, btnH, mx, my, false);
-        drawBtn(ctx, "Cosmetics", cx, startY + (btnH+gap)*3, btnW, btnH, mx, my, false);
-        drawBtn(ctx, "Settings", cx, startY + (btnH+gap)*4, btnW, btnH, mx, my, false);
-        drawBtn(ctx, "Quit Game", cx, startY + (btnH+gap)*5 + 5, btnW, btnH, mx, my, true);
+        for (int i = 0; i < BTN_COUNT; i++) {
+            int by = startY + (btnH + gap) * i + (i == 5 ? 6 : 0);
+            int bx = cx - btnW / 2;
+            boolean hov = mx >= bx && mx <= bx + btnW && my >= by && my <= by + btnH;
 
-        // Bottom info
-        ctx.fill(0, h - 14, w, h, 0x990a0611);
-        ctx.drawText(this.textRenderer, "Bloom Client v1.0.0", 6, h - 11, 0xFF5A4550, false);
-        String user = MinecraftClient.getInstance().getSession().getUsername();
-        int uw = this.textRenderer.getWidth(user);
-        ctx.drawText(this.textRenderer, user, w - uw - 6, h - 11, 0xFF8A7080, false);
+            // Smooth hover animation
+            float target = hov ? 1.0f : 0.0f;
+            hoverAnim[i] += (target - hoverAnim[i]) * 0.18f * delta;
+            if (Math.abs(hoverAnim[i] - target) < 0.005f) hoverAnim[i] = target;
 
-        super.render(ctx, mx, my, delta);
-    }
+            float ha = hoverAnim[i];
 
-    private void drawBtn(DrawContext ctx, String label, int cx, int y, int bw, int bh, int mx, int my, boolean danger) {
-        int x = cx - bw / 2;
-        boolean hov = mx >= x && mx <= x + bw && my >= y && my <= y + bh;
+            // Outer glow on hover
+            if (ha > 0.01f) {
+                int glowAlpha2 = (int)(ha * 0x12);
+                drawRoundRect(ctx, bx - 2, by - 2, btnW + 4, btnH + 4, (glowAlpha2 << 24) | 0xFFB0C0);
+            }
 
-        // Background with gradient feel
-        int bg = hov ? 0x33FFB7C9 : 0x18FFFFFF;
-        ctx.fill(x, y, x + bw, y + bh, bg);
+            // Button background
+            int bgAlpha = (int)(0x15 + ha * (0x38 - 0x15));
+            int bgColor = BTN_DANGER[i] ? 0xFF5050 : 0xFFB7C9;
+            drawRoundRect(ctx, bx, by, btnW, btnH, (bgAlpha << 24) | (bgColor & 0xFFFFFF));
 
-        // Top highlight line
-        ctx.fill(x, y, x + bw, y + 1, hov ? 0x44FFB7C9 : 0x0CFFFFFF);
+            // Top highlight
+            int hlAlpha = (int)(0x08 + ha * (0x44 - 0x08));
+            ctx.fill(bx + 1, by, bx + btnW - 1, by + 1, (hlAlpha << 24) | (bgColor & 0xFFFFFF));
 
-        // Left accent on hover
-        if (hov) {
-            int accent = danger ? 0xBBFF7070 : 0xBBFFB7C9;
-            ctx.fill(x, y, x + 2, y + bh, accent);
+            // Left accent bar slides in
+            if (ha > 0.05f) {
+                int accentH = (int)(btnH * ha);
+                int accentY = by + (btnH - accentH) / 2;
+                int accent = BTN_DANGER[i] ? 0xBBFF7070 : 0xBBFFB7C9;
+                ctx.fill(bx, accentY, bx + 2, accentY + accentH, accent);
+            }
+
+            // Label in Inter font
+            int textColor;
+            if (BTN_DANGER[i]) textColor = lerpColor(0xFF8A5555, 0xFFFF9090, ha);
+            else textColor = lerpColor(0xFFBBA4AC, 0xFFF0E4E8, ha);
+            int tw = textW(this.textRenderer, BTN_LABELS[i]);
+            ctx.drawText(this.textRenderer, text(BTN_LABELS[i], textColor & 0xFFFFFF),
+                cx - tw / 2, by + (btnH - 8) / 2, -1, false);
         }
 
-        // Text
-        int tw = this.textRenderer.getWidth(label);
-        int color;
-        if (danger) color = hov ? 0xFFFF9090 : 0xFF8A5555;
-        else color = hov ? 0xFFF0E4E8 : 0xFFBBA4AC;
-        ctx.drawText(this.textRenderer, label, cx - tw / 2, y + (bh - 8) / 2, color, false);
+        // Bottom bar
+        int barAlpha = (int)(0x99 * ease);
+        ctx.fill(0, h - 16, w, h, (barAlpha << 24) | 0x0a0611);
+        ctx.drawText(this.textRenderer, text("Bloom Client v1.2.0", 0x5A4550), 6, h - 12, -1, false);
+        String user = MinecraftClient.getInstance().getSession().getUsername();
+        int uw = textW(this.textRenderer, user);
+        ctx.drawText(this.textRenderer, text(user, 0x8A7080), w - uw - 6, h - 12, -1, false);
+
+        super.render(ctx, mx, my, delta);
     }
 
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
         int cx = this.width / 2;
-        int btnW = 150, btnH = 16, gap = 3;
-        int startY = this.height / 4 + 40;
+        int btnW = 160, btnH = 22, gap = 4;
+        int startY = this.height / 4 + 44;
         int x = cx - btnW / 2;
         double mouseX = click.x(), mouseY = click.y();
 
-        for (int i = 0; i < 6; i++) {
-            int by = startY + (btnH + gap) * i + (i == 5 ? 5 : 0);
+        for (int i = 0; i < BTN_COUNT; i++) {
+            int by = startY + (btnH + gap) * i + (i == 5 ? 6 : 0);
             if (mouseX >= x && mouseX <= x + btnW && mouseY >= by && mouseY <= by + btnH) {
                 switch (i) {
                     case 0 -> client.setScreen(new SelectWorldScreen(this));

@@ -12,6 +12,15 @@ public class Zoom extends Module {
     public Zoom() { super("Zoom", "Hold key to zoom in", true); }
 
     @Override
+    public void onDisable() {
+        if (zooming) {
+            zooming = false;
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client.options != null) client.options.getFov().setValue(previousFov);
+        }
+    }
+
+    @Override
     public void onTick(MinecraftClient client) {
         if (client.player == null || client.getWindow() == null) return;
         boolean held = GLFW.glfwGetKey(client.getWindow().getHandle(), KeyBindConfig.getKey("zoom")) == GLFW.GLFW_PRESS;

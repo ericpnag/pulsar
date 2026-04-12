@@ -5,15 +5,28 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.render.entity.EntityRenderManager;
+import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.state.EntityRenderState;
+import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.texture.ResourceTexture;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.text.Style;
+import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+
+import java.io.IOException;
+import java.nio.file.*;
 
 public class CosmeticsScreen extends Screen {
     private final Screen parent;
     private int selectedCape = 0;
-    private boolean showBack = false;
+    private float playerRotation = 0;
+
+    private static final StyleSpriteSource BLOOM_FONT = new StyleSpriteSource.Font(Identifier.of("bloom-core", "inter"));
 
     private static final String[] CAPE_NAMES = {
         "Cherry Blossom", "Midnight", "Frost", "Flame",
@@ -37,6 +50,27 @@ public class CosmeticsScreen extends Screen {
         this.parent = parent;
     }
 
+    private Text txt(String s, int color) {
+        return Text.literal(s).setStyle(Style.EMPTY.withFont(BLOOM_FONT).withColor(color));
+    }
+
+    private int textW(String s) {
+        return this.textRenderer.getWidth(txt(s, 0xFFFFFF));
+    }
+
+    private void drawRoundRect(DrawContext ctx, int x, int y, int w, int h, int color) {
+        ctx.fill(x + 1, y, x + w - 1, y + h, color);
+        ctx.fill(x, y + 1, x + 1, y + h - 1, color);
+        ctx.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
+    }
+
+    private void drawRoundRectOutline(DrawContext ctx, int x, int y, int w, int h, int color) {
+        ctx.fill(x + 1, y, x + w - 1, y + 1, color);
+        ctx.fill(x + 1, y + h - 1, x + w - 1, y + h, color);
+        ctx.fill(x, y + 1, x + 1, y + h - 1, color);
+        ctx.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
+    }
+
     @Override
     protected void init() {
         if (!CosmeticsCape.showCape) {
@@ -53,19 +87,23 @@ public class CosmeticsScreen extends Screen {
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
         int w = this.width, h = this.height, cx = w / 2;
-        ctx.fill(0, 0, w, h, 0xEE0a0611);
 
-        String title = "WARDROBE";
-        ctx.drawText(this.textRenderer, title, cx - this.textRenderer.getWidth(title) / 2, 8, 0xFFFFD1DC, false);
-        ctx.fill(cx - 40, 20, cx + 40, 21, 0x22FFB7C9);
+        // Background
+        ctx.fill(0, 0, w, h, 0xF00A0611);
+
+        // Title area
+        ctx.drawText(this.textRenderer, txt("WARDROBE", 0xFFD1DC), cx - textW("WARDROBE") / 2, 10, -1, false);
+        ctx.drawText(this.textRenderer, txt("Customize your look", 0x8A7080), cx - textW("Customize your look") / 2, 22, -1, false);
+        ctx.fill(cx - 50, 33, cx + 50, 34, 0x15FFB7C9);
 
         // === LEFT: Cape grid ===
-        int leftEnd = w / 2 - 5;
-        ctx.drawText(this.textRenderer, "CAPES", leftEnd / 2 - this.textRenderer.getWidth("CAPES") / 2, 26, 0xFFFFB7C9, false);
+        int leftEnd = w / 2 - 10;
+        int leftCx = leftEnd / 2;
+        ctx.drawText(this.textRenderer, txt("CAPES", 0xFFB7C9), leftCx - textW("CAPES") / 2, 40, -1, false);
 
-        int cols = 3, cardW = 50, cardH = 56, gap = 4;
+        int cols = 3, cardW = 56, cardH = 62, gap = 6;
         int gridW = cols * cardW + (cols - 1) * gap;
-        int startX = leftEnd / 2 - gridW / 2, startY = 38;
+        int startX = leftCx - gridW / 2, startY = 54;
 
         for (int i = 0; i < CAPE_NAMES.length; i++) {
             int col = i % cols, row = i / cols;
@@ -73,91 +111,87 @@ public class CosmeticsScreen extends Screen {
             boolean hov = mouseX >= x && mouseX <= x + cardW && mouseY >= y && mouseY <= y + cardH;
             boolean sel = i == selectedCape;
 
-            ctx.fill(x, y, x + cardW, y + cardH, sel ? 0x44FFB7C9 : (hov ? 0x28FFB7C9 : 0x15FFFFFF));
+            // Card background
             if (sel) {
-                ctx.fill(x, y, x + cardW, y + 1, 0xAAFFB7C9);
-                ctx.fill(x, y + cardH - 1, x + cardW, y + cardH, 0xAAFFB7C9);
-                ctx.fill(x, y, x + 1, y + cardH, 0xAAFFB7C9);
-                ctx.fill(x + cardW - 1, y, x + cardW, y + cardH, 0xAAFFB7C9);
+                drawRoundRect(ctx, x - 1, y - 1, cardW + 2, cardH + 2, 0x22FFB7C9);
+                drawRoundRect(ctx, x, y, cardW, cardH, 0x44FFB7C9);
+                ctx.fill(x + 2, y, x + cardW - 2, y + 1, 0xAAF8A4B8);
+            } else {
+                drawRoundRect(ctx, x, y, cardW, cardH, hov ? 0x18FFB7C9 : 0x0CFFFFFF);
+                if (hov) drawRoundRectOutline(ctx, x, y, cardW, cardH, 0x22FFB7C9);
             }
 
+            // Cape preview gradient
             if (i < CAPE_TOP.length - 1) {
-                int px = x + 12, py = y + 4, pw = 26, ph = 28;
+                int px = x + 10, py = y + 5, pw = cardW - 20, ph = 28;
                 for (int r2 = 0; r2 < ph; r2++) {
                     float t = (float) r2 / (ph - 1);
                     int rv = (int)(CAPE_TOP[i][0]*(1-t) + CAPE_BOT[i][0]*t);
                     int gv = (int)(CAPE_TOP[i][1]*(1-t) + CAPE_BOT[i][1]*t);
                     int bv = (int)(CAPE_TOP[i][2]*(1-t) + CAPE_BOT[i][2]*t);
-                    int indent = Math.max(0, 3 - r2 / 5);
-                    ctx.fill(px+indent, py+r2, px+pw-indent, py+r2+1, 0xFF000000|(rv<<16)|(gv<<8)|bv);
+                    int indent = r2 < 2 ? (2 - r2) : (r2 >= ph - 2 ? (r2 - ph + 3) : 0);
+                    ctx.fill(px + indent, py + r2, px + pw - indent, py + r2 + 1, 0xFF000000|(rv<<16)|(gv<<8)|bv);
                 }
             } else {
-                ctx.drawText(this.textRenderer, "OFF", x + cardW/2 - this.textRenderer.getWidth("OFF")/2, y + 14, 0xFF5A4550, false);
+                ctx.drawText(this.textRenderer, txt("OFF", 0x5A4550), x + cardW / 2 - textW("OFF") / 2, y + 16, -1, false);
             }
 
-            String name = CAPE_NAMES[i]; int nw = this.textRenderer.getWidth(name);
-            if (nw > cardW - 4) { name = name.substring(0, Math.min(name.length(), 6)) + ".."; nw = this.textRenderer.getWidth(name); }
-            ctx.drawText(this.textRenderer, name, x + cardW/2 - nw/2, y + 35, hov||sel ? 0xFFF0E4E8 : 0xFF8A7080, false);
-            if (sel) ctx.drawText(this.textRenderer, "Equipped", x + cardW/2 - this.textRenderer.getWidth("Equipped")/2, y + 46, 0xFF6EE7A0, false);
+            // Cape name
+            String name = CAPE_NAMES[i];
+            int nw = textW(name);
+            if (nw > cardW - 4) { name = name.substring(0, Math.min(name.length(), 6)) + ".."; nw = textW(name); }
+            int nameColor = sel ? 0xF0E4E8 : (hov ? 0xBBA4AC : 0x8A7080);
+            ctx.drawText(this.textRenderer, txt(name, nameColor), x + cardW / 2 - nw / 2, y + 37, -1, false);
+
+            // Equipped label
+            if (sel && i < CAPE_FILES.length - 1) {
+                String eq = "Equipped";
+                ctx.drawText(this.textRenderer, txt(eq, 0x6EE7A0), x + cardW / 2 - textW(eq) / 2, y + 49, -1, false);
+            }
         }
 
-        // === RIGHT: 2D Back preview with cape ===
+        // === RIGHT: Preview panel ===
         int previewX = w / 2 + 5, previewW = w / 2 - 15;
         int previewCx = previewX + previewW / 2;
 
-        ctx.fill(previewX, 26, previewX + previewW, h - 30, 0x18FFFFFF);
-        ctx.fill(previewX, 26, previewX + previewW, 27, 0x22FFB7C9);
-        ctx.drawText(this.textRenderer, "BACK VIEW", previewCx - this.textRenderer.getWidth("BACK VIEW")/2, 30, 0xFF8A7080, false);
+        // Preview background with rounded rect and subtle border
+        drawRoundRect(ctx, previewX, 40, previewW, h - 74, 0x0CFFFFFF);
+        drawRoundRectOutline(ctx, previewX, 40, previewW, h - 74, 0x0FFFB0C0);
+        ctx.drawText(this.textRenderer, txt("PREVIEW", 0x8A7080), previewCx - textW("PREVIEW") / 2, 44, -1, false);
 
-        // 3D avatar preview — front view with cape info
+        // 3D avatar preview
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player != null) {
             if (CosmeticsCape.showCape && CosmeticsCape.capeFile != null) {
                 Identifier capeId = Identifier.of("bloom-core", "textures/cape/" + CosmeticsCape.capeFile);
                 mc.getTextureManager().registerTexture(capeId, new ResourceTexture(capeId));
             }
-            int entitySize = Math.min(previewW / 3, (h - 120));
-            int x1 = previewX + 8, y1 = 44, x2 = previewX + previewW - 8, y2 = h - 40;
-            // Both views use 3D drawEntity with mouse control
-            // Back view: offset mouseX so default position shows back, move mouse to rotate
-            float lookX, lookY;
-            if (showBack) {
-                // Offset mouseX: when mouse is at center of preview, entity faces away
-                int centerX = (x1 + x2) / 2;
-                lookX = (float)(2 * centerX - mouseX); // mirror around center
-                lookY = (float)(y1 + (y2 - y1) / 3); // look at upper third to keep head level
-            } else {
-                lookX = (float)mouseX;
-                lookY = (float)mouseY;
-            }
-            InventoryScreen.drawEntity(ctx, x1, y1, x2, y2, entitySize, 0.1f, lookX, lookY, mc.player);
+            int entitySize = Math.min(previewW / 3, (h - 140));
+            int x1 = previewX + 8, y1 = 56, x2 = previewX + previewW - 8, y2 = h - 50;
+            drawEntityWithRotation(ctx, x1, y1, x2, y2, entitySize, 0.0625f, playerRotation, mc.player);
         } else {
-            String np = "Join a world to preview";
-            ctx.drawText(this.textRenderer, np, previewCx - this.textRenderer.getWidth(np)/2, h/2, 0xFF5A4550, false);
+            ctx.drawText(this.textRenderer, txt("Join a world to preview", 0x5A4550),
+                previewCx - textW("Join a world to preview") / 2, h / 2, -1, false);
         }
 
-        // Cape name label
+        // Cape name label below preview
         if (selectedCape < CAPE_FILES.length - 1) {
-            String capeName = "Cape: " + CAPE_NAMES[selectedCape];
-            ctx.drawText(this.textRenderer, capeName, previewCx - this.textRenderer.getWidth(capeName)/2, h - 55, 0xFF6EE7A0, false);
+            String capeName = CAPE_NAMES[selectedCape];
+            ctx.drawText(this.textRenderer, txt(capeName, 0xFFD1DC),
+                previewCx - textW(capeName) / 2, h - 64, -1, false);
         }
 
-        // Front/Back toggle button
-        int toggleW = 80, toggleH = 14;
-        int toggleX = previewCx - toggleW / 2, toggleY = h - 42;
-        boolean toggleHov = mouseX >= toggleX && mouseX <= toggleX + toggleW && mouseY >= toggleY && mouseY <= toggleY + toggleH;
-        ctx.fill(toggleX, toggleY, toggleX + toggleW, toggleY + toggleH, toggleHov ? 0x44FFB7C9 : 0x22FFFFFF);
-        ctx.fill(toggleX, toggleY, toggleX + toggleW, toggleY + 1, toggleHov ? 0x33FFB7C9 : 0x11FFFFFF);
-        String toggleText = showBack ? "Show Front" : "Show Back";
-        ctx.drawText(this.textRenderer, toggleText, previewCx - this.textRenderer.getWidth(toggleText)/2, toggleY + 3, toggleHov ? 0xFFF0E4E8 : 0xFF8A7080, false);
-
-        // Front/Back toggle button render area for click detection later
+        // Drag hint
+        ctx.drawText(this.textRenderer, txt("Drag to rotate", 0x5A4550),
+            previewCx - textW("Drag to rotate") / 2, h - 52, -1, false);
 
         // Back button
-        int backW = 60, backH = 14, bx = cx - backW/2, by = h - 22;
-        boolean bh = mouseX >= bx && mouseX <= bx+backW && mouseY >= by && mouseY <= by+backH;
-        ctx.fill(bx, by, bx+backW, by+backH, bh ? 0x33FFB7C9 : 0x18FFFFFF);
-        ctx.drawText(this.textRenderer, "Back", cx - this.textRenderer.getWidth("Back")/2, by + 3, bh ? 0xFFF0E4E8 : 0xFF8A7080, false);
+        int backW = 80, backH = 18, bx = cx - backW / 2, by = h - 28;
+        boolean bh = mouseX >= bx && mouseX <= bx + backW && mouseY >= by && mouseY <= by + backH;
+        drawRoundRect(ctx, bx, by, backW, backH, bh ? 0x33FFB7C9 : 0x10FFFFFF);
+        drawRoundRectOutline(ctx, bx, by, backW, backH, bh ? 0x44FFB7C9 : 0x0AFFFFFF);
+        ctx.drawText(this.textRenderer, txt("Back", bh ? 0xF0E4E8 : 0x8A7080),
+            cx - textW("Back") / 2, by + 5, -1, false);
 
         super.render(ctx, mouseX, mouseY, delta);
     }
@@ -168,9 +202,9 @@ public class CosmeticsScreen extends Screen {
         int w = this.width, cx = w / 2;
 
         // Cape cards
-        int leftEnd = w / 2 - 5, cols = 3, cardW = 50, cardH = 56, gap = 4;
+        int leftEnd = w / 2 - 10, cols = 3, cardW = 56, cardH = 62, gap = 6;
         int gridW = cols * cardW + (cols - 1) * gap;
-        int startX = leftEnd / 2 - gridW / 2, startY = 38;
+        int startX = leftEnd / 2 - gridW / 2, startY = 54;
         for (int i = 0; i < CAPE_NAMES.length; i++) {
             int col = i % cols, row = i / cols;
             int x = startX + col * (cardW + gap), y = startY + row * (cardH + gap);
@@ -182,24 +216,98 @@ public class CosmeticsScreen extends Screen {
                     Identifier id = Identifier.of("bloom-core", "textures/cape/" + CAPE_FILES[i]);
                     MinecraftClient.getInstance().getTextureManager().registerTexture(id, new ResourceTexture(id));
                 }
+                syncCosmeticsToFile();
                 return true;
             }
         }
 
-        // Front/Back toggle
-        int previewCx2 = (w / 2 + 5) + (w / 2 - 15) / 2;
-        int toggleW = 80, toggleH = 14;
-        int toggleX = previewCx2 - toggleW / 2, toggleY = this.height - 42;
-        if (mx >= toggleX && mx <= toggleX + toggleW && my >= toggleY && my <= toggleY + toggleH) {
-            showBack = !showBack; return true;
-        }
-
         // Back button
-        int backW = 60, backH = 14, bx = cx - backW/2, by = this.height - 22;
-        if (mx >= bx && mx <= bx+backW && my >= by && my <= by+backH) { client.setScreen(parent); return true; }
+        int backW = 80, backH = 18, bx = cx - backW / 2, by = this.height - 28;
+        if (mx >= bx && mx <= bx + backW && my >= by && my <= by + backH) { client.setScreen(parent); return true; }
         return super.mouseClicked(click, bl);
+    }
+
+    @Override
+    public boolean mouseDragged(Click click, double deltaX, double deltaY) {
+        playerRotation += (float) deltaX * 1.5f;
+        return true;
+    }
+
+    /** Sync the current cape selection to the shared bloom-cosmetics.json file */
+    private void syncCosmeticsToFile() {
+        try {
+            // The shared file lives in the bloom app data dir (parent of game dir)
+            Path gameDir = MinecraftClient.getInstance().runDirectory.toPath();
+            Path bloomDir = gameDir.getParent().getParent(); // profiles/1.21.11 -> profiles -> bloom
+            Path cosmeticsFile = bloomDir.resolve("bloom-cosmetics.json");
+
+            // Read existing data or create default
+            String json;
+            if (Files.exists(cosmeticsFile)) {
+                json = Files.readString(cosmeticsFile);
+            } else {
+                json = "{\"points\":500,\"owned\":[],\"equipped\":{}}";
+            }
+
+            // Simple JSON manipulation (avoid adding a JSON library dependency)
+            // Update the "equipped" cape field
+            String capeId = "";
+            if (CosmeticsCape.showCape && CosmeticsCape.capeFile != null) {
+                // Map cape file to cosmetic ID
+                String[] ids = {"cape_blossom", "cape_midnight", "cape_frost", "cape_flame",
+                    "cape_ocean", "cape_emerald", "cape_sunset", "cape_galaxy"};
+                for (int j = 0; j < CAPE_FILES.length - 1; j++) {
+                    if (CAPE_FILES[j] != null && CAPE_FILES[j].equals(CosmeticsCape.capeFile)) {
+                        capeId = ids[j]; break;
+                    }
+                }
+            }
+
+            // Replace or add the cape in equipped
+            if (json.contains("\"equipped\"")) {
+                // Replace entire equipped section
+                int eqStart = json.indexOf("\"equipped\"");
+                int braceStart = json.indexOf("{", eqStart + 10);
+                int braceEnd = json.indexOf("}", braceStart) + 1;
+                String newEquipped = capeId.isEmpty()
+                    ? "\"equipped\":{}"
+                    : "\"equipped\":{\"cape\":\"" + capeId + "\"}";
+                json = json.substring(0, eqStart) + newEquipped + json.substring(braceEnd);
+            }
+
+            Files.writeString(cosmeticsFile, json);
+        } catch (Exception ignored) {}
     }
 
     @Override public boolean shouldCloseOnEsc() { return true; }
     @Override public void close() { client.setScreen(parent); }
+
+    private static void drawEntityWithRotation(DrawContext ctx, int x1, int y1, int x2, int y2,
+                                                int size, float yOffset, float rotationDegrees,
+                                                LivingEntity entity) {
+        Quaternionf flipQuat = new Quaternionf().rotateZ((float) Math.PI);
+        Quaternionf tiltQuat = new Quaternionf();
+
+        MinecraftClient mc = MinecraftClient.getInstance();
+        EntityRenderManager dispatcher = mc.getEntityRenderDispatcher();
+        @SuppressWarnings("rawtypes")
+        EntityRenderer renderer = dispatcher.getRenderer(entity);
+        @SuppressWarnings("unchecked")
+        EntityRenderState state = (EntityRenderState) renderer.getAndUpdateRenderState(entity, 1.0f);
+        state.light = 15728880;
+        state.shadowPieces.clear();
+        state.outlineColor = 0;
+
+        if (state instanceof LivingEntityRenderState livingState) {
+            livingState.bodyYaw = 180.0f + rotationDegrees;
+            livingState.relativeHeadYaw = 0.0f;
+            livingState.pitch = 0.0f;
+            livingState.width /= livingState.baseScale;
+            livingState.height /= livingState.baseScale;
+            livingState.baseScale = 1.0f;
+        }
+
+        Vector3f offset = new Vector3f(0.0f, state.height / 2.0f + yOffset, 0.0f);
+        ctx.addEntity(state, (float) size, offset, flipQuat, tiltQuat, x1, y1, x2, y2);
+    }
 }

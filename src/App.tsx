@@ -88,11 +88,32 @@ export default function App() {
     unlisteners.push(u3);
 
     try {
+      // Refresh auth token before launch to ensure multiplayer works
+      let launchAccount = account;
+      if (account?.accessToken) {
+        try {
+          setStatus("Refreshing session...");
+          const refreshed = await invoke<any>("refresh_account");
+          if (refreshed) {
+            // Map snake_case (from Rust) to camelCase (for our frontend)
+            const mapped = {
+              username: refreshed.username,
+              uuid: refreshed.uuid,
+              accessToken: refreshed.access_token,
+            };
+            launchAccount = mapped;
+            setAccount(mapped);
+          }
+        } catch {
+          // Refresh failed — try launching with existing token anyway
+        }
+      }
+
       await invoke("launch_minecraft", {
         version: selectedVersion,
-        username: account?.username ?? null,
-        uuid: account?.uuid ?? null,
-        accessToken: account?.accessToken ?? null,
+        username: launchAccount?.username ?? null,
+        uuid: launchAccount?.uuid ?? null,
+        accessToken: launchAccount?.accessToken ?? null,
       });
     } catch (e: any) {
       setPhase("error");
@@ -185,7 +206,9 @@ export default function App() {
               </div>
             )}
 
-            {/* Info cards */}
+            {/* Daily Reward + Info cards */}
+            <DailyReward />
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
               <div className="bloom-card" style={{ padding: "18px 20px" }}>
                 <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: "10px", textTransform: "uppercase" }}>
@@ -326,6 +349,123 @@ export default function App() {
         );
       })()}
       {loginModal && <LoginModal {...loginModal} onClose={() => setLoginModal(null)} />}
+    </div>
+  );
+}
+
+function DailyReward() {
+  const REWARDS = [50, 75, 100, 150, 100, 125, 250]; // Sun-Sat
+  const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const [streak, setStreak] = useState(0);
+  const [claimed, setClaimed] = useState(false);
+  const [showAnim, setShowAnim] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("bloom-daily");
+    if (saved) {
+      const data = JSON.parse(saved);
+      const lastClaim = new Date(data.lastClaim);
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - lastClaim.getTime()) / 86400000);
+      if (diffDays === 0) {
+        setClaimed(true);
+        setStreak(data.streak || 0);
+      } else if (diffDays === 1) {
+        setStreak(data.streak || 0);
+      } else {
+        setStreak(0); // missed a day, reset
+      }
+    }
+  }, []);
+
+  function claim() {
+    if (claimed) return;
+    const newStreak = streak + 1;
+    const dayIndex = new Date().getDay();
+    const reward = REWARDS[dayIndex];
+
+    // Add points to cosmetics (shared file + localStorage)
+    invoke<string>("get_cosmetics").then(raw => {
+      const cosmetics = JSON.parse(raw);
+      cosmetics.points = (cosmetics.points || 0) + reward;
+      const json = JSON.stringify(cosmetics);
+      invoke("save_cosmetics", { data: json }).catch(() => {});
+      localStorage.setItem("bloom-cosmetics", json);
+    }).catch(() => {
+      const cosmetics = JSON.parse(localStorage.getItem("bloom-cosmetics") || '{"points":500,"owned":[],"equipped":{}}');
+      cosmetics.points = (cosmetics.points || 0) + reward;
+      localStorage.setItem("bloom-cosmetics", JSON.stringify(cosmetics));
+    });
+
+    // Save daily state
+    localStorage.setItem("bloom-daily", JSON.stringify({
+      lastClaim: new Date().toISOString(),
+      streak: newStreak,
+    }));
+
+    setClaimed(true);
+    setStreak(newStreak);
+    setShowAnim(true);
+    setTimeout(() => setShowAnim(false), 2000);
+  }
+
+  const todayIndex = new Date().getDay();
+  const todayReward = REWARDS[todayIndex];
+
+  return (
+    <div className="bloom-card" style={{
+      padding: "18px 22px",
+      background: claimed ? "rgba(110,231,160,0.03)" : "rgba(255,176,192,0.04)",
+      border: claimed ? "1px solid rgba(110,231,160,0.1)" : "1px solid rgba(255,176,192,0.12)",
+      position: "relative", overflow: "hidden",
+    }}>
+      {showAnim && (
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(circle at center, rgba(255,176,192,0.15) 0%, transparent 70%)",
+          animation: "pulse-glow 1s ease-out",
+        }} />
+      )}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "6px" }}>
+            Daily Reward {streak > 0 && <span style={{ color: "var(--pink-300)" }}>• {streak} day streak</span>}
+          </div>
+          <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+            {DAY_NAMES.map((d, i) => (
+              <div key={d} style={{
+                width: "36px", textAlign: "center", padding: "4px 0", borderRadius: "6px", fontSize: "10px",
+                background: i === todayIndex
+                  ? (claimed ? "rgba(110,231,160,0.12)" : "rgba(255,176,192,0.12)")
+                  : "rgba(255,255,255,0.02)",
+                border: i === todayIndex
+                  ? (claimed ? "1px solid rgba(110,231,160,0.2)" : "1px solid rgba(255,176,192,0.15)")
+                  : "1px solid transparent",
+              }}>
+                <div style={{ color: i === todayIndex ? (claimed ? "var(--accent-green)" : "var(--pink-200)") : "var(--text-faint)", fontWeight: "600" }}>{d}</div>
+                <div style={{ color: i === todayIndex ? "var(--text-primary)" : "var(--text-dim)", fontWeight: "700", fontSize: "11px" }}>{REWARDS[i]}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={claim}
+          disabled={claimed}
+          style={{
+            padding: "10px 22px", borderRadius: "8px", border: "none", cursor: claimed ? "default" : "pointer",
+            background: claimed
+              ? "rgba(110,231,160,0.08)"
+              : "linear-gradient(135deg, var(--pink-300), var(--pink-400))",
+            color: claimed ? "var(--accent-green)" : "#1a0a12",
+            fontSize: "12px", fontWeight: "800", letterSpacing: "0.05em",
+            fontFamily: "inherit", transition: "all 0.2s",
+            boxShadow: claimed ? "none" : "0 2px 12px rgba(255,176,192,0.2)",
+          }}
+        >
+          {claimed ? `✓ Claimed +${todayReward}` : `Claim +${todayReward}`}
+        </button>
+      </div>
     </div>
   );
 }

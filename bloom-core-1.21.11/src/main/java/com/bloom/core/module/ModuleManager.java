@@ -14,8 +14,7 @@ public class ModuleManager {
         modules.add(new Coordinates());
         modules.add(new DirectionHud());
         modules.add(new Zoom());
-        modules.add(new BundledMod("Freelook", "Hold key to look around freely"));
-        modules.add(new BundledMod("Better Hitreg", "Improved hit registration"));
+        modules.add(new Freelook());
         modules.add(new PingDisplay());
         modules.add(new CpsCounter());
         modules.add(new ComboCounter());
@@ -33,7 +32,14 @@ public class ModuleManager {
         modules.add(new LowFire());
         modules.add(new LowShield());
         modules.add(new CosmeticsCape());
+        modules.add(new CosmeticsHalo());
         modules.add(new PerformanceBoost());
+        modules.add(new Fullbright());
+        modules.add(new FovChanger());
+        modules.add(new HurtCam());
+        modules.add(new WeatherChanger());
+        modules.add(new AutoGG());
+        modules.add(new TntTimer());
     }
 
     public List<Module> getModules() {

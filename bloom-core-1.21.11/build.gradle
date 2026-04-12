@@ -24,6 +24,7 @@ dependencies {
 		"fabric-lifecycle-events-v1",
 		"fabric-rendering-v1",
 		"fabric-screen-api-v1",
+		"fabric-networking-api-v1",
 	]
 	apiModules.each { module ->
 		modImplementation fabricApi.module(module, project.fabric_version)

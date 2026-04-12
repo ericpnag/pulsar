@@ -19,9 +19,12 @@ pub fn run() {
             launcher::uninstall_mod,
             launcher::list_installed_mods,
             launcher::install_resourcepack,
+            launcher::get_cosmetics,
+            launcher::save_cosmetics,
             auth::start_microsoft_login,
             auth::get_account,
             auth::save_account,
+            auth::refresh_account,
             auth::logout,
         ])
         .run(tauri::generate_context!())

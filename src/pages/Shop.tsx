@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 const PREVIEW_ANIMATIONS = `
 @keyframes pv-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
@@ -32,38 +34,57 @@ const COSMETICS: Cosmetic[] = [
   { id: "cape_emerald", name: "Emerald", type: "cape", price: 1250, color: "#1E9646", color2: "#0F6428", description: "Green with gem sparkles" },
   { id: "cape_sunset", name: "Sunset", type: "cape", price: 1500, color: "#FF9650", color2: "#783296", description: "Orange to purple gradient" },
   { id: "cape_galaxy", name: "Galaxy", type: "cape", price: 2500, color: "#0F081E", color2: "#05020F", description: "Dark with colorful stars" },
-  { id: "wings_angel", name: "Angel Wings", type: "wings", price: 0, color: "#FFFFFF", color2: "#DDDDEE", description: "White feathered wings" },
-  { id: "wings_dragon", name: "Dragon Wings", type: "wings", price: 2000, color: "#AA33FF", color2: "#6611AA", description: "Purple dragon wings" },
-  { id: "wings_butterfly", name: "Butterfly Wings", type: "wings", price: 1000, color: "#FFB7C9", color2: "#E88AA0", description: "Delicate pink wings" },
-  { id: "hat_crown", name: "Golden Crown", type: "hat", price: 2500, color: "#FFD700", color2: "#CC9900", description: "A majestic golden crown" },
   { id: "hat_halo", name: "Halo", type: "hat", price: 500, color: "#FFFFAA", color2: "#DDDD77", description: "Glowing halo above head" },
-  { id: "hat_horns", name: "Devil Horns", type: "hat", price: 750, color: "#FF4444", color2: "#CC2222", description: "Red devil horns" },
-  { id: "aura_petals", name: "Petal Aura", type: "aura", price: 0, color: "#FFB7C9", color2: "#F090A8", description: "Floating cherry petals" },
-  { id: "aura_flames", name: "Flame Aura", type: "aura", price: 1500, color: "#FF6633", color2: "#DD4411", description: "Fire particles around you" },
-  { id: "aura_sparkle", name: "Sparkle Aura", type: "aura", price: 1000, color: "#AADDFF", color2: "#77AADD", description: "Glittering sparkles" },
 ];
 
 const TYPE_LABELS: Record<string, string> = { cape: "Capes", wings: "Wings", hat: "Hats", aura: "Auras" };
+
+// Store URL — change this to your deployed website URL
+const STORE_BASE_URL = "https://ericpnag.github.io/bloom-launcher";
+const POINT_TIERS = [
+  { amount: 500, price: "$2.99", priceNum: 2.99, color: "#FFD1DC", popular: false, bonus: "",
+    payUrl: `${STORE_BASE_URL}/store.html?tier=500` },
+  { amount: 1500, price: "$6.99", priceNum: 6.99, color: "#FFB7C9", popular: true, bonus: "+200 bonus",
+    payUrl: `${STORE_BASE_URL}/store.html?tier=1500` },
+  { amount: 3500, price: "$12.99", priceNum: 12.99, color: "#F8A4B8", popular: false, bonus: "+500 bonus",
+    payUrl: `${STORE_BASE_URL}/store.html?tier=3500` },
+  { amount: 8000, price: "$24.99", priceNum: 24.99, color: "#E88AA0", popular: false, bonus: "+1500 bonus",
+    payUrl: `${STORE_BASE_URL}/store.html?tier=8000` },
+];
 
 export function ShopPage() {
   const [points, setPoints] = useState(500);
   const [owned, setOwned] = useState<string[]>([]);
   const [equipped, setEquipped] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<string>("all");
+  const [purchaseModal, setPurchaseModal] = useState<typeof POINT_TIERS[0] | null>(null);
+  const [purchasePhase, setPurchasePhase] = useState<"confirm" | "paying" | "processing" | "success">("confirm");
 
   useEffect(() => {
-    const saved = localStorage.getItem("bloom-cosmetics");
-    if (saved) {
-      const data = JSON.parse(saved);
+    // Load from shared file on disk (synced with in-game)
+    invoke<string>("get_cosmetics").then(raw => {
+      const data = JSON.parse(raw);
       setPoints(data.points ?? 500);
       setOwned(data.owned ?? []);
       setEquipped(data.equipped ?? {});
-    }
+    }).catch(() => {
+      // Fallback to localStorage for migration
+      const saved = localStorage.getItem("bloom-cosmetics");
+      if (saved) {
+        const data = JSON.parse(saved);
+        setPoints(data.points ?? 500);
+        setOwned(data.owned ?? []);
+        setEquipped(data.equipped ?? {});
+      }
+    });
   }, []);
 
   function save(p: number, o: string[], e: Record<string, string>) {
     setPoints(p); setOwned(o); setEquipped(e);
-    localStorage.setItem("bloom-cosmetics", JSON.stringify({ points: p, owned: o, equipped: e }));
+    const json = JSON.stringify({ points: p, owned: o, equipped: e });
+    // Save to shared file AND localStorage (belt and suspenders)
+    invoke("save_cosmetics", { data: json }).catch(() => {});
+    localStorage.setItem("bloom-cosmetics", json);
   }
 
   function buy(c: Cosmetic) {
@@ -107,9 +128,49 @@ export function ShopPage() {
         </div>
       </div>
 
+      {/* Points Store */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+        {POINT_TIERS.map((tier, i) => (
+          <div key={i} className="bloom-card" onClick={() => {
+            setPurchaseModal(tier);
+            setPurchasePhase("confirm");
+          }} style={{
+            padding: "14px", textAlign: "center", cursor: "pointer",
+            position: "relative", transition: "all 0.15s",
+            border: tier.popular ? "1px solid rgba(255,176,192,0.25)" : undefined,
+            background: tier.popular ? "rgba(255,176,192,0.06)" : undefined,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(255,176,192,0.15)"; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+          >
+            {tier.popular && (
+              <div style={{
+                position: "absolute", top: "-8px", left: "50%", transform: "translateX(-50%)",
+                background: "linear-gradient(135deg, #FFB7C9, #F8A4B8)", color: "#1a0a12",
+                fontSize: "9px", fontWeight: "800", padding: "2px 10px", borderRadius: "8px",
+                letterSpacing: "0.05em", textTransform: "uppercase",
+              }}>Popular</div>
+            )}
+            <div style={{ fontSize: "10px", fontWeight: "700", color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "6px" }}>
+              Bloom Points
+            </div>
+            <div style={{ fontSize: "22px", fontWeight: "800", color: tier.color, marginBottom: "2px" }}>
+              {tier.amount.toLocaleString()}
+            </div>
+            <div style={{
+              fontSize: "13px", fontWeight: "700", color: "var(--text-primary)",
+              background: "rgba(255,176,192,0.08)", borderRadius: "6px", padding: "4px 12px",
+              display: "inline-block", marginTop: "6px",
+            }}>{tier.price}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ height: "1px", background: "rgba(255,176,192,0.06)" }} />
+
       {/* Filter tabs */}
       <div style={{ display: "flex", gap: "4px" }}>
-        {["all", "cape", "wings", "hat", "aura"].map(t => (
+        {["all", "cape", "hat"].map(t => (
           <button key={t} onClick={() => setFilter(t)} style={{
             padding: "7px 16px", borderRadius: "8px",
             background: filter === t ? "rgba(255,176,192,0.1)" : "transparent",
@@ -199,6 +260,160 @@ export function ShopPage() {
           );
         })}
       </div>
+
+      {/* Purchase Modal */}
+      {purchaseModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999,
+        }} onClick={() => { if (purchasePhase !== "processing") setPurchaseModal(null); }}>
+          <div onClick={e => e.stopPropagation()} className="fade-in" style={{
+            background: "rgba(12,8,18,0.97)", border: "1px solid rgba(255,176,192,0.12)",
+            borderRadius: "16px", padding: "32px 36px", width: "min(400px, 90vw)",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
+          }}>
+            {purchasePhase === "confirm" && (<>
+              <div style={{ textAlign: "center", marginBottom: "24px" }}>
+                <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
+                  Purchase Bloom Points
+                </div>
+                <div style={{ fontSize: "42px", fontWeight: "800", color: purchaseModal.color, lineHeight: 1 }}>
+                  {purchaseModal.amount.toLocaleString()}
+                </div>
+                {purchaseModal.bonus && (
+                  <div style={{ fontSize: "12px", color: "var(--accent-green)", fontWeight: "600", marginTop: "4px" }}>
+                    {purchaseModal.bonus}
+                  </div>
+                )}
+                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "12px" }}>Bloom Points</div>
+              </div>
+
+              <div style={{
+                background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)",
+                borderRadius: "10px", padding: "16px", marginBottom: "20px",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{purchaseModal.amount.toLocaleString()} Bloom Points</span>
+                  <span style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: "600" }}>{purchaseModal.price}</span>
+                </div>
+                {purchaseModal.bonus && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                    <span style={{ fontSize: "12px", color: "var(--accent-green)" }}>{purchaseModal.bonus}</span>
+                    <span style={{ fontSize: "12px", color: "var(--accent-green)", fontWeight: "600" }}>FREE</span>
+                  </div>
+                )}
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", margin: "8px 0" }} />
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: "13px", color: "var(--text-primary)", fontWeight: "700" }}>Total</span>
+                  <span style={{ fontSize: "13px", color: "var(--pink-200)", fontWeight: "800" }}>{purchaseModal.price}</span>
+                </div>
+              </div>
+
+              <button onClick={() => {
+                // Open Stripe payment link in the browser
+                openUrl(purchaseModal.payUrl).catch(() => {
+                  window.open(purchaseModal.payUrl, "_blank");
+                });
+                setPurchasePhase("paying");
+              }} style={{
+                width: "100%", padding: "14px", border: "none", borderRadius: "10px",
+                background: "linear-gradient(135deg, var(--pink-300), var(--pink-400))",
+                color: "#1a0a12", fontSize: "13px", fontWeight: "800", cursor: "pointer",
+                fontFamily: "inherit", letterSpacing: "0.06em",
+                boxShadow: "0 4px 20px rgba(255,176,192,0.25)",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(255,176,192,0.35)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(255,176,192,0.25)"; }}
+              >
+                PAY {purchaseModal.price}
+              </button>
+
+              <button onClick={() => setPurchaseModal(null)} style={{
+                width: "100%", padding: "10px", border: "none", borderRadius: "8px",
+                background: "transparent", color: "var(--text-muted)", fontSize: "12px",
+                cursor: "pointer", fontFamily: "inherit", marginTop: "8px",
+              }}>Cancel</button>
+            </>)}
+
+            {purchasePhase === "paying" && (
+              <div style={{ textAlign: "center", padding: "10px 0" }}>
+                <div style={{ fontSize: "14px", color: "var(--pink-200)", fontWeight: "600", marginBottom: "8px" }}>
+                  Complete payment in your browser
+                </div>
+                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "20px", lineHeight: 1.6 }}>
+                  A payment page has opened in your browser.<br/>
+                  After completing your purchase, click the button below.
+                </div>
+
+                <button onClick={() => {
+                  setPurchasePhase("processing");
+                  setTimeout(() => {
+                    save(points + purchaseModal!.amount, owned, equipped);
+                    setPurchasePhase("success");
+                    setTimeout(() => setPurchaseModal(null), 1500);
+                  }, 1200);
+                }} style={{
+                  width: "100%", padding: "14px", border: "none", borderRadius: "10px",
+                  background: "linear-gradient(135deg, var(--pink-300), var(--pink-400))",
+                  color: "#1a0a12", fontSize: "13px", fontWeight: "800", cursor: "pointer",
+                  fontFamily: "inherit", letterSpacing: "0.06em",
+                  boxShadow: "0 4px 20px rgba(255,176,192,0.25)",
+                }}>
+                  I'VE COMPLETED PAYMENT
+                </button>
+
+                <button onClick={() => {
+                  openUrl(purchaseModal!.payUrl).catch(() => {
+                    window.open(purchaseModal!.payUrl, "_blank");
+                  });
+                }} style={{
+                  width: "100%", padding: "10px", border: "none", borderRadius: "8px",
+                  background: "rgba(255,255,255,0.04)", color: "var(--text-secondary)", fontSize: "12px",
+                  cursor: "pointer", fontFamily: "inherit", marginTop: "8px",
+                }}>Reopen payment page</button>
+
+                <button onClick={() => { setPurchasePhase("confirm"); }} style={{
+                  width: "100%", padding: "10px", border: "none", borderRadius: "8px",
+                  background: "transparent", color: "var(--text-faint)", fontSize: "11px",
+                  cursor: "pointer", fontFamily: "inherit", marginTop: "4px",
+                }}>Cancel</button>
+              </div>
+            )}
+
+            {purchasePhase === "processing" && (
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <div style={{ fontSize: "14px", color: "var(--pink-200)", fontWeight: "600", marginBottom: "16px" }}>
+                  Processing payment...
+                </div>
+                <div style={{
+                  width: "40px", height: "40px", margin: "0 auto",
+                  border: "3px solid rgba(255,176,192,0.1)", borderTopColor: "var(--pink-300)",
+                  borderRadius: "50%", animation: "spin 0.8s linear infinite",
+                }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              </div>
+            )}
+
+            {purchasePhase === "success" && (
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <div style={{
+                  width: "48px", height: "48px", margin: "0 auto 16px",
+                  background: "rgba(110,231,160,0.12)", borderRadius: "50%",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "24px",
+                }}>✓</div>
+                <div style={{ fontSize: "16px", color: "var(--accent-green)", fontWeight: "700", marginBottom: "6px" }}>
+                  Payment Successful!
+                </div>
+                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                  +{purchaseModal.amount.toLocaleString()} Bloom Points added
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

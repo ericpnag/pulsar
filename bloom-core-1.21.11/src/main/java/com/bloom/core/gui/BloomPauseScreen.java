@@ -9,92 +9,153 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static com.bloom.core.gui.BloomGui.*;
+
 public class BloomPauseScreen extends Screen {
-    private final List<float[]> petals = new ArrayList<>();
+    private final List<Petal> petals = new ArrayList<>();
     private final Random rng = new Random();
+    private long openTime;
+
+    private static final int BTN_COUNT = 5;
+    private final float[] hoverAnim = new float[BTN_COUNT];
+    private static final String[] BTN_LABELS = {"Resume", "Bloom Mods", "Cosmetics", "Settings", "Disconnect"};
+    private static final boolean[] BTN_DANGER = {false, false, false, false, true};
 
     public BloomPauseScreen() { super(Text.literal("Game Menu")); }
 
     @Override
     protected void init() {
+        openTime = System.currentTimeMillis();
         petals.clear();
-        int[] pinks = {0xBBFFB7C9, 0xAAFFC0CB, 0x99FFD1DC, 0xBBF8A4B8};
-        for (int i = 0; i < 20; i++) {
-            petals.add(new float[]{
-                rng.nextFloat() * this.width, rng.nextFloat() * this.height,
-                0.1f + rng.nextFloat() * 0.25f, 0.12f + rng.nextFloat() * 0.2f,
-                1 + rng.nextInt(2), Float.intBitsToFloat(pinks[rng.nextInt(pinks.length)]),
-                rng.nextFloat() * 6.28f, 1 + rng.nextFloat() * 2
-            });
-        }
+        for (int i = 0; i < 20; i++) petals.add(newPetal());
+        for (int i = 0; i < BTN_COUNT; i++) hoverAnim[i] = 0;
+    }
+
+    private Petal newPetal() {
+        Petal p = new Petal();
+        p.x = rng.nextFloat() * this.width;
+        p.y = rng.nextFloat() * this.height;
+        p.vx = 0.1f + rng.nextFloat() * 0.25f;
+        p.vy = 0.12f + rng.nextFloat() * 0.2f;
+        p.size = 1 + rng.nextInt(2);
+        int[] pinks = {0xFFB7C9, 0xFFC0CB, 0xFFD1DC, 0xF8A4B8};
+        p.color = pinks[rng.nextInt(pinks.length)];
+        p.phase = rng.nextFloat() * 6.28f;
+        p.wobble = 1 + rng.nextFloat() * 2;
+        p.alpha = 0.3f + rng.nextFloat() * 0.3f;
+        return p;
     }
 
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
         int w = this.width, h = this.height, cx = w / 2;
-        // Dark purple overlay matching launcher
-        ctx.fillGradient(0, 0, w, h / 2, 0xDD120a18, 0xDD1a1028);
-        ctx.fillGradient(0, h / 2, w, h, 0xDD1a1028, 0xDD0e0814);
+        float time = (System.currentTimeMillis() - openTime) / 1000f;
+        float openProgress = Math.min(1.0f, time / 0.25f);
+        float ease = easeOutCubic(openProgress);
+
+        // Dark overlay
+        int overlayAlpha = (int)(0xCC * ease);
+        ctx.fillGradient(0, 0, w, h / 2, (overlayAlpha << 24) | 0x120a18, (overlayAlpha << 24) | 0x1a1028);
+        ctx.fillGradient(0, h / 2, w, h, (overlayAlpha << 24) | 0x1a1028, (overlayAlpha << 24) | 0x0e0814);
 
         // Petals
-        for (float[] p : petals) {
-            p[0] += p[2] * delta; p[1] += p[3] * delta;
-            p[6] += p[7] * delta * 0.04f;
-            p[0] += (float) Math.sin(p[6]) * 0.08f * delta;
-            if (p[1] > h + 5 || p[0] > w + 10) { p[0] = -5; p[1] = rng.nextFloat() * h * 0.3f; }
-            int s = (int) p[4];
-            ctx.fill((int)p[0], (int)p[1], (int)p[0]+s, (int)p[1]+s, Float.floatToIntBits(p[5]));
+        for (Petal p : petals) {
+            p.x += p.vx * delta; p.y += p.vy * delta;
+            p.phase += p.wobble * delta * 0.04f;
+            p.x += (float) Math.sin(p.phase) * 0.08f * delta;
+            if (p.y > h + 5 || p.x > w + 10) { p.x = -5; p.y = rng.nextFloat() * h * 0.3f; }
+            int a = (int)(p.alpha * 180 * ease) << 24;
+            int col = a | (p.color & 0x00FFFFFF);
+            int s = (int) p.size;
+            ctx.fill((int) p.x - s, (int) p.y, (int) p.x + s, (int) p.y + s, col);
         }
 
-        // Panel
-        int pw = 200, ph = 165;
-        int px = cx - pw / 2, py = h / 2 - ph / 2;
-        ctx.fill(px, py, px + pw, py + ph, 0xEE0a0611);
-        ctx.fill(px, py, px + pw, py + 1, 0x33FFB7C9);
-        ctx.fill(px, py + ph - 1, px + pw, py + ph, 0x22FFB7C9);
+        // Panel with slide-in animation
+        int pw = 220, ph = 190;
+        int px = cx - pw / 2;
+        int targetPy = h / 2 - ph / 2;
+        int py = (int)(targetPy - 12 * (1 - ease));
+        int panelAlpha = (int)(0xEE * ease);
 
-        // Title - scaled up BLOOM
+        // Panel shadow
+        drawRoundRect(ctx, px - 1, py - 1, pw + 2, ph + 2, (int)(0x20 * ease) << 24);
+        // Panel background
+        drawRoundRect(ctx, px, py, pw, ph, (panelAlpha << 24) | 0x0a0611);
+        // Top border
+        ctx.fill(px + 2, py, px + pw - 2, py + 1, ((int)(0x44 * ease) << 24) | 0xFFB7C9);
+        // Bottom border
+        ctx.fill(px + 2, py + ph - 1, px + pw - 2, py + ph, ((int)(0x22 * ease) << 24) | 0xFFB7C9);
+
+        // "BLOOM" title in Inter at 2x
         ctx.getMatrices().pushMatrix();
         ctx.getMatrices().scale(2.0f, 2.0f);
-        String t = "BLOOM";
-        int tw2 = this.textRenderer.getWidth(t);
-        ctx.drawText(this.textRenderer, t, (int)(cx / 2.0f - tw2 / 2.0f), (int)((py + 8) / 2.0f), 0xFFFFD1DC, false);
+        int bw = textW(this.textRenderer, "BLOOM");
+        ctx.drawText(this.textRenderer, text("BLOOM", 0xFFD1DC),
+            (int)(cx / 2.0f - bw / 2.0f), (int)((py + 10) / 2.0f), -1, false);
         ctx.getMatrices().popMatrix();
 
-        String sub = "M I N E C R A F T  C L I E N T";
-        int sw = this.textRenderer.getWidth(sub);
-        ctx.drawText(this.textRenderer, sub, cx - sw / 2, py + 26, 0xFF5A4550, false);
-        ctx.fill(px + 20, py + 38, px + pw - 20, py + 39, 0x22FFB7C9);
+        // Subtitle
+        String sub = "MINECRAFT CLIENT";
+        int sw = textW(this.textRenderer, sub);
+        ctx.drawText(this.textRenderer, text(sub, 0x5A4550), cx - sw / 2, py + 28, -1, false);
+
+        // Separator
+        ctx.fill(px + 20, py + 40, px + pw - 20, py + 41, ((int)(0x22 * ease) << 24) | 0xFFB7C9);
 
         // Buttons
-        int btnW = 160, btnH = 16, gap = 2, sy = py + 44;
-        drawBtn(ctx, "Resume", cx, sy, btnW, btnH, mx, my, false);
-        drawBtn(ctx, "Bloom Mods", cx, sy + btnH + gap, btnW, btnH, mx, my, false);
-        drawBtn(ctx, "Cosmetics", cx, sy + (btnH+gap)*2, btnW, btnH, mx, my, false);
-        drawBtn(ctx, "Settings", cx, sy + (btnH+gap)*3, btnW, btnH, mx, my, false);
-        drawBtn(ctx, "Disconnect", cx, sy + (btnH+gap)*4 + 6, btnW, btnH, mx, my, true);
+        int btnW = 180, btnH = 22, gap = 4, sy = py + 48;
+
+        for (int i = 0; i < BTN_COUNT; i++) {
+            int by = sy + (btnH + gap) * i + (i == 4 ? 6 : 0);
+            int bx = cx - btnW / 2;
+            boolean hov = mx >= bx && mx <= bx + btnW && my >= by && my <= by + btnH;
+
+            float target = hov ? 1.0f : 0.0f;
+            hoverAnim[i] += (target - hoverAnim[i]) * 0.18f * delta;
+            if (Math.abs(hoverAnim[i] - target) < 0.005f) hoverAnim[i] = target;
+            float ha = hoverAnim[i];
+
+            // Glow
+            if (ha > 0.01f) {
+                int gAlpha = (int)(ha * 0x12);
+                drawRoundRect(ctx, bx - 2, by - 2, btnW + 4, btnH + 4, (gAlpha << 24) | 0xFFB0C0);
+            }
+
+            // Background
+            int bgAlpha2 = (int)(0x12 + ha * (0x38 - 0x12));
+            int bgColor = BTN_DANGER[i] ? 0xFF5050 : 0xFFB7C9;
+            drawRoundRect(ctx, bx, by, btnW, btnH, (bgAlpha2 << 24) | (bgColor & 0xFFFFFF));
+
+            // Top highlight
+            int hlA = (int)(0x06 + ha * 0x3E);
+            ctx.fill(bx + 1, by, bx + btnW - 1, by + 1, (hlA << 24) | (bgColor & 0xFFFFFF));
+
+            // Left accent
+            if (ha > 0.05f) {
+                int accentH = (int)(btnH * ha);
+                int accentY = by + (btnH - accentH) / 2;
+                ctx.fill(bx, accentY, bx + 2, accentY + accentH, BTN_DANGER[i] ? 0xBBFF7070 : 0xBBFFB7C9);
+            }
+
+            // Label
+            int textColor;
+            if (BTN_DANGER[i]) textColor = lerpColor(0xFF8A5555, 0xFFFF9090, ha);
+            else textColor = lerpColor(0xFFBBA4AC, 0xFFF0E4E8, ha);
+            int tw = textW(this.textRenderer, BTN_LABELS[i]);
+            ctx.drawText(this.textRenderer, text(BTN_LABELS[i], textColor & 0xFFFFFF),
+                cx - tw / 2, by + (btnH - 8) / 2, -1, false);
+        }
 
         super.render(ctx, mx, my, delta);
     }
 
-    private void drawBtn(DrawContext ctx, String label, int cx, int y, int bw, int bh, int mx, int my, boolean danger) {
-        int x = cx - bw / 2;
-        boolean hov = mx >= x && mx <= x + bw && my >= y && my <= y + bh;
-        ctx.fill(x, y, x + bw, y + bh, hov ? 0x33FFB7C9 : 0x15FFFFFF);
-        ctx.fill(x, y, x + bw, y + 1, hov ? 0x33FFB7C9 : 0x08FFFFFF);
-        if (hov) ctx.fill(x, y, x + 2, y + bh, danger ? 0xBBFF7070 : 0xBBFFB7C9);
-        int tw = this.textRenderer.getWidth(label);
-        int color = danger ? (hov ? 0xFFFF9090 : 0xFF8A5555) : (hov ? 0xFFF0E4E8 : 0xFFBBA4AC);
-        ctx.drawText(this.textRenderer, label, cx - tw / 2, y + (bh - 8) / 2, color, false);
-    }
-
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
-        int cx = this.width / 2, btnW = 160, btnH = 16, gap = 2;
-        int ph = 165, py = this.height / 2 - ph / 2, sy = py + 44;
+        int cx = this.width / 2, btnW = 180, btnH = 22, gap = 4;
+        int ph = 190, py = this.height / 2 - ph / 2, sy = py + 48;
         int x = cx - btnW / 2;
         double mouseX = click.x(), mouseY = click.y();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < BTN_COUNT; i++) {
             int by = sy + (btnH + gap) * i + (i == 4 ? 6 : 0);
             if (mouseX >= x && mouseX <= x + btnW && mouseY >= by && mouseY <= by + btnH) {
                 switch (i) {
@@ -111,4 +172,9 @@ public class BloomPauseScreen extends Screen {
     }
 
     @Override public boolean shouldPause() { return true; }
+
+    static class Petal {
+        float x, y, size, vx, vy, phase, wobble, alpha;
+        int color;
+    }
 }

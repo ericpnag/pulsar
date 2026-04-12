@@ -7,7 +7,16 @@
     "GameMenuMixin",
     "CapeRendererMixin",
     "LowFireMixin",
-    "LowShieldMixin"
+    "LowShieldMixin",
+    "FullbrightMixin",
+    "FovMixin",
+    "HurtCamMixin",
+    "WeatherMixin",
+    "NametagMixin",
+    "FreelookMixin",
+    "FreelookCameraMixin",
+    "WorldTimeMixin",
+    "InGameHudMixin"
   ],
   "injectors": {
     "defaultRequire": 1

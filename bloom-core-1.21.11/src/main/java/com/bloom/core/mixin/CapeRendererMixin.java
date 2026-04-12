@@ -1,5 +1,6 @@
 package com.bloom.core.mixin;
 
+import com.bloom.core.cape.AnimatedCapeRenderer;
 import com.bloom.core.module.modules.CosmeticsCape;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PlayerListEntry;
@@ -25,12 +26,16 @@ public class CapeRendererMixin {
         if (client.player == null) return;
         PlayerListEntry self = (PlayerListEntry) (Object) this;
         if (self.getProfile().id().equals(client.player.getUuid())) {
-            Identifier capePath = Identifier.of("bloom-core", "textures/cape/" + CosmeticsCape.capeFile);
+            Identifier capePath;
 
-            // Register texture if changed or first use
-            if (!CosmeticsCape.capeFile.equals(lastRegisteredCape)) {
-                client.getTextureManager().registerTexture(capePath, new ResourceTexture(capePath));
-                lastRegisteredCape = CosmeticsCape.capeFile;
+            if (CosmeticsCape.animated) {
+                capePath = AnimatedCapeRenderer.getAnimatedCapeId();
+            } else {
+                capePath = Identifier.of("bloom-core", "textures/cape/" + CosmeticsCape.capeFile);
+                if (!CosmeticsCape.capeFile.equals(lastRegisteredCape)) {
+                    client.getTextureManager().registerTexture(capePath, new ResourceTexture(capePath));
+                    lastRegisteredCape = CosmeticsCape.capeFile;
+                }
             }
 
             SkinTextures original = cir.getReturnValue();
@@ -38,7 +43,7 @@ public class CapeRendererMixin {
             cir.setReturnValue(SkinTextures.create(
                 original.body(),
                 bloomCape,
-                bloomCape,
+                original.elytra(),
                 original.model()
             ));
         }

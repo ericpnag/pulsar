@@ -18,6 +18,7 @@ public class BloomCore implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         com.bloom.core.config.KeyBindConfig.init();
+        com.bloom.core.presence.BloomPresence.init();
         MODULES.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {

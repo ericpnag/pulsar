@@ -239,10 +239,20 @@ fn install_mods(client: &Client, _game_dir: &PathBuf, mc_version: &str) -> Resul
     fs::create_dir_all(&mods_dir).map_err(|e| e.to_string())?;
 
     // Embed bloom-core JARs directly in binary
-    let bloom_dest = mods_dir.join("bloom-core-1.0.0.jar");
+    // Also remove any old bloom-core jars to avoid duplicates
+    if let Ok(entries) = fs::read_dir(&mods_dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
+            if name_str.starts_with("bloom-core-") && name_str.ends_with(".jar") {
+                let _ = fs::remove_file(entry.path());
+            }
+        }
+    }
+    let bloom_dest = mods_dir.join("bloom-core-1.2.0.jar");
     let bloom_jar: &[u8] = match mc_version {
-        "1.21.11" => include_bytes!("../../bloom-core-1.21.11/build/libs/bloom-core-1.0.0.jar"),
-        _ => include_bytes!("../../bloom-core/build/libs/bloom-core-1.0.0.jar"),
+        "1.21.11" => include_bytes!("../../bloom-core-1.21.11/build/libs/bloom-core-1.2.0.jar"),
+        _ => include_bytes!("../../bloom-core/build/libs/bloom-core-1.2.0.jar"),
     };
     let _ = fs::write(&bloom_dest, bloom_jar);
 
@@ -627,7 +637,7 @@ fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Opt
     jvm_args.push(format!("-Dorg.lwjgl.system.SharedLibraryExtractPath={}", natives_dir_str));
     jvm_args.push(format!("-Dio.netty.native.workdir={}", natives_dir_str));
     jvm_args.push("-Dminecraft.launcher.brand=bloom-launcher".to_string());
-    jvm_args.push("-Dminecraft.launcher.version=1.0.0".to_string());
+    jvm_args.push("-Dminecraft.launcher.version=1.2.0".to_string());
     jvm_args.push("-cp".to_string());
     jvm_args.push(classpath);
     // Use Fabric main class if available, otherwise vanilla
@@ -638,20 +648,89 @@ fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Opt
     };
     jvm_args.push(main_class);
     let user_type = if access_token.is_some() { "msa" } else { "offline" };
+
+    // Extract XUID from the MC access token JWT payload (base64url decode)
+    let xuid = access_token.as_deref().and_then(|token| {
+        let parts: Vec<&str> = token.split('.').collect();
+        if parts.len() < 2 { return None; }
+        let payload = parts[1];
+        // base64url to standard base64
+        let mut b64 = payload.replace('-', "+").replace('_', "/");
+        while b64.len() % 4 != 0 { b64.push('='); }
+        // Simple base64 decode using a lookup table
+        fn b64_decode(input: &str) -> Option<Vec<u8>> {
+            let table = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+            let mut out = Vec::new();
+            let chars: Vec<u8> = input.bytes().filter(|&b| b != b'=').collect();
+            for chunk in chars.chunks(4) {
+                let vals: Vec<u8> = chunk.iter().filter_map(|&c| table.iter().position(|&t| t == c).map(|p| p as u8)).collect();
+                if vals.len() >= 2 { out.push((vals[0] << 2) | (vals.get(1).unwrap_or(&0) >> 4)); }
+                if vals.len() >= 3 { out.push((vals[1] << 4) | (vals.get(2).unwrap_or(&0) >> 2)); }
+                if vals.len() >= 4 { out.push((vals[2] << 6) | vals[3]); }
+            }
+            Some(out)
+        }
+        let decoded = b64_decode(&b64)?;
+        let json: serde_json::Value = serde_json::from_slice(&decoded).ok()?;
+        json["xuid"].as_str().map(|s| s.to_string())
+    }).unwrap_or_default();
+
+    // Mojang profile API returns UUID without dashes, but Minecraft expects dashed format
+    let raw_uuid = uuid.as_deref().unwrap_or("00000000000000000000000000000000");
+    let dashed_uuid = if raw_uuid.contains('-') {
+        raw_uuid.to_string()
+    } else if raw_uuid.len() == 32 {
+        format!("{}-{}-{}-{}-{}",
+            &raw_uuid[0..8], &raw_uuid[8..12], &raw_uuid[12..16],
+            &raw_uuid[16..20], &raw_uuid[20..32])
+    } else {
+        raw_uuid.to_string()
+    };
+
     jvm_args.push("--username".to_string()); jvm_args.push(username.as_deref().unwrap_or("Player").to_string());
     jvm_args.push("--version".to_string()); jvm_args.push(version.to_string());
     jvm_args.push("--gameDir".to_string()); jvm_args.push(game_dir_str);
     jvm_args.push("--assetsDir".to_string()); jvm_args.push(assets_dir_str);
     jvm_args.push("--assetIndex".to_string()); jvm_args.push(version_json.asset_index.id.clone());
-    jvm_args.push("--uuid".to_string()); jvm_args.push(uuid.as_deref().unwrap_or("00000000-0000-0000-0000-000000000000").to_string());
+    jvm_args.push("--uuid".to_string()); jvm_args.push(dashed_uuid);
     jvm_args.push("--accessToken".to_string()); jvm_args.push(access_token.as_deref().unwrap_or("0").to_string());
     jvm_args.push("--userType".to_string()); jvm_args.push(user_type.to_string());
     jvm_args.push("--versionType".to_string()); jvm_args.push("release".to_string());
+    if !xuid.is_empty() {
+        jvm_args.push("--xuid".to_string()); jvm_args.push(xuid);
+    }
+    jvm_args.push("--clientId".to_string()); jvm_args.push("c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb".to_string());
+    jvm_args.push("--userProperties".to_string()); jvm_args.push("{}".to_string());
+
+    // Open log file in the game directory so we can see what's happening
+    let log_path = ver_game_dir.join("bloom-game.log");
+    let log_file = std::fs::File::create(&log_path).ok();
+
+    // Write the launch arguments to the log header (mask the access token for safety)
+    if let Some(ref f) = log_file {
+        use std::io::Write;
+        let mut writer = std::io::BufWriter::new(f);
+        let _ = writeln!(writer, "=== Bloom Launcher v1.2.0 ===");
+        let _ = writeln!(writer, "Java: {}", java_cmd);
+        let _ = writeln!(writer, "Args:");
+        let mut mask_next = false;
+        for arg in &jvm_args {
+            if mask_next {
+                let _ = writeln!(writer, "  [TOKEN HIDDEN, {} chars]", arg.len());
+                mask_next = false;
+            } else {
+                let _ = writeln!(writer, "  {}", arg);
+                if arg == "--accessToken" { mask_next = true; }
+            }
+        }
+        let _ = writeln!(writer, "=== Game output ===");
+        let _ = writer.flush();
+    }
 
     let mut child = Command::new(&java_cmd)
         .args(&jvm_args)
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
+        .stdout(if let Some(ref f) = log_file { std::process::Stdio::from(f.try_clone().unwrap()) } else { std::process::Stdio::piped() })
+        .stderr(if let Some(ref f) = log_file { std::process::Stdio::from(f.try_clone().unwrap()) } else { std::process::Stdio::piped() })
         .spawn()
         .map_err(|e| format!("Failed to start Java: {}", e))?;
 
@@ -659,14 +738,13 @@ fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Opt
     thread::sleep(std::time::Duration::from_secs(3));
     match child.try_wait() {
         Ok(Some(exit)) if !exit.success() => {
-            let stderr = child.stderr.take()
-                .map(|mut s| { let mut buf = String::new(); io::Read::read_to_string(&mut s, &mut buf).ok(); buf })
-                .unwrap_or_default();
-            let last_lines: String = stderr.lines().rev().take(10).collect::<Vec<_>>().into_iter().rev().collect::<Vec<_>>().join("\n");
+            // Read the log file we just wrote to
+            let log_contents = std::fs::read_to_string(&log_path).unwrap_or_default();
+            let last_lines: String = log_contents.lines().rev().take(15).collect::<Vec<_>>().into_iter().rev().collect::<Vec<_>>().join("\n");
             return Err(format!("Game crashed (exit {}): {}", exit.code().unwrap_or(-1), last_lines));
         }
-        Ok(Some(_)) => {} // exited successfully (unlikely this fast, but ok)
-        Ok(None) => {}     // still running — good
+        Ok(Some(_)) => {}
+        Ok(None) => {}
         Err(e) => return Err(format!("Failed to check game process: {}", e)),
     }
 
@@ -765,4 +843,27 @@ pub fn install_resourcepack(project_id: String, mc_version: String) -> Result<St
     }
 
     Ok(file.filename.clone())
+}
+
+fn cosmetics_path() -> PathBuf {
+    game_dir().join("bloom-cosmetics.json")
+}
+
+#[tauri::command]
+pub fn get_cosmetics() -> Result<String, String> {
+    let path = cosmetics_path();
+    if path.exists() {
+        fs::read_to_string(&path).map_err(|e| e.to_string())
+    } else {
+        Ok(r#"{"points":500,"owned":[],"equipped":{}}"#.to_string())
+    }
+}
+
+#[tauri::command]
+pub fn save_cosmetics(data: String) -> Result<(), String> {
+    let path = cosmetics_path();
+    if let Some(parent) = path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    fs::write(&path, &data).map_err(|e| e.to_string())
 }
