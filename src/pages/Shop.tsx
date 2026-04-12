@@ -132,8 +132,9 @@ export function ShopPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
         {POINT_TIERS.map((tier, i) => (
           <div key={i} className="bloom-card" onClick={() => {
-            setPurchaseModal(tier);
-            setPurchasePhase("confirm");
+            openUrl(tier.payUrl).catch(() => {
+              window.open(tier.payUrl, "_blank");
+            });
           }} style={{
             padding: "14px", textAlign: "center", cursor: "pointer",
             position: "relative", transition: "all 0.15s",

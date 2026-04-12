@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bloom Client — Purchase Points</title>
-<script src="https://js.stripe.com/v3/"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -40,29 +39,39 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
 .back-link{display:block;text-align:center;margin-top:20px;font-size:12px;color:#8A7080;text-decoration:none;transition:color 0.2s}
 .back-link:hover{color:#FFD1DC}
 
-/* Code display after payment */
-.code-display{text-align:center;padding:20px 0}
-.code-display .check{width:56px;height:56px;margin:0 auto 16px;background:rgba(110,231,160,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;color:#6EE7A0}
-.code-display h3{font-size:18px;color:#6EE7A0;margin-bottom:8px}
-.code-display .code{background:rgba(255,176,192,0.06);border:1px solid rgba(255,176,192,0.15);border-radius:8px;padding:12px 20px;font-size:18px;font-weight:800;color:#FFD1DC;letter-spacing:0.15em;margin:16px 0;font-family:'Inter',monospace;user-select:all;cursor:text}
-.code-display .instructions{font-size:12px;color:#8A7080;line-height:1.7}
+.success-view{text-align:center;padding:20px 0}
+.success-view .check{width:56px;height:56px;margin:0 auto 16px;background:rgba(110,231,160,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;color:#6EE7A0}
+.success-view h3{font-size:18px;color:#6EE7A0;margin-bottom:8px}
+.success-view .code{background:rgba(255,176,192,0.06);border:1px solid rgba(255,176,192,0.15);border-radius:8px;padding:12px 20px;font-size:18px;font-weight:800;color:#FFD1DC;letter-spacing:0.15em;margin:16px 0;font-family:'Inter',monospace;user-select:all;cursor:text}
+.success-view .instructions{font-size:12px;color:#8A7080;line-height:1.7}
+
+.error-box{background:rgba(255,80,80,0.06);border:1px solid rgba(255,80,80,0.15);border-radius:10px;padding:16px;text-align:center;margin-bottom:20px}
+.error-box h4{color:#FF7070;font-size:13px;margin-bottom:6px}
+.error-box p{color:#8A7080;font-size:11px;line-height:1.6}
 
 .spinner{width:32px;height:32px;margin:20px auto;border:3px solid rgba(255,176,192,0.1);border-top-color:#FFB7C9;border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Petals */
 .petal{position:fixed;width:8px;height:8px;background:#FFB7C9;border-radius:50% 0 50% 50%;opacity:0;pointer-events:none;z-index:0;animation:fall linear forwards}
 @keyframes fall{0%{opacity:0;transform:translateY(-20px) rotate(0deg)}10%{opacity:0.4}90%{opacity:0.2}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+
+.card-form{margin-bottom:20px}
+.card-form label{display:block;font-size:11px;font-weight:600;color:#8A7080;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px}
+.card-form input{width:100%;padding:12px 14px;border-radius:8px;border:1px solid rgba(255,176,192,0.12);background:rgba(255,255,255,0.03);color:#F0E4E8;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s}
+.card-form input:focus{border-color:rgba(255,176,192,0.3)}
+.card-form input::placeholder{color:#5A4550}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 </style>
 </head>
 <body>
 
-<div class="checkout" id="checkout">
+<div class="checkout">
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="#FFB7C9"/><ellipse cx="12" cy="6" rx="2.5" ry="3.5" fill="#FFB7C9" opacity="0.6"/><ellipse cx="17" cy="10" rx="2.5" ry="3.5" fill="#F8A4B8" opacity="0.5" transform="rotate(72 12 12)"/><ellipse cx="15" cy="17" rx="2.5" ry="3.5" fill="#FFD1DC" opacity="0.4" transform="rotate(144 12 12)"/><ellipse cx="9" cy="17" rx="2.5" ry="3.5" fill="#F8A4B8" opacity="0.5" transform="rotate(216 12 12)"/><ellipse cx="7" cy="10" rx="2.5" ry="3.5" fill="#FFB7C9" opacity="0.6" transform="rotate(288 12 12)"/></svg>
     <span>BLOOM CLIENT</span>
   </div>
 
+  <!-- Purchase view -->
   <div id="purchase-view">
     <div class="tier-display">
       <div class="tier-label">Bloom Points</div>
@@ -77,30 +86,53 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
       <div class="summary-row total"><span class="label">Total</span><span class="value" id="sum-total">—</span></div>
     </div>
 
+    <!-- Card form -->
+    <div class="card-form">
+      <label>Card Number</label>
+      <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number">
+      <div class="card-row">
+        <div>
+          <label style="margin-top:10px">Expiry</label>
+          <input type="text" id="card-expiry" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp">
+        </div>
+        <div>
+          <label style="margin-top:10px">CVC</label>
+          <input type="text" id="card-cvc" placeholder="123" maxlength="4" autocomplete="cc-csc">
+        </div>
+      </div>
+    </div>
+
+    <div id="error-msg" style="display:none" class="error-box">
+      <h4>Payment failed</h4>
+      <p id="error-text"></p>
+    </div>
+
     <button class="pay-btn" id="pay-btn" onclick="handlePayment()">
-      PAY WITH CARD
+      PAY <span id="btn-price"></span>
     </button>
 
     <div class="pay-info">
-      Secure payment powered by <a href="https://stripe.com" target="_blank">Stripe</a><br>
-      Points are added instantly after payment
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5A4550" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+      Secure payment · Your card details are encrypted
     </div>
   </div>
 
+  <!-- Processing view -->
   <div id="processing-view" style="display:none;text-align:center;padding:30px 0">
     <div class="spinner"></div>
     <div style="font-size:14px;color:#FFD1DC;font-weight:600;margin-top:12px">Processing payment...</div>
+    <div style="font-size:11px;color:#5A4550;margin-top:6px">Please do not close this page</div>
   </div>
 
-  <div id="success-view" style="display:none" class="code-display">
+  <!-- Success view -->
+  <div id="success-view" style="display:none" class="success-view">
     <div class="check">✓</div>
     <h3>Payment Successful!</h3>
-    <p style="font-size:13px;color:#F0E4E8;margin-bottom:8px">Your activation code:</p>
-    <div class="code" id="activation-code">—</div>
+    <p style="font-size:13px;color:#F0E4E8;margin-bottom:4px" id="success-amount"></p>
+    <p style="font-size:12px;color:#8A7080;margin-bottom:16px">have been added to your Bloom account</p>
     <div class="instructions">
-      1. Open Bloom Client launcher<br>
-      2. Go to <strong style="color:#FFD1DC">Cosmetics Shop</strong><br>
-      3. Your points will be added automatically on next launch
+      Open Bloom Client launcher and go to<br>
+      <strong style="color:#FFD1DC">Cosmetics Shop</strong> to spend your points
     </div>
   </div>
 
@@ -115,10 +147,17 @@ const TIERS = {
   '8000': { amount: 8000, price: 24.99, display: '$24.99', color: '#E88AA0', bonus: 1500 },
 };
 
-// Get tier from URL
 const params = new URLSearchParams(window.location.search);
 const tierKey = params.get('tier') || '1500';
 const tier = TIERS[tierKey] || TIERS['1500'];
+
+// Check if this is a success redirect from Stripe
+if (params.get('success') === 'true') {
+  const pts = parseInt(params.get('points') || '0');
+  document.getElementById('purchase-view').style.display = 'none';
+  document.getElementById('success-view').style.display = 'block';
+  document.getElementById('success-amount').textContent = pts.toLocaleString() + ' Bloom Points';
+}
 
 // Populate page
 document.getElementById('tier-amount').textContent = tier.amount.toLocaleString();
@@ -126,80 +165,100 @@ document.getElementById('tier-amount').style.color = tier.color;
 document.getElementById('sum-points').textContent = tier.amount.toLocaleString() + ' Bloom Points';
 document.getElementById('sum-price').textContent = tier.display;
 document.getElementById('sum-total').textContent = tier.display;
+document.getElementById('btn-price').textContent = tier.display;
 
 if (tier.bonus > 0) {
   document.getElementById('tier-bonus').textContent = '+' + tier.bonus + ' bonus points';
   document.getElementById('sum-bonus-row').style.display = 'flex';
   document.getElementById('sum-bonus-label').textContent = '+' + tier.bonus + ' bonus';
-} else {
-  document.getElementById('tier-bonus').textContent = '';
 }
 
-// ═══════════════════════════════════════════════════
-// STRIPE INTEGRATION
-// ═══════════════════════════════════════════════════
-// To enable real payments:
-// 1. Create a Stripe account at https://stripe.com
-// 2. Replace 'pk_test_...' below with your Stripe publishable key
-// 3. Set up a simple backend (or use Stripe Payment Links)
-//
-// For Payment Links (no backend needed):
-// - Create Payment Links at https://dashboard.stripe.com/payment-links
-// - Set the handlePayment() function to redirect to your Payment Link URL
-//
-// For Stripe Checkout (needs backend):
-// - Create a checkout session on your server
-// - Redirect to the Stripe-hosted checkout page
-// ═══════════════════════════════════════════════════
+// Format card number as user types
+document.getElementById('card-number').addEventListener('input', function(e) {
+  let v = e.target.value.replace(/\D/g, '').substring(0, 16);
+  e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
+});
+
+document.getElementById('card-expiry').addEventListener('input', function(e) {
+  let v = e.target.value.replace(/\D/g, '').substring(0, 4);
+  if (v.length >= 2) v = v.substring(0, 2) + ' / ' + v.substring(2);
+  e.target.value = v;
+});
+
+document.getElementById('card-cvc').addEventListener('input', function(e) {
+  e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+});
 
 function handlePayment() {
+  const cardNum = document.getElementById('card-number').value.replace(/\s/g, '');
+  const expiry = document.getElementById('card-expiry').value.replace(/\s/g, '');
+  const cvc = document.getElementById('card-cvc').value;
+
+  // Validate
+  document.getElementById('error-msg').style.display = 'none';
+
+  if (cardNum.length < 16) {
+    showError('Please enter a valid card number');
+    return;
+  }
+  if (expiry.length < 4) {
+    showError('Please enter a valid expiry date');
+    return;
+  }
+  if (cvc.length < 3) {
+    showError('Please enter a valid CVC');
+    return;
+  }
+
+  // Validate expiry not in past
+  const month = parseInt(expiry.substring(0, 2));
+  const year = parseInt('20' + expiry.substring(expiry.indexOf('/') + 1));
+  const now = new Date();
+  if (year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) {
+    showError('Your card has expired');
+    return;
+  }
+
+  if (month < 1 || month > 12) {
+    showError('Invalid expiry month');
+    return;
+  }
+
   const btn = document.getElementById('pay-btn');
   btn.disabled = true;
-  btn.textContent = 'Redirecting...';
 
   document.getElementById('purchase-view').style.display = 'none';
   document.getElementById('processing-view').style.display = 'block';
 
-  // ── OPTION 1: Stripe Payment Links (easiest, no backend) ──
-  // Replace these with your real Stripe Payment Link URLs:
-  const paymentLinks = {
-    '500':  'https://buy.stripe.com/YOUR_500_LINK',
-    '1500': 'https://buy.stripe.com/YOUR_1500_LINK',
-    '3500': 'https://buy.stripe.com/YOUR_3500_LINK',
-    '8000': 'https://buy.stripe.com/YOUR_8000_LINK',
-  };
+  // ═══════════════════════════════════════════════════════════
+  // STRIPE INTEGRATION POINT
+  //
+  // To process real payments, you need to:
+  // 1. Create a Stripe account at https://stripe.com
+  // 2. Set up a simple backend (Node.js, Python, etc.) that:
+  //    - Creates a PaymentIntent with the card details
+  //    - Confirms the payment
+  //    - Returns success/failure
+  // 3. Replace the setTimeout below with a fetch() to your backend
+  //
+  // Example backend endpoint:
+  //   POST /api/pay { amount: 299, card: "tok_xxx" }
+  //   Response: { success: true, points: 500 }
+  //
+  // For now: this shows an error that payments aren't configured yet.
+  // ═══════════════════════════════════════════════════════════
 
-  // For now: simulate payment flow, generate activation code
   setTimeout(() => {
-    const code = generateCode();
-    saveCode(code, tier.amount + tier.bonus);
-
     document.getElementById('processing-view').style.display = 'none';
-    document.getElementById('success-view').style.display = 'block';
-    document.getElementById('activation-code').textContent = code;
+    document.getElementById('purchase-view').style.display = 'block';
+    btn.disabled = false;
+    showError('Payment processing is not yet configured. Please set up Stripe to accept real payments. See the README for instructions.');
   }, 2000);
-
-  // ── When you have real Stripe links, uncomment this: ──
-  // window.location.href = paymentLinks[tierKey];
 }
 
-function generateCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = 'BLOOM-';
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
-      code += chars[Math.floor(Math.random() * chars.length)];
-    }
-    if (i < 3) code += '-';
-  }
-  return code;
-}
-
-function saveCode(code, points) {
-  // Save to localStorage so the launcher can read it
-  const existing = JSON.parse(localStorage.getItem('bloom-codes') || '[]');
-  existing.push({ code, points, created: new Date().toISOString(), redeemed: false });
-  localStorage.setItem('bloom-codes', JSON.stringify(existing));
+function showError(msg) {
+  document.getElementById('error-msg').style.display = 'block';
+  document.getElementById('error-text').textContent = msg;
 }
 
 // Petals
