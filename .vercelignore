@@ -1,0 +1,6 @@
+src-tauri/target
+node_modules
+bloom-core-1.21.11
+.git
+*.dmg
+*.app

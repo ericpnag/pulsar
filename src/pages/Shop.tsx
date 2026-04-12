@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { openUrl } from "@tauri-apps/plugin-opener";
+
+function openBrowser(url: string) {
+  invoke("open_browser", { url }).catch(() => {});
+}
 
 const PREVIEW_ANIMATIONS = `
 @keyframes pv-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
@@ -52,16 +55,17 @@ const COSMETICS: Cosmetic[] = [
 
 const TYPE_LABELS: Record<string, string> = { cape: "Capes", wings: "Wings", hat: "Hats", aura: "Auras" };
 
-// Stripe Payment Links — hosted by Stripe, no backend needed
+// Payment — hosted on Vercel
+const STORE_URL = "https://bloom-launcher.vercel.app";
 const POINT_TIERS = [
-  { amount: 500, price: "$0.35", priceNum: 0.35, color: "#FFFFFF", popular: false, bonus: "",
-    payUrl: "https://buy.stripe.com/3cIdR1eEaaTu5ML72Y9MY00" },
-  { amount: 1500, price: "$0.35", priceNum: 0.35, color: "#FFFFFF", popular: true, bonus: "+200 bonus",
-    payUrl: "https://buy.stripe.com/8x23cn53A3r27UT72Y9MY01" },
-  { amount: 3500, price: "$0.35", priceNum: 0.35, color: "#E0E0E0", popular: false, bonus: "+500 bonus",
-    payUrl: "https://buy.stripe.com/14AdR1anUbXycb9evq9MY02" },
-  { amount: 8000, price: "$0.35", priceNum: 0.35, color: "#A0A0A0", popular: false, bonus: "+1500 bonus",
-    payUrl: "https://buy.stripe.com/aFa14f7bI1iU5MLevq9MY03" },
+  { amount: 500, price: "$0.50", priceNum: 0.35, color: "#FFFFFF", popular: false, bonus: "",
+    payUrl: `${STORE_URL}/store.html?tier=500` },
+  { amount: 1500, price: "$0.50", priceNum: 0.35, color: "#FFFFFF", popular: true, bonus: "+200 bonus",
+    payUrl: `${STORE_URL}/store.html?tier=1500` },
+  { amount: 3500, price: "$0.50", priceNum: 0.35, color: "#E0E0E0", popular: false, bonus: "+500 bonus",
+    payUrl: `${STORE_URL}/store.html?tier=3500` },
+  { amount: 8000, price: "$0.50", priceNum: 0.35, color: "#A0A0A0", popular: false, bonus: "+1500 bonus",
+    payUrl: `${STORE_URL}/store.html?tier=8000` },
 ];
 
 // Bump this when the data format changes to force a clean slate
@@ -156,9 +160,7 @@ export function ShopPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
         {POINT_TIERS.map((tier, i) => (
           <div key={i} className="bloom-card" onClick={() => {
-            openUrl(tier.payUrl).catch(() => {
-              window.open(tier.payUrl, "_blank");
-            });
+            openBrowser(tier.payUrl);
           }} style={{
             padding: "14px", textAlign: "center", cursor: "pointer",
             position: "relative", transition: "all 0.15s",
@@ -336,9 +338,7 @@ export function ShopPage() {
 
               <button onClick={() => {
                 // Open Stripe payment link in the browser
-                openUrl(purchaseModal.payUrl).catch(() => {
-                  window.open(purchaseModal.payUrl, "_blank");
-                });
+                openBrowser(purchaseModal.payUrl);
                 setPurchasePhase("paying");
               }} style={{
                 width: "100%", padding: "14px", border: "none", borderRadius: "10px",
@@ -389,9 +389,7 @@ export function ShopPage() {
                 </button>
 
                 <button onClick={() => {
-                  openUrl(purchaseModal!.payUrl).catch(() => {
-                    window.open(purchaseModal!.payUrl, "_blank");
-                  });
+                  openBrowser(purchaseModal!.payUrl);
                 }} style={{
                   width: "100%", padding: "10px", border: "none", borderRadius: "8px",
                   background: "rgba(255,255,255,0.04)", color: "var(--text-secondary)", fontSize: "12px",
