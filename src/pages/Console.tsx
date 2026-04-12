@@ -34,7 +34,7 @@ export function ConsolePage() {
       addLog("info", `Auth code: ${e.payload.code}`);
     }).then(fn => unsubs.push(fn));
 
-    addLog("info", "Bloom Client started");
+    addLog("info", "Nebula Client started");
 
     return () => unsubs.forEach(fn => fn());
   }, []);

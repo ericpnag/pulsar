@@ -1,35 +1,35 @@
 import { useRef, useEffect } from "react";
 
-interface Petal {
+interface Star {
   x: number; y: number; size: number;
   speedX: number; speedY: number;
   wobbleSpeed: number; wobbleAmp: number; phase: number;
   alpha: number; color: string; rotation: number; rotSpeed: number;
 }
 
-const PINKS = ["#FFB7C9", "#FFC0CB", "#FFD1DC", "#F8A4B8", "#F0C0D0", "#FFE4E9", "#E8899A", "#FFAEC0"];
+const BLUES = ["#7AA2F7", "#89B4FA", "#B4BEFE", "#CDD6F4", "#5B6EAE", "#A6ADC8", "#ffffff", "#9AB8F7"];
 
-function newPetal(w: number, h: number, randomY = false): Petal {
+function newStar(w: number, h: number, randomY = false): Star {
   const r = Math.random;
   return {
     x: r() * (w + 80) - 40,
     y: randomY ? r() * h : -10 - r() * 50,
-    size: 3 + r() * 5,
-    speedX: 0.2 + r() * 0.6,
-    speedY: 0.3 + r() * 0.5,
+    size: 1 + r() * 3,
+    speedX: 0.05 + r() * 0.15,
+    speedY: 0.1 + r() * 0.2,
     wobbleSpeed: 1 + r() * 2,
-    wobbleAmp: 10 + r() * 20,
+    wobbleAmp: 5 + r() * 10,
     phase: r() * Math.PI * 2,
-    alpha: 0.3 + r() * 0.5,
-    color: PINKS[Math.floor(r() * PINKS.length)],
+    alpha: 0.2 + r() * 0.6,
+    color: BLUES[Math.floor(r() * BLUES.length)],
     rotation: r() * Math.PI * 2,
-    rotSpeed: (r() - 0.5) * 0.03,
+    rotSpeed: (r() - 0.5) * 0.01,
   };
 }
 
 export function PetalCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const petalsRef = useRef<Petal[]>([]);
+  const starsRef = useRef<Star[]>([]);
   const animRef = useRef<number>(0);
 
   useEffect(() => {
@@ -47,53 +47,61 @@ export function PetalCanvas() {
     resize();
     window.addEventListener("resize", resize);
 
-    // Init petals
-    petalsRef.current = Array.from({ length: 50 }, () => newPetal(w, h, true));
+    // Init stars
+    starsRef.current = Array.from({ length: 50 }, () => newStar(w, h, true));
 
     function draw() {
       ctx.clearRect(0, 0, w, h);
-      const petals = petalsRef.current;
+      const stars = starsRef.current;
 
-      for (let i = 0; i < petals.length; i++) {
-        const p = petals[i];
+      for (let i = 0; i < stars.length; i++) {
+        const p = stars[i];
         p.x += p.speedX;
         p.y += p.speedY;
         p.phase += p.wobbleSpeed * 0.01;
         p.rotation += p.rotSpeed;
-        p.x += Math.sin(p.phase) * p.wobbleAmp * 0.015;
+        p.x += Math.sin(p.phase) * p.wobbleAmp * 0.005;
+
+        // Twinkle effect
+        const twinkle = 0.7 + Math.sin(p.phase * 3) * 0.3;
 
         if (p.y > h + 20 || p.x > w + 50) {
-          petals[i] = newPetal(w, h, false);
+          stars[i] = newStar(w, h, false);
           continue;
         }
 
         ctx.save();
         ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
-        ctx.globalAlpha = p.alpha;
+        ctx.globalAlpha = p.alpha * twinkle;
         ctx.fillStyle = p.color;
 
-        // Petal shape
+        // Star shape - small glowing circle
         ctx.beginPath();
-        ctx.ellipse(0, 0, p.size, p.size * 0.6, 0, 0, Math.PI * 2);
+        ctx.arc(0, 0, p.size, 0, Math.PI * 2);
         ctx.fill();
 
-        // Smaller inner petal
-        ctx.globalAlpha = p.alpha * 0.5;
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.ellipse(0, -p.size * 0.15, p.size * 0.4, p.size * 0.25, 0, 0, Math.PI * 2);
-        ctx.fill();
+        // Cross sparkle for larger stars
+        if (p.size > 2) {
+          ctx.globalAlpha = p.alpha * twinkle * 0.3;
+          ctx.beginPath();
+          ctx.moveTo(-p.size * 2, 0);
+          ctx.lineTo(p.size * 2, 0);
+          ctx.moveTo(0, -p.size * 2);
+          ctx.lineTo(0, p.size * 2);
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
 
         ctx.restore();
       }
 
       // Spawn occasionally
-      if (Math.random() < 0.15) {
-        petals.push(newPetal(w, h, false));
+      if (Math.random() < 0.1) {
+        stars.push(newStar(w, h, false));
       }
-      // Cap petals
-      if (petals.length > 80) petals.splice(0, petals.length - 80);
+      // Cap stars
+      if (stars.length > 80) stars.splice(0, stars.length - 80);
 
       animRef.current = requestAnimationFrame(draw);
     }

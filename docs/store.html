@@ -3,64 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bloom Client — Purchase Points</title>
+<title>Nebula Client — Purchase Points</title>
 <script src="https://js.stripe.com/v3/"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;min-height:100vh;display:flex;align-items:center;justify-content:center}
-::selection{background:rgba(255,183,201,0.3)}
+body{font-family:'Inter',system-ui,sans-serif;background:#0B0E1A;color:#CDD6F4;min-height:100vh;display:flex;align-items:center;justify-content:center}
+::selection{background:rgba(122,162,247,0.3)}
 
-.checkout{max-width:420px;width:90%;padding:40px;border-radius:20px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,176,192,0.08);box-shadow:0 24px 80px rgba(0,0,0,0.4)}
+.checkout{max-width:420px;width:90%;padding:40px;border-radius:20px;background:rgba(255,255,255,0.02);border:1px solid rgba(122,162,247,0.08);box-shadow:0 24px 80px rgba(0,0,0,0.4)}
 .logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:24px}
 .logo svg{width:24px;height:24px}
-.logo span{font-weight:800;font-size:13px;letter-spacing:0.14em;color:#FFD1DC}
+.logo span{font-weight:800;font-size:13px;letter-spacing:0.14em;color:#89B4FA}
 
 .tier-display{text-align:center;margin-bottom:28px}
-.tier-label{font-size:10px;font-weight:700;letter-spacing:0.12em;color:#8A7080;text-transform:uppercase;margin-bottom:8px}
+.tier-label{font-size:10px;font-weight:700;letter-spacing:0.12em;color:#6C7086;text-transform:uppercase;margin-bottom:8px}
 .tier-amount{font-size:48px;font-weight:800;line-height:1}
 .tier-bonus{font-size:12px;color:#6EE7A0;font-weight:600;margin-top:4px}
-.tier-sub{font-size:11px;color:#8A7080;margin-top:8px}
+.tier-sub{font-size:11px;color:#6C7086;margin-top:8px}
 
 .summary{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:18px;margin-bottom:24px}
 .summary-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px}
 .summary-row.total{border-top:1px solid rgba(255,255,255,0.06);margin-top:8px;padding-top:10px;font-size:14px;font-weight:700}
-.summary-row .label{color:#8A7080}
-.summary-row .value{color:#F0E4E8;font-weight:600}
+.summary-row .label{color:#6C7086}
+.summary-row .value{color:#CDD6F4;font-weight:600}
 .summary-row.bonus .value{color:#6EE7A0}
-.summary-row.total .value{color:#FFD1DC}
+.summary-row.total .value{color:#89B4FA}
 
-.pay-btn{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,#FFB7C9,#F8A4B8);color:#1a0a12;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:0.06em;box-shadow:0 4px 24px rgba(255,176,192,0.25);transition:all 0.2s}
-.pay-btn:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(255,176,192,0.35)}
+.pay-btn{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,#7AA2F7,#5B6EAE);color:#0B0E1A;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:0.06em;box-shadow:0 4px 24px rgba(122,162,247,0.25);transition:all 0.2s}
+.pay-btn:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(122,162,247,0.35)}
 .pay-btn:disabled{opacity:0.5;cursor:default;transform:none;box-shadow:none}
 
-.pay-info{text-align:center;margin-top:16px;font-size:11px;color:#5A4550;line-height:1.6}
-.pay-info a{color:#FFB7C9;text-decoration:none}
+.pay-info{text-align:center;margin-top:16px;font-size:11px;color:#45475A;line-height:1.6}
+.pay-info a{color:#7AA2F7;text-decoration:none}
 
-.back-link{display:block;text-align:center;margin-top:20px;font-size:12px;color:#8A7080;text-decoration:none;transition:color 0.2s}
-.back-link:hover{color:#FFD1DC}
+.back-link{display:block;text-align:center;margin-top:20px;font-size:12px;color:#6C7086;text-decoration:none;transition:color 0.2s}
+.back-link:hover{color:#89B4FA}
 
 .success-view{text-align:center;padding:20px 0}
 .success-view .check{width:56px;height:56px;margin:0 auto 16px;background:rgba(110,231,160,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;color:#6EE7A0}
 .success-view h3{font-size:18px;color:#6EE7A0;margin-bottom:8px}
-.success-view .code{background:rgba(255,176,192,0.06);border:1px solid rgba(255,176,192,0.15);border-radius:8px;padding:12px 20px;font-size:18px;font-weight:800;color:#FFD1DC;letter-spacing:0.15em;margin:16px 0;font-family:'Inter',monospace;user-select:all;cursor:text}
-.success-view .instructions{font-size:12px;color:#8A7080;line-height:1.7}
+.success-view .code{background:rgba(122,162,247,0.06);border:1px solid rgba(122,162,247,0.15);border-radius:8px;padding:12px 20px;font-size:18px;font-weight:800;color:#89B4FA;letter-spacing:0.15em;margin:16px 0;font-family:'Inter',monospace;user-select:all;cursor:text}
+.success-view .instructions{font-size:12px;color:#6C7086;line-height:1.7}
 
 .error-box{background:rgba(255,80,80,0.06);border:1px solid rgba(255,80,80,0.15);border-radius:10px;padding:16px;text-align:center;margin-bottom:20px}
 .error-box h4{color:#FF7070;font-size:13px;margin-bottom:6px}
-.error-box p{color:#8A7080;font-size:11px;line-height:1.6}
+.error-box p{color:#6C7086;font-size:11px;line-height:1.6}
 
-.spinner{width:32px;height:32px;margin:20px auto;border:3px solid rgba(255,176,192,0.1);border-top-color:#FFB7C9;border-radius:50%;animation:spin 0.8s linear infinite}
+.spinner{width:32px;height:32px;margin:20px auto;border:3px solid rgba(122,162,247,0.1);border-top-color:#7AA2F7;border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.petal{position:fixed;width:8px;height:8px;background:#FFB7C9;border-radius:50% 0 50% 50%;opacity:0;pointer-events:none;z-index:0;animation:fall linear forwards}
-@keyframes fall{0%{opacity:0;transform:translateY(-20px) rotate(0deg)}10%{opacity:0.4}90%{opacity:0.2}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+.star{position:fixed;width:2px;height:2px;background:#7AA2F7;border-radius:50%;opacity:0;pointer-events:none;z-index:0;animation:twinkle linear forwards}
+@keyframes twinkle{0%{opacity:0;transform:scale(0.5)}20%{opacity:0.6;transform:scale(1)}80%{opacity:0.4;transform:scale(0.8)}100%{opacity:0;transform:scale(0)}}
 
 /* Stripe Elements container */
 .card-element-wrapper{margin-bottom:20px}
-.card-element-wrapper label{display:block;font-size:11px;font-weight:600;color:#8A7080;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
-#card-element{padding:14px 16px;border-radius:8px;border:1px solid rgba(255,176,192,0.12);background:rgba(255,255,255,0.03);transition:border-color 0.2s}
-#card-element.StripeElement--focus{border-color:rgba(255,176,192,0.3)}
+.card-element-wrapper label{display:block;font-size:11px;font-weight:600;color:#6C7086;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+#card-element{padding:14px 16px;border-radius:8px;border:1px solid rgba(122,162,247,0.12);background:rgba(255,255,255,0.03);transition:border-color 0.2s}
+#card-element.StripeElement--focus{border-color:rgba(122,162,247,0.3)}
 #card-element.StripeElement--invalid{border-color:rgba(255,80,80,0.4)}
 #card-errors{color:#FF7070;font-size:11px;margin-top:8px;min-height:16px}
 </style>
@@ -69,21 +69,21 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
 
 <div class="checkout">
   <div class="logo">
-    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="#FFB7C9"/><ellipse cx="12" cy="6" rx="2.5" ry="3.5" fill="#FFB7C9" opacity="0.6"/><ellipse cx="17" cy="10" rx="2.5" ry="3.5" fill="#F8A4B8" opacity="0.5" transform="rotate(72 12 12)"/><ellipse cx="15" cy="17" rx="2.5" ry="3.5" fill="#FFD1DC" opacity="0.4" transform="rotate(144 12 12)"/><ellipse cx="9" cy="17" rx="2.5" ry="3.5" fill="#F8A4B8" opacity="0.5" transform="rotate(216 12 12)"/><ellipse cx="7" cy="10" rx="2.5" ry="3.5" fill="#FFB7C9" opacity="0.6" transform="rotate(288 12 12)"/></svg>
-    <span>BLOOM CLIENT</span>
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" fill="#7AA2F7" opacity="0.3"/><circle cx="12" cy="12" r="3" fill="#89B4FA" opacity="0.7"/><circle cx="12" cy="12" r="1.5" fill="#B4BEFE" opacity="0.9"/><circle cx="7" cy="8" r="1" fill="#B4BEFE" opacity="0.4"/><circle cx="17" cy="9" r="0.8" fill="#89B4FA" opacity="0.5"/></svg>
+    <span>NEBULA CLIENT</span>
   </div>
 
   <!-- Purchase view -->
   <div id="purchase-view">
     <div class="tier-display">
-      <div class="tier-label">Bloom Points</div>
-      <div class="tier-amount" id="tier-amount" style="color:#FFB7C9">—</div>
+      <div class="tier-label">Nebula Points</div>
+      <div class="tier-amount" id="tier-amount" style="color:#7AA2F7">—</div>
       <div class="tier-bonus" id="tier-bonus"></div>
       <div class="tier-sub">Use points to unlock capes, halos, and more</div>
     </div>
 
     <div class="summary">
-      <div class="summary-row"><span class="label" id="sum-points">— Bloom Points</span><span class="value" id="sum-price">—</span></div>
+      <div class="summary-row"><span class="label" id="sum-points">— Nebula Points</span><span class="value" id="sum-price">—</span></div>
       <div class="summary-row bonus" id="sum-bonus-row" style="display:none"><span class="label" id="sum-bonus-label">Bonus</span><span class="value">FREE</span></div>
       <div class="summary-row total"><span class="label">Total</span><span class="value" id="sum-total">—</span></div>
     </div>
@@ -105,7 +105,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
     </button>
 
     <div class="pay-info">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5A4550" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#45475A" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
       Secured by Stripe · Your card details never touch our server
     </div>
   </div>
@@ -113,23 +113,23 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
   <!-- Processing view -->
   <div id="processing-view" style="display:none;text-align:center;padding:30px 0">
     <div class="spinner"></div>
-    <div style="font-size:14px;color:#FFD1DC;font-weight:600;margin-top:12px">Processing payment...</div>
-    <div style="font-size:11px;color:#5A4550;margin-top:6px">Please do not close this page</div>
+    <div style="font-size:14px;color:#89B4FA;font-weight:600;margin-top:12px">Processing payment...</div>
+    <div style="font-size:11px;color:#45475A;margin-top:6px">Please do not close this page</div>
   </div>
 
   <!-- Success view -->
   <div id="success-view" style="display:none" class="success-view">
     <div class="check">&#10003;</div>
     <h3>Payment Successful!</h3>
-    <p style="font-size:13px;color:#F0E4E8;margin-bottom:4px" id="success-amount"></p>
-    <p style="font-size:12px;color:#8A7080;margin-bottom:16px">have been added to your Bloom account</p>
+    <p style="font-size:13px;color:#CDD6F4;margin-bottom:4px" id="success-amount"></p>
+    <p style="font-size:12px;color:#6C7086;margin-bottom:16px">have been added to your Nebula account</p>
     <div class="instructions">
-      Open Bloom Client launcher and go to<br>
-      <strong style="color:#FFD1DC">Cosmetics Shop</strong> to spend your points
+      Open Nebula Client launcher and go to<br>
+      <strong style="color:#89B4FA">Cosmetics Shop</strong> to spend your points
     </div>
   </div>
 
-  <a href="index.html" class="back-link">&larr; Back to Bloom Client</a>
+  <a href="index.html" class="back-link">&larr; Back to Nebula Client</a>
 </div>
 
 <script>
@@ -141,10 +141,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
 const API_BASE = '';
 
 const TIERS = {
-  '500':  { amount: 500,  price: 2.99,  display: '$2.99',  color: '#FFD1DC', bonus: 0 },
-  '1500': { amount: 1500, price: 6.99,  display: '$6.99',  color: '#FFB7C9', bonus: 200 },
-  '3500': { amount: 3500, price: 12.99, display: '$12.99', color: '#F8A4B8', bonus: 500 },
-  '8000': { amount: 8000, price: 24.99, display: '$24.99', color: '#E88AA0', bonus: 1500 },
+  '500':  { amount: 500,  price: 2.99,  display: '$2.99',  color: '#89B4FA', bonus: 0 },
+  '1500': { amount: 1500, price: 6.99,  display: '$6.99',  color: '#7AA2F7', bonus: 200 },
+  '3500': { amount: 3500, price: 12.99, display: '$12.99', color: '#5B6EAE', bonus: 500 },
+  '8000': { amount: 8000, price: 24.99, display: '$24.99', color: '#4A5899', bonus: 1500 },
 };
 
 const params = new URLSearchParams(window.location.search);
@@ -157,7 +157,7 @@ const tier = TIERS[tierKey] || TIERS['1500'];
 
 document.getElementById('tier-amount').textContent = tier.amount.toLocaleString();
 document.getElementById('tier-amount').style.color = tier.color;
-document.getElementById('sum-points').textContent = tier.amount.toLocaleString() + ' Bloom Points';
+document.getElementById('sum-points').textContent = tier.amount.toLocaleString() + ' Nebula Points';
 document.getElementById('sum-price').textContent = tier.display;
 document.getElementById('sum-total').textContent = tier.display;
 document.getElementById('btn-price').textContent = tier.display;
@@ -202,10 +202,10 @@ async function initStripe() {
       appearance: {
         theme: 'night',
         variables: {
-          colorPrimary: '#FFB7C9',
+          colorPrimary: '#7AA2F7',
           colorBackground: 'rgba(255,255,255,0.03)',
-          colorText: '#F0E4E8',
-          colorTextPlaceholder: '#5A4550',
+          colorText: '#CDD6F4',
+          colorTextPlaceholder: '#45475A',
           colorDanger: '#FF7070',
           fontFamily: 'Inter, system-ui, sans-serif',
           fontSizeBase: '14px',
@@ -214,16 +214,16 @@ async function initStripe() {
         },
         rules: {
           '.Input': {
-            border: '1px solid rgba(255,176,192,0.12)',
+            border: '1px solid rgba(122,162,247,0.12)',
             backgroundColor: 'transparent',
             boxShadow: 'none',
           },
           '.Input:focus': {
-            border: '1px solid rgba(255,176,192,0.3)',
+            border: '1px solid rgba(122,162,247,0.3)',
             boxShadow: 'none',
           },
           '.Label': {
-            color: '#8A7080',
+            color: '#6C7086',
             fontSize: '11px',
             fontWeight: '600',
             letterSpacing: '0.08em',
@@ -271,7 +271,7 @@ if (redirectStatus === 'succeeded' && piClientSecret) {
           document.getElementById('processing-view').style.display = 'none';
           document.getElementById('success-view').style.display = 'block';
           document.getElementById('success-amount').textContent =
-            verifyData.totalPoints.toLocaleString() + ' Bloom Points';
+            verifyData.totalPoints.toLocaleString() + ' Nebula Points';
         } else {
           throw new Error('Verification failed');
         }
@@ -349,7 +349,7 @@ async function handlePayment() {
         document.getElementById('processing-view').style.display = 'none';
         document.getElementById('success-view').style.display = 'block';
         document.getElementById('success-amount').textContent =
-          verifyData.totalPoints.toLocaleString() + ' Bloom Points';
+          verifyData.totalPoints.toLocaleString() + ' Nebula Points';
       } else {
         throw new Error(verifyData.error || 'Payment verification failed');
       }
@@ -372,23 +372,24 @@ function showError(msg) {
 }
 
 // ---------------------------------------------------------------------------
-// Petals
+// Stars
 // ---------------------------------------------------------------------------
 
-function spawnPetal() {
+function spawnStar() {
   const p = document.createElement('div');
-  p.className = 'petal';
-  const size = 4 + Math.random() * 6;
+  p.className = 'star';
+  const size = 1 + Math.random() * 3;
   p.style.width = size + 'px'; p.style.height = size + 'px';
   p.style.left = Math.random() * 100 + 'vw';
-  p.style.animationDuration = (8 + Math.random() * 10) + 's';
-  const pinks = ['#FFB7C9','#FFC0CB','#FFD1DC','#F8A4B8'];
-  p.style.background = pinks[Math.floor(Math.random() * pinks.length)];
+  p.style.top = Math.random() * 100 + 'vh';
+  p.style.animationDuration = (2 + Math.random() * 4) + 's';
+  const blues = ['#7AA2F7','#89B4FA','#B4BEFE','#CDD6F4'];
+  p.style.background = blues[Math.floor(Math.random() * blues.length)];
   document.body.appendChild(p);
   p.addEventListener('animationend', () => p.remove());
 }
-setInterval(spawnPetal, 600);
-for (let i = 0; i < 8; i++) setTimeout(spawnPetal, i * 150);
+setInterval(spawnStar, 500);
+for (let i = 0; i < 10; i++) setTimeout(spawnStar, i * 150);
 </script>
 </body>
 </html>

@@ -15,27 +15,26 @@ export function LoginModal({ phase, code, url, error, onClose }: Props) {
       display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
     }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="fade-in" style={{
-        background: "linear-gradient(180deg, rgba(30,18,36,0.98), rgba(16,10,20,0.98))",
-        border: "1px solid rgba(255,176,192,0.12)",
+        background: "linear-gradient(180deg, rgba(19,23,41,0.98), rgba(11,14,26,0.98))",
+        border: "1px solid rgba(122,162,247,0.12)",
         borderRadius: "16px", padding: "36px", width: "380px", textAlign: "center",
-        boxShadow: "0 24px 64px rgba(0,0,0,0.5), 0 0 80px rgba(255,176,192,0.05)",
+        boxShadow: "0 24px 64px rgba(0,0,0,0.5), 0 0 80px rgba(122,162,247,0.05)",
       }}>
-        {/* Bloom flower icon */}
+        {/* Nebula icon */}
         <div style={{
           width: "56px", height: "56px", margin: "0 auto 20px",
           borderRadius: "16px",
-          background: "linear-gradient(135deg, rgba(255,176,192,0.15), rgba(255,176,192,0.05))",
-          border: "1px solid rgba(255,176,192,0.15)",
+          background: "linear-gradient(135deg, rgba(122,162,247,0.15), rgba(122,162,247,0.05))",
+          border: "1px solid rgba(122,162,247,0.15)",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: "24px",
         }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="3.5" fill="#FFB7C9"/>
-            <ellipse cx="12" cy="5.5" rx="3" ry="4" fill="#FFB7C9" opacity="0.6"/>
-            <ellipse cx="18" cy="9.5" rx="3" ry="4" fill="#F8A4B8" opacity="0.5" transform="rotate(72 12 12)"/>
-            <ellipse cx="15.5" cy="17" rx="3" ry="4" fill="#FFD1DC" opacity="0.4" transform="rotate(144 12 12)"/>
-            <ellipse cx="8.5" cy="17" rx="3" ry="4" fill="#F8A4B8" opacity="0.5" transform="rotate(216 12 12)"/>
-            <ellipse cx="6" cy="9.5" rx="3" ry="4" fill="#FFB7C9" opacity="0.6" transform="rotate(288 12 12)"/>
+            <circle cx="12" cy="12" r="5" fill="#7AA2F7" opacity="0.3"/>
+            <circle cx="12" cy="12" r="3" fill="#89B4FA" opacity="0.7"/>
+            <circle cx="12" cy="12" r="1.5" fill="#B4BEFE" opacity="0.9"/>
+            <circle cx="7" cy="8" r="1" fill="#B4BEFE" opacity="0.4"/>
+            <circle cx="17" cy="9" r="0.8" fill="#89B4FA" opacity="0.5"/>
           </svg>
         </div>
 
@@ -48,7 +47,7 @@ export function LoginModal({ phase, code, url, error, onClose }: Props) {
             <p style={{ color: "var(--text-dim)", fontSize: "13px", marginBottom: "20px" }}>Connecting to Microsoft...</p>
             <div style={{
               width: "32px", height: "32px", margin: "0 auto",
-              border: "3px solid rgba(255,176,192,0.1)", borderTopColor: "var(--pink)",
+              border: "3px solid rgba(122,162,247,0.1)", borderTopColor: "var(--pink)",
               borderRadius: "50%",
               animation: "spin 0.8s linear infinite",
             }} />
@@ -64,8 +63,8 @@ export function LoginModal({ phase, code, url, error, onClose }: Props) {
             <button
               onClick={() => { if (url) openUrl(url); }}
               style={{
-                background: "linear-gradient(135deg, var(--pink-300, #FFB7C9), var(--pink-400, #F8A4B8))",
-                color: "#1a0a12", border: "none", borderRadius: "8px",
+                background: "linear-gradient(135deg, var(--pink-300, #7AA2F7), var(--pink-400, #5B6EAE))",
+                color: "#0B0E1A", border: "none", borderRadius: "8px",
                 padding: "10px 24px", fontSize: "13px", fontWeight: "700",
                 cursor: "pointer", fontFamily: "inherit", marginBottom: "12px",
                 transition: "all 0.2s",
@@ -79,7 +78,7 @@ export function LoginModal({ phase, code, url, error, onClose }: Props) {
               {url}
             </div>
             <div style={{
-              background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,176,192,0.12)",
+              background: "rgba(0,0,0,0.3)", border: "1px solid rgba(122,162,247,0.12)",
               borderRadius: "12px", padding: "20px", marginBottom: "20px",
             }}>
               <div style={{ fontSize: "10px", color: "var(--text-dim)", marginBottom: "8px", letterSpacing: "0.15em", fontWeight: "700" }}>ENTER THIS CODE</div>

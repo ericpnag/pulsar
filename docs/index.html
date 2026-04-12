@@ -3,94 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bloom Client — Cherry Blossom Minecraft Client</title>
+<title>Nebula Client — Space Themed Minecraft Client</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;overflow-x:hidden}
-::selection{background:rgba(255,183,201,0.3);color:#fff}
+body{font-family:'Inter',system-ui,sans-serif;background:#0B0E1A;color:#CDD6F4;overflow-x:hidden}
+::selection{background:rgba(122,162,247,0.3);color:#fff}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(255,183,201,0.15);border-radius:3px}
+::-webkit-scrollbar-thumb{background:rgba(122,162,247,0.15);border-radius:3px}
 
-/* ── Petals ── */
-.petal{position:fixed;width:8px;height:8px;background:#FFB7C9;border-radius:50% 0 50% 50%;opacity:0;pointer-events:none;z-index:0;animation:fall linear forwards}
-@keyframes fall{0%{opacity:0;transform:translateY(-20px) rotate(0deg)}10%{opacity:0.6}90%{opacity:0.4}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+/* ── Stars ── */
+.star{position:fixed;width:2px;height:2px;background:#B4BEFE;border-radius:50%;opacity:0;pointer-events:none;z-index:0;animation:twinkle linear forwards}
+@keyframes twinkle{0%{opacity:0;transform:scale(0.5)}20%{opacity:0.8;transform:scale(1)}80%{opacity:0.6;transform:scale(0.8)}100%{opacity:0;transform:scale(0)}}
 
 /* ── Nav ── */
-nav{position:fixed;top:0;width:100%;z-index:100;padding:16px 40px;display:flex;align-items:center;backdrop-filter:blur(20px);background:rgba(10,6,17,0.7);border-bottom:1px solid rgba(255,183,201,0.04);transition:all 0.3s}
-nav.scrolled{background:rgba(10,6,17,0.92);padding:12px 40px}
+nav{position:fixed;top:0;width:100%;z-index:100;padding:16px 40px;display:flex;align-items:center;backdrop-filter:blur(20px);background:rgba(11,14,26,0.7);border-bottom:1px solid rgba(122,162,247,0.04);transition:all 0.3s}
+nav.scrolled{background:rgba(11,14,26,0.92);padding:12px 40px}
 .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
 .nav-logo svg{width:28px;height:28px}
-.nav-logo span{font-weight:800;font-size:14px;letter-spacing:0.14em;color:#FFD1DC}
+.nav-logo span{font-weight:800;font-size:14px;letter-spacing:0.14em;color:#89B4FA}
 .nav-links{display:flex;gap:32px;margin-left:auto;align-items:center}
-.nav-links a{color:#8A7080;text-decoration:none;font-size:13px;font-weight:500;transition:color 0.2s}
-.nav-links a:hover{color:#FFD1DC}
-.nav-cta{background:linear-gradient(135deg,#FFB7C9,#F8A4B8);color:#1a0a12;padding:8px 24px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer}
-.nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,183,201,0.25)}
+.nav-links a{color:#6C7086;text-decoration:none;font-size:13px;font-weight:500;transition:color 0.2s}
+.nav-links a:hover{color:#89B4FA}
+.nav-cta{background:linear-gradient(135deg,#7AA2F7,#5B6EAE);color:#0B0E1A;padding:8px 24px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(122,162,247,0.25)}
 
 /* ── Hero ── */
 .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;padding:120px 20px 80px}
-.hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 50% 30%,rgba(255,183,201,0.06) 0%,transparent 60%);pointer-events:none}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;background:rgba(255,183,201,0.06);border:1px solid rgba(255,183,201,0.1);font-size:12px;color:#BBA4AC;margin-bottom:32px;animation:fadeUp 0.8s ease-out}
-.hero-badge span{color:#FFB7C9;font-weight:600}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 50% 30%,rgba(122,162,247,0.06) 0%,transparent 60%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;background:rgba(122,162,247,0.06);border:1px solid rgba(122,162,247,0.1);font-size:12px;color:#A6ADC8;margin-bottom:32px;animation:fadeUp 0.8s ease-out}
+.hero-badge span{color:#7AA2F7;font-weight:600}
 .hero h1{font-size:clamp(48px,8vw,96px);font-weight:900;letter-spacing:-0.02em;line-height:1;margin-bottom:16px;animation:fadeUp 0.8s ease-out 0.1s both}
-.hero h1 .gradient{background:linear-gradient(135deg,#FFE4EC,#FFB7C9,#F8A4B8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{font-size:18px;color:#8A7080;max-width:500px;line-height:1.6;margin-bottom:40px;animation:fadeUp 0.8s ease-out 0.2s both}
+.hero h1 .gradient{background:linear-gradient(135deg,#B4BEFE,#7AA2F7,#5B6EAE);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:18px;color:#6C7086;max-width:500px;line-height:1.6;margin-bottom:40px;animation:fadeUp 0.8s ease-out 0.2s both}
 .hero-buttons{display:flex;gap:16px;animation:fadeUp 0.8s ease-out 0.3s both}
-.btn-primary{background:linear-gradient(135deg,#FFB7C9,#F8A4B8);color:#1a0a12;padding:14px 36px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;transition:all 0.25s;display:inline-flex;align-items:center;gap:8px}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,183,201,0.3)}
-.btn-secondary{background:rgba(255,255,255,0.04);border:1px solid rgba(255,183,201,0.1);color:#BBA4AC;padding:14px 36px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;transition:all 0.25s}
-.btn-secondary:hover{border-color:rgba(255,183,201,0.25);color:#FFD1DC;background:rgba(255,183,201,0.06)}
-.hero-image{margin-top:60px;width:min(900px,90vw);border-radius:16px;overflow:hidden;border:1px solid rgba(255,183,201,0.08);box-shadow:0 40px 80px rgba(0,0,0,0.4);animation:fadeUp 1s ease-out 0.4s both;position:relative}
-.hero-image .mockup{width:100%;height:400px;background:linear-gradient(135deg,#120a18,#1e1028,#361a38);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.hero-image .mockup-text{font-size:28px;font-weight:800;color:rgba(255,183,201,0.2);letter-spacing:0.1em}
-.hero-glow{position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(255,183,201,0.08) 0%,transparent 60%);top:-200px;left:50%;transform:translateX(-50%);pointer-events:none;animation:pulse 4s ease-in-out infinite}
+.btn-primary{background:linear-gradient(135deg,#7AA2F7,#5B6EAE);color:#0B0E1A;padding:14px 36px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;transition:all 0.25s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(122,162,247,0.3)}
+.btn-secondary{background:rgba(255,255,255,0.04);border:1px solid rgba(122,162,247,0.1);color:#A6ADC8;padding:14px 36px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;transition:all 0.25s}
+.btn-secondary:hover{border-color:rgba(122,162,247,0.25);color:#89B4FA;background:rgba(122,162,247,0.06)}
+.hero-image{margin-top:60px;width:min(900px,90vw);border-radius:16px;overflow:hidden;border:1px solid rgba(122,162,247,0.08);box-shadow:0 40px 80px rgba(0,0,0,0.4);animation:fadeUp 1s ease-out 0.4s both;position:relative}
+.hero-image .mockup{width:100%;height:400px;background:linear-gradient(135deg,#0B0E1A,#131729,#1a2040);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.hero-image .mockup-text{font-size:28px;font-weight:800;color:rgba(122,162,247,0.2);letter-spacing:0.1em}
+.hero-glow{position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(122,162,247,0.08) 0%,transparent 60%);top:-200px;left:50%;transform:translateX(-50%);pointer-events:none;animation:pulse 4s ease-in-out infinite}
 
 /* ── Features ── */
 .features{padding:120px 40px;position:relative}
-.features::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,183,201,0.1),transparent)}
-.section-label{font-size:12px;font-weight:700;letter-spacing:0.15em;color:#FFB7C9;text-transform:uppercase;text-align:center;margin-bottom:12px}
+.features::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(122,162,247,0.1),transparent)}
+.section-label{font-size:12px;font-weight:700;letter-spacing:0.15em;color:#7AA2F7;text-transform:uppercase;text-align:center;margin-bottom:12px}
 .section-title{font-size:clamp(32px,5vw,48px);font-weight:800;text-align:center;margin-bottom:16px;letter-spacing:-0.02em}
-.section-sub{font-size:16px;color:#8A7080;text-align:center;max-width:500px;margin:0 auto 60px;line-height:1.6}
+.section-sub{font-size:16px;color:#6C7086;text-align:center;max-width:500px;margin:0 auto 60px;line-height:1.6}
 .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:1100px;margin:0 auto}
-.feature-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,183,201,0.06);border-radius:16px;padding:32px;transition:all 0.3s;position:relative;overflow:hidden}
-.feature-card:hover{border-color:rgba(255,183,201,0.15);background:rgba(255,183,201,0.03);transform:translateY(-4px)}
-.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,183,201,0.2),transparent);opacity:0;transition:opacity 0.3s}
+.feature-card{background:rgba(255,255,255,0.02);border:1px solid rgba(122,162,247,0.06);border-radius:16px;padding:32px;transition:all 0.3s;position:relative;overflow:hidden}
+.feature-card:hover{border-color:rgba(122,162,247,0.15);background:rgba(122,162,247,0.03);transform:translateY(-4px)}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(122,162,247,0.2),transparent);opacity:0;transition:opacity 0.3s}
 .feature-card:hover::before{opacity:1}
-.feature-icon{width:48px;height:48px;border-radius:12px;background:rgba(255,183,201,0.06);display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:20px}
+.feature-icon{width:48px;height:48px;border-radius:12px;background:rgba(122,162,247,0.06);display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:20px}
 .feature-card h3{font-size:18px;font-weight:700;margin-bottom:8px}
-.feature-card p{font-size:14px;color:#8A7080;line-height:1.6}
+.feature-card p{font-size:14px;color:#6C7086;line-height:1.6}
 
 /* ── Stats ── */
 .stats{padding:80px 40px;display:flex;justify-content:center;gap:80px;flex-wrap:wrap}
 .stat{text-align:center}
-.stat-num{font-size:48px;font-weight:900;background:linear-gradient(135deg,#FFD1DC,#FFB7C9);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.stat-label{font-size:13px;color:#8A7080;margin-top:4px}
+.stat-num{font-size:48px;font-weight:900;background:linear-gradient(135deg,#89B4FA,#7AA2F7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:13px;color:#6C7086;margin-top:4px}
 
 /* ── Modules ── */
 .modules{padding:120px 40px;position:relative}
-.modules::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,183,201,0.1),transparent)}
+.modules::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(122,162,247,0.1),transparent)}
 .modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;max-width:900px;margin:0 auto}
-.module-chip{padding:14px 20px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,183,201,0.06);font-size:13px;font-weight:600;color:#BBA4AC;display:flex;align-items:center;gap:8px;transition:all 0.2s}
-.module-chip:hover{border-color:rgba(255,183,201,0.15);color:#FFD1DC;transform:translateY(-2px)}
+.module-chip{padding:14px 20px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(122,162,247,0.06);font-size:13px;font-weight:600;color:#A6ADC8;display:flex;align-items:center;gap:8px;transition:all 0.2s}
+.module-chip:hover{border-color:rgba(122,162,247,0.15);color:#89B4FA;transform:translateY(-2px)}
 .module-dot{width:6px;height:6px;border-radius:50%;background:#6EE7A0}
 
 /* ── CTA ── */
 .cta{padding:120px 40px;text-align:center}
-.cta-box{max-width:700px;margin:0 auto;padding:60px;border-radius:20px;background:linear-gradient(135deg,rgba(255,183,201,0.04),rgba(255,183,201,0.01));border:1px solid rgba(255,183,201,0.08);position:relative;overflow:hidden}
-.cta-box::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:400px;height:400px;background:radial-gradient(circle,rgba(255,183,201,0.06) 0%,transparent 60%);pointer-events:none}
+.cta-box{max-width:700px;margin:0 auto;padding:60px;border-radius:20px;background:linear-gradient(135deg,rgba(122,162,247,0.04),rgba(122,162,247,0.01));border:1px solid rgba(122,162,247,0.08);position:relative;overflow:hidden}
+.cta-box::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:400px;height:400px;background:radial-gradient(circle,rgba(122,162,247,0.06) 0%,transparent 60%);pointer-events:none}
 .cta h2{font-size:36px;font-weight:800;margin-bottom:12px;position:relative}
-.cta p{color:#8A7080;margin-bottom:32px;font-size:16px;position:relative}
+.cta p{color:#6C7086;margin-bottom:32px;font-size:16px;position:relative}
 
 /* ── Footer ── */
-footer{padding:40px;border-top:1px solid rgba(255,183,201,0.04);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
-footer .left{display:flex;align-items:center;gap:8px;font-size:13px;color:#5A4550}
+footer{padding:40px;border-top:1px solid rgba(122,162,247,0.04);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+footer .left{display:flex;align-items:center;gap:8px;font-size:13px;color:#45475A}
 footer .right{display:flex;gap:24px}
-footer .right a{color:#5A4550;text-decoration:none;font-size:13px;transition:color 0.2s}
-footer .right a:hover{color:#FFB7C9}
+footer .right a{color:#45475A;text-decoration:none;font-size:13px;transition:color 0.2s}
+footer .right a:hover{color:#7AA2F7}
 
 /* ── Animations ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -115,14 +115,14 @@ footer .right a:hover{color:#FFB7C9}
 <nav id="nav">
   <a class="nav-logo" href="#">
     <svg viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="3.5" fill="#FFB7C9" opacity="0.9"/>
-      <ellipse cx="12" cy="5.5" rx="3" ry="4" fill="#FFB7C9" opacity="0.6"/>
-      <ellipse cx="18" cy="9.5" rx="3" ry="4" fill="#F8A4B8" opacity="0.5" transform="rotate(72 12 12)"/>
-      <ellipse cx="15.5" cy="17" rx="3" ry="4" fill="#FFD1DC" opacity="0.4" transform="rotate(144 12 12)"/>
-      <ellipse cx="8.5" cy="17" rx="3" ry="4" fill="#F8A4B8" opacity="0.5" transform="rotate(216 12 12)"/>
-      <ellipse cx="6" cy="9.5" rx="3" ry="4" fill="#FFB7C9" opacity="0.6" transform="rotate(288 12 12)"/>
+      <circle cx="12" cy="12" r="5" fill="#7AA2F7" opacity="0.3"/>
+      <circle cx="12" cy="12" r="3" fill="#89B4FA" opacity="0.7"/>
+      <circle cx="12" cy="12" r="1.5" fill="#B4BEFE" opacity="0.9"/>
+      <circle cx="7" cy="8" r="1" fill="#B4BEFE" opacity="0.4"/>
+      <circle cx="17" cy="9" r="0.8" fill="#89B4FA" opacity="0.5"/>
+      <circle cx="15" cy="16" r="0.6" fill="#7AA2F7" opacity="0.3"/>
     </svg>
-    <span>BLOOM</span>
+    <span>NEBULA</span>
   </a>
   <div class="nav-links">
     <a href="#features">Features</a>
@@ -136,11 +136,11 @@ footer .right a:hover{color:#FFB7C9}
 <section class="hero">
   <div class="hero-glow"></div>
   <div class="hero-badge">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="#FFB7C9"/><ellipse cx="12" cy="6" rx="2.5" ry="3.5" fill="#FFB7C9" opacity="0.5"/></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" fill="#7AA2F7" opacity="0.6"/><circle cx="12" cy="12" r="2" fill="#B4BEFE" opacity="0.9"/></svg>
     <span>v1.0.0</span> — Now available for macOS, Windows & Linux
   </div>
-  <h1><span class="gradient">Bloom</span> Client</h1>
-  <p>A cherry blossom themed Minecraft client with cosmetics, performance mods, and a beautiful custom UI.</p>
+  <h1><span class="gradient">Nebula</span> Client</h1>
+  <p>A space themed Minecraft client with cosmetics, performance mods, and a beautiful custom UI.</p>
   <div class="hero-buttons">
     <a class="btn-primary" href="#download">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
@@ -150,7 +150,7 @@ footer .right a:hover{color:#FFB7C9}
   </div>
   <div class="hero-image">
     <div class="mockup">
-      <div class="mockup-text">BLOOM CLIENT</div>
+      <div class="mockup-text">NEBULA CLIENT</div>
     </div>
   </div>
 </section>
@@ -167,35 +167,35 @@ footer .right a:hover{color:#FFB7C9}
 <section class="features" id="features">
   <div class="section-label reveal">Features</div>
   <h2 class="section-title reveal">Everything you need</h2>
-  <p class="section-sub reveal">Bloom Client comes packed with features to enhance your Minecraft experience.</p>
+  <p class="section-sub reveal">Nebula Client comes packed with features to enhance your Minecraft experience.</p>
   <div class="features-grid">
     <div class="feature-card reveal">
-      <div class="feature-icon">🌸</div>
-      <h3>Cherry Blossom Theme</h3>
-      <p>Beautiful custom title screen, pause menu, and mod menu with falling petal animations throughout.</p>
+      <div class="feature-icon">&#127756;</div>
+      <h3>Neptune Space Theme</h3>
+      <p>Beautiful custom title screen, pause menu, and mod menu with twinkling star animations throughout.</p>
     </div>
     <div class="feature-card reveal">
-      <div class="feature-icon">⚡</div>
+      <div class="feature-icon">&#9889;</div>
       <h3>FPS Boost</h3>
       <p>One-click performance optimization. Bundled with Sodium, Lithium, and EntityCulling for maximum frames.</p>
     </div>
     <div class="feature-card reveal">
-      <div class="feature-icon">👘</div>
+      <div class="feature-icon">&#128088;</div>
       <h3>Cosmetics</h3>
-      <p>8 unique capes with in-game preview. Cherry Blossom, Galaxy, Flame, Frost and more — all free.</p>
+      <p>8 unique capes with in-game preview. Galaxy, Nebula, Flame, Frost and more — all free.</p>
     </div>
     <div class="feature-card reveal">
-      <div class="feature-icon">🎮</div>
+      <div class="feature-icon">&#127918;</div>
       <h3>PvP Ready</h3>
       <p>CPS counter, armor HUD, potion timers, low fire, low shield — everything for competitive play.</p>
     </div>
     <div class="feature-card reveal">
-      <div class="feature-icon">🔧</div>
+      <div class="feature-icon">&#128295;</div>
       <h3>Mod Store</h3>
       <p>Browse and install Fabric mods, shaders, and texture packs directly from Modrinth without leaving the launcher.</p>
     </div>
     <div class="feature-card reveal">
-      <div class="feature-icon">🔐</div>
+      <div class="feature-icon">&#128274;</div>
       <h3>Microsoft Login</h3>
       <p>Secure Microsoft OAuth2 authentication. Play on any server with your real Minecraft account.</p>
     </div>
@@ -218,7 +218,7 @@ footer .right a:hover{color:#FFB7C9}
     <div class="module-chip reveal"><div class="module-dot"></div>CPS Counter</div>
     <div class="module-chip reveal"><div class="module-dot"></div>Potion Effects</div>
     <div class="module-chip reveal"><div class="module-dot"></div>Keystrokes</div>
-    <div class="module-chip reveal"><div class="module-dot"></div>Bloom Cape</div>
+    <div class="module-chip reveal"><div class="module-dot"></div>Nebula Cape</div>
     <div class="module-chip reveal"><div class="module-dot"></div>FPS Boost</div>
     <div class="module-chip reveal"><div class="module-dot"></div>Low Fire</div>
     <div class="module-chip reveal"><div class="module-dot"></div>Low Shield</div>
@@ -230,32 +230,32 @@ footer .right a:hover{color:#FFB7C9}
 <!-- Store -->
 <section class="modules" id="store" style="padding-bottom:60px">
   <div class="section-label reveal">Store</div>
-  <h2 class="section-title reveal">Bloom Points</h2>
+  <h2 class="section-title reveal">Nebula Points</h2>
   <p class="section-sub reveal">Purchase points to unlock premium capes, halos, and more cosmetics.</p>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:900px;margin:40px auto 0;padding:0 24px">
     <div class="feature-card reveal" style="text-align:center;cursor:pointer" onclick="window.location='store.html?tier=500'">
-      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8A7080;text-transform:uppercase;margin-bottom:8px">Bloom Points</div>
-      <div style="font-size:36px;font-weight:800;color:#FFD1DC;line-height:1">500</div>
-      <div style="margin-top:12px;padding:6px 16px;border-radius:8px;background:rgba(255,176,192,0.08);font-weight:700;font-size:14px;display:inline-block">$2.99</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#6C7086;text-transform:uppercase;margin-bottom:8px">Nebula Points</div>
+      <div style="font-size:36px;font-weight:800;color:#89B4FA;line-height:1">500</div>
+      <div style="margin-top:12px;padding:6px 16px;border-radius:8px;background:rgba(122,162,247,0.08);font-weight:700;font-size:14px;display:inline-block">$2.99</div>
     </div>
-    <div class="feature-card reveal" style="text-align:center;cursor:pointer;border-color:rgba(255,176,192,0.2);position:relative" onclick="window.location='store.html?tier=1500'">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FFB7C9,#F8A4B8);color:#1a0a12;font-size:10px;font-weight:800;padding:3px 12px;border-radius:10px;letter-spacing:0.05em">POPULAR</div>
-      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8A7080;text-transform:uppercase;margin-bottom:8px">Bloom Points</div>
-      <div style="font-size:36px;font-weight:800;color:#FFB7C9;line-height:1">1,500</div>
+    <div class="feature-card reveal" style="text-align:center;cursor:pointer;border-color:rgba(122,162,247,0.2);position:relative" onclick="window.location='store.html?tier=1500'">
+      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7AA2F7,#5B6EAE);color:#0B0E1A;font-size:10px;font-weight:800;padding:3px 12px;border-radius:10px;letter-spacing:0.05em">POPULAR</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#6C7086;text-transform:uppercase;margin-bottom:8px">Nebula Points</div>
+      <div style="font-size:36px;font-weight:800;color:#7AA2F7;line-height:1">1,500</div>
       <div style="font-size:11px;color:#6EE7A0;font-weight:600;margin-top:4px">+200 bonus</div>
-      <div style="margin-top:8px;padding:6px 16px;border-radius:8px;background:rgba(255,176,192,0.08);font-weight:700;font-size:14px;display:inline-block">$6.99</div>
+      <div style="margin-top:8px;padding:6px 16px;border-radius:8px;background:rgba(122,162,247,0.08);font-weight:700;font-size:14px;display:inline-block">$6.99</div>
     </div>
     <div class="feature-card reveal" style="text-align:center;cursor:pointer" onclick="window.location='store.html?tier=3500'">
-      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8A7080;text-transform:uppercase;margin-bottom:8px">Bloom Points</div>
-      <div style="font-size:36px;font-weight:800;color:#F8A4B8;line-height:1">3,500</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#6C7086;text-transform:uppercase;margin-bottom:8px">Nebula Points</div>
+      <div style="font-size:36px;font-weight:800;color:#5B6EAE;line-height:1">3,500</div>
       <div style="font-size:11px;color:#6EE7A0;font-weight:600;margin-top:4px">+500 bonus</div>
-      <div style="margin-top:8px;padding:6px 16px;border-radius:8px;background:rgba(255,176,192,0.08);font-weight:700;font-size:14px;display:inline-block">$12.99</div>
+      <div style="margin-top:8px;padding:6px 16px;border-radius:8px;background:rgba(122,162,247,0.08);font-weight:700;font-size:14px;display:inline-block">$12.99</div>
     </div>
     <div class="feature-card reveal" style="text-align:center;cursor:pointer" onclick="window.location='store.html?tier=8000'">
-      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8A7080;text-transform:uppercase;margin-bottom:8px">Bloom Points</div>
-      <div style="font-size:36px;font-weight:800;color:#E88AA0;line-height:1">8,000</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#6C7086;text-transform:uppercase;margin-bottom:8px">Nebula Points</div>
+      <div style="font-size:36px;font-weight:800;color:#4A5899;line-height:1">8,000</div>
       <div style="font-size:11px;color:#6EE7A0;font-weight:600;margin-top:4px">+1,500 bonus</div>
-      <div style="margin-top:8px;padding:6px 16px;border-radius:8px;background:rgba(255,176,192,0.08);font-weight:700;font-size:14px;display:inline-block">$24.99</div>
+      <div style="margin-top:8px;padding:6px 16px;border-radius:8px;background:rgba(122,162,247,0.08);font-weight:700;font-size:14px;display:inline-block">$24.99</div>
     </div>
   </div>
 </section>
@@ -263,8 +263,8 @@ footer .right a:hover{color:#FFB7C9}
 <!-- CTA -->
 <section class="cta" id="download">
   <div class="cta-box reveal">
-    <h2>Ready to <span class="gradient">bloom</span>?</h2>
-    <p>Download Bloom Client for free. Available on macOS, Windows, and Linux.</p>
+    <h2>Ready to <span class="gradient">explore</span>?</h2>
+    <p>Download Nebula Client for free. Available on macOS, Windows, and Linux.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
       <a class="btn-primary" href="https://github.com/ericpnag/bloom-launcher/releases" style="font-size:14px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
@@ -279,8 +279,8 @@ footer .right a:hover{color:#FFB7C9}
 <!-- Footer -->
 <footer>
   <div class="left">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="#FFB7C9" opacity="0.6"/><ellipse cx="12" cy="6" rx="2.5" ry="3.5" fill="#FFB7C9" opacity="0.4"/></svg>
-    Bloom Client — Cherry Blossom Minecraft Experience
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" fill="#7AA2F7" opacity="0.4"/><circle cx="12" cy="12" r="2" fill="#B4BEFE" opacity="0.6"/></svg>
+    Nebula Client — Space Themed Minecraft Experience
   </div>
   <div class="right">
     <a href="https://github.com/ericpnag/bloom-launcher">GitHub</a>
@@ -289,24 +289,24 @@ footer .right a:hover{color:#FFB7C9}
 </footer>
 
 <script>
-// Falling petals
-function spawnPetal(){
+// Twinkling stars
+function spawnStar(){
   const p=document.createElement('div');
-  p.className='petal';
-  const size=4+Math.random()*8;
+  p.className='star';
+  const size=1+Math.random()*3;
   p.style.width=size+'px';p.style.height=size+'px';
   p.style.left=Math.random()*100+'vw';
-  p.style.top='-20px';
-  p.style.animationDuration=(6+Math.random()*8)+'s';
+  p.style.top=Math.random()*100+'vh';
+  p.style.animationDuration=(2+Math.random()*4)+'s';
   p.style.animationDelay=Math.random()*2+'s';
-  const pinks=['#FFB7C9','#FFC0CB','#FFD1DC','#F8A4B8','#FFE4E9'];
-  p.style.background=pinks[Math.floor(Math.random()*pinks.length)];
-  p.style.borderRadius=Math.random()>0.5?'50% 0 50% 50%':'50% 50% 0 50%';
+  const blues=['#7AA2F7','#89B4FA','#B4BEFE','#CDD6F4','#ffffff'];
+  p.style.background=blues[Math.floor(Math.random()*blues.length)];
+  p.style.borderRadius='50%';
   document.body.appendChild(p);
   p.addEventListener('animationend',()=>p.remove());
 }
-setInterval(spawnPetal,400);
-for(let i=0;i<15;i++)setTimeout(spawnPetal,i*200);
+setInterval(spawnStar,300);
+for(let i=0;i<20;i++)setTimeout(spawnStar,i*150);
 
 // Nav scroll effect
 window.addEventListener('scroll',()=>{

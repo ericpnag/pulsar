@@ -12,20 +12,20 @@ export function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(DEFAULT);
 
   useEffect(() => {
-    const saved = localStorage.getItem("bloom-settings");
+    const saved = localStorage.getItem("nebula-settings");
     if (saved) setSettings({ ...DEFAULT, ...JSON.parse(saved) });
   }, []);
 
   function save(patch: Partial<Settings>) {
     const updated = { ...settings, ...patch };
     setSettings(updated);
-    localStorage.setItem("bloom-settings", JSON.stringify(updated));
+    localStorage.setItem("nebula-settings", JSON.stringify(updated));
   }
 
   return (
     <div className="fade-in" style={{ padding: "28px 32px", overflowY: "auto", height: "100%", maxWidth: "560px" }}>
       <h2 className="page-title">Settings</h2>
-      <p className="page-subtitle" style={{ marginBottom: "24px" }}>Configure your Bloom Client</p>
+      <p className="page-subtitle" style={{ marginBottom: "24px" }}>Configure your Nebula Client</p>
 
       {/* RAM */}
       <div className="bloom-card" style={{ padding: "20px", marginBottom: "12px" }}>
@@ -85,20 +85,19 @@ export function SettingsPage() {
       <div className="bloom-card" style={{ padding: "20px", marginTop: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="3.5" fill="#FFB7C9"/>
-            <ellipse cx="12" cy="5.5" rx="3" ry="4" fill="#FFB7C9" opacity="0.6"/>
-            <ellipse cx="18" cy="9.5" rx="3" ry="4" fill="#F8A4B8" opacity="0.5" transform="rotate(72 12 12)"/>
-            <ellipse cx="15.5" cy="17" rx="3" ry="4" fill="#FFD1DC" opacity="0.4" transform="rotate(144 12 12)"/>
-            <ellipse cx="8.5" cy="17" rx="3" ry="4" fill="#F8A4B8" opacity="0.5" transform="rotate(216 12 12)"/>
-            <ellipse cx="6" cy="9.5" rx="3" ry="4" fill="#FFB7C9" opacity="0.6" transform="rotate(288 12 12)"/>
+            <circle cx="12" cy="12" r="5" fill="#7AA2F7" opacity="0.3"/>
+            <circle cx="12" cy="12" r="3" fill="#89B4FA" opacity="0.7"/>
+            <circle cx="12" cy="12" r="1.5" fill="#B4BEFE" opacity="0.9"/>
+            <circle cx="7" cy="8" r="1" fill="#B4BEFE" opacity="0.4"/>
+            <circle cx="17" cy="9" r="0.8" fill="#89B4FA" opacity="0.5"/>
           </svg>
           <div>
-            <div style={{ fontSize: "15px", fontWeight: "800", color: "var(--pink-light)" }}>Bloom Client</div>
+            <div style={{ fontSize: "15px", fontWeight: "800", color: "var(--pink-light)" }}>Nebula Client</div>
             <div style={{ fontSize: "11px", color: "var(--text-dim)" }}>v1.0.0</div>
           </div>
         </div>
         <div style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.6 }}>
-          A cherry blossom Minecraft experience.
+          A space themed Minecraft experience.
         </div>
         <div style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "8px" }}>
           github.com/ericpnag/bloom-launcher

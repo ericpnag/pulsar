@@ -23,8 +23,8 @@ export function TopNav({ page, onNavigate, account, onLogin, onLogout }: Props) 
   return (
     <header style={{
       display: "flex", alignItems: "center", height: "48px", minHeight: "48px",
-      background: "rgba(10,6,17,0.85)", backdropFilter: "blur(20px)",
-      borderBottom: "1px solid rgba(255,176,192,0.04)",
+      background: "rgba(11,14,26,0.85)", backdropFilter: "blur(20px)",
+      borderBottom: "1px solid rgba(122,162,247,0.04)",
       padding: "0 16px", gap: "4px",
       position: "relative", zIndex: 10,
       // @ts-ignore
@@ -34,23 +34,22 @@ export function TopNav({ page, onNavigate, account, onLogin, onLogout }: Props) 
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginRight: "20px" }}>
         <div style={{
           width: "24px", height: "24px", borderRadius: "8px",
-          background: "linear-gradient(135deg, rgba(255,176,192,0.15), rgba(255,176,192,0.05))",
+          background: "linear-gradient(135deg, rgba(122,162,247,0.15), rgba(122,162,247,0.05))",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="3.5" fill="#FFB7C9" opacity="0.9"/>
-            <ellipse cx="12" cy="5.5" rx="3" ry="4" fill="#FFB7C9" opacity="0.6"/>
-            <ellipse cx="18" cy="9.5" rx="3" ry="4" fill="#F8A4B8" opacity="0.5" transform="rotate(72 12 12)"/>
-            <ellipse cx="15.5" cy="17" rx="3" ry="4" fill="#FFD1DC" opacity="0.4" transform="rotate(144 12 12)"/>
-            <ellipse cx="8.5" cy="17" rx="3" ry="4" fill="#F8A4B8" opacity="0.5" transform="rotate(216 12 12)"/>
-            <ellipse cx="6" cy="9.5" rx="3" ry="4" fill="#FFB7C9" opacity="0.6" transform="rotate(288 12 12)"/>
+            <circle cx="12" cy="12" r="5" fill="#7AA2F7" opacity="0.3"/>
+            <circle cx="12" cy="12" r="3" fill="#89B4FA" opacity="0.7"/>
+            <circle cx="12" cy="12" r="1.5" fill="#B4BEFE" opacity="0.9"/>
+            <circle cx="7" cy="8" r="1" fill="#B4BEFE" opacity="0.4"/>
+            <circle cx="17" cy="9" r="0.8" fill="#89B4FA" opacity="0.5"/>
           </svg>
         </div>
         <span style={{
           fontWeight: "800", fontSize: "12px", letterSpacing: "0.16em",
           color: "var(--pink-200)",
         }}>
-          BLOOM
+          NEBULA
         </span>
       </div>
 
@@ -64,7 +63,7 @@ export function TopNav({ page, onNavigate, account, onLogin, onLogout }: Props) 
           return (
             <button key={id} onClick={() => onNavigate(id)} style={{
               padding: "6px 12px",
-              background: active ? "rgba(255,176,192,0.08)" : "transparent",
+              background: active ? "rgba(122,162,247,0.08)" : "transparent",
               color: active ? "var(--pink-200)" : "var(--text-muted)",
               border: "none",
               borderRadius: "6px",
@@ -95,8 +94,8 @@ export function TopNav({ page, onNavigate, account, onLogin, onLogout }: Props) 
           >
             <div style={{
               width: "26px", height: "26px", borderRadius: "7px",
-              background: "linear-gradient(135deg, rgba(255,176,192,0.12), rgba(255,176,192,0.06))",
-              border: "1px solid rgba(255,176,192,0.1)",
+              background: "linear-gradient(135deg, rgba(122,162,247,0.12), rgba(122,162,247,0.06))",
+              border: "1px solid rgba(122,162,247,0.1)",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: "11px", fontWeight: "700", color: "var(--pink-300)",
             }}>
@@ -106,13 +105,13 @@ export function TopNav({ page, onNavigate, account, onLogin, onLogout }: Props) 
           </div>
         ) : (
           <button onClick={onLogin} style={{
-            background: "rgba(255,176,192,0.06)", border: "1px solid rgba(255,176,192,0.1)",
+            background: "rgba(122,162,247,0.06)", border: "1px solid rgba(122,162,247,0.1)",
             color: "var(--pink-300)", borderRadius: "7px", padding: "5px 14px",
             fontSize: "11px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit",
             transition: "all 0.15s",
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,176,192,0.1)"; e.currentTarget.style.borderColor = "rgba(255,176,192,0.2)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,176,192,0.06)"; e.currentTarget.style.borderColor = "rgba(255,176,192,0.1)"; }}
+          onMouseEnter={e => { e.currentTarget.style.background = "rgba(122,162,247,0.1)"; e.currentTarget.style.borderColor = "rgba(122,162,247,0.2)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(122,162,247,0.06)"; e.currentTarget.style.borderColor = "rgba(122,162,247,0.1)"; }}
           >
             Sign In
           </button>
