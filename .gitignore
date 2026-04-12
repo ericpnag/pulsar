@@ -33,3 +33,8 @@ bloom-core-1.21.11/build/
 bloom-core-1.21.11/.gradle/
 *.class
 *.jar
+
+# Server secrets
+server/.env
+.env
+server/.env

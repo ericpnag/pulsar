@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bloom Client — Purchase Points</title>
+<script src="https://js.stripe.com/v3/"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -55,12 +56,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
 .petal{position:fixed;width:8px;height:8px;background:#FFB7C9;border-radius:50% 0 50% 50%;opacity:0;pointer-events:none;z-index:0;animation:fall linear forwards}
 @keyframes fall{0%{opacity:0;transform:translateY(-20px) rotate(0deg)}10%{opacity:0.4}90%{opacity:0.2}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
 
-.card-form{margin-bottom:20px}
-.card-form label{display:block;font-size:11px;font-weight:600;color:#8A7080;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px}
-.card-form input{width:100%;padding:12px 14px;border-radius:8px;border:1px solid rgba(255,176,192,0.12);background:rgba(255,255,255,0.03);color:#F0E4E8;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s}
-.card-form input:focus{border-color:rgba(255,176,192,0.3)}
-.card-form input::placeholder{color:#5A4550}
-.card-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+/* Stripe Elements container */
+.card-element-wrapper{margin-bottom:20px}
+.card-element-wrapper label{display:block;font-size:11px;font-weight:600;color:#8A7080;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+#card-element{padding:14px 16px;border-radius:8px;border:1px solid rgba(255,176,192,0.12);background:rgba(255,255,255,0.03);transition:border-color 0.2s}
+#card-element.StripeElement--focus{border-color:rgba(255,176,192,0.3)}
+#card-element.StripeElement--invalid{border-color:rgba(255,80,80,0.4)}
+#card-errors{color:#FF7070;font-size:11px;margin-top:8px;min-height:16px}
 </style>
 </head>
 <body>
@@ -86,20 +88,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
       <div class="summary-row total"><span class="label">Total</span><span class="value" id="sum-total">—</span></div>
     </div>
 
-    <!-- Card form -->
-    <div class="card-form">
-      <label>Card Number</label>
-      <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number">
-      <div class="card-row">
-        <div>
-          <label style="margin-top:10px">Expiry</label>
-          <input type="text" id="card-expiry" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp">
-        </div>
-        <div>
-          <label style="margin-top:10px">CVC</label>
-          <input type="text" id="card-cvc" placeholder="123" maxlength="4" autocomplete="cc-csc">
-        </div>
-      </div>
+    <!-- Stripe Elements card input -->
+    <div class="card-element-wrapper">
+      <label>Card Details</label>
+      <div id="card-element"></div>
+      <div id="card-errors" role="alert"></div>
     </div>
 
     <div id="error-msg" style="display:none" class="error-box">
@@ -113,7 +106,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
 
     <div class="pay-info">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5A4550" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
-      Secure payment · Your card details are encrypted
+      Secured by Stripe · Your card details never touch our server
     </div>
   </div>
 
@@ -126,7 +119,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
 
   <!-- Success view -->
   <div id="success-view" style="display:none" class="success-view">
-    <div class="check">✓</div>
+    <div class="check">&#10003;</div>
     <h3>Payment Successful!</h3>
     <p style="font-size:13px;color:#F0E4E8;margin-bottom:4px" id="success-amount"></p>
     <p style="font-size:12px;color:#8A7080;margin-bottom:16px">have been added to your Bloom account</p>
@@ -136,10 +129,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:#0a0611;color:#F0E4E8;m
     </div>
   </div>
 
-  <a href="index.html" class="back-link">← Back to Bloom Client</a>
+  <a href="index.html" class="back-link">&larr; Back to Bloom Client</a>
 </div>
 
 <script>
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
+
+// Change this to your deployed backend URL in production
+const API_BASE = 'http://localhost:3001';
+
 const TIERS = {
   '500':  { amount: 500,  price: 2.99,  display: '$2.99',  color: '#FFD1DC', bonus: 0 },
   '1500': { amount: 1500, price: 6.99,  display: '$6.99',  color: '#FFB7C9', bonus: 200 },
@@ -151,15 +151,10 @@ const params = new URLSearchParams(window.location.search);
 const tierKey = params.get('tier') || '1500';
 const tier = TIERS[tierKey] || TIERS['1500'];
 
-// Check if this is a success redirect from Stripe
-if (params.get('success') === 'true') {
-  const pts = parseInt(params.get('points') || '0');
-  document.getElementById('purchase-view').style.display = 'none';
-  document.getElementById('success-view').style.display = 'block';
-  document.getElementById('success-amount').textContent = pts.toLocaleString() + ' Bloom Points';
-}
-
+// ---------------------------------------------------------------------------
 // Populate page
+// ---------------------------------------------------------------------------
+
 document.getElementById('tier-amount').textContent = tier.amount.toLocaleString();
 document.getElementById('tier-amount').style.color = tier.color;
 document.getElementById('sum-points').textContent = tier.amount.toLocaleString() + ' Bloom Points';
@@ -173,87 +168,159 @@ if (tier.bonus > 0) {
   document.getElementById('sum-bonus-label').textContent = '+' + tier.bonus + ' bonus';
 }
 
-// Format card number as user types
-document.getElementById('card-number').addEventListener('input', function(e) {
-  let v = e.target.value.replace(/\D/g, '').substring(0, 16);
-  e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
-});
+// ---------------------------------------------------------------------------
+// Stripe Elements setup
+// ---------------------------------------------------------------------------
 
-document.getElementById('card-expiry').addEventListener('input', function(e) {
-  let v = e.target.value.replace(/\D/g, '').substring(0, 4);
-  if (v.length >= 2) v = v.substring(0, 2) + ' / ' + v.substring(2);
-  e.target.value = v;
-});
+let stripe = null;
+let cardElement = null;
+let clientSecret = null;
+let currentTierData = null;
 
-document.getElementById('card-cvc').addEventListener('input', function(e) {
-  e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
-});
+async function initStripe() {
+  try {
+    // Request a PaymentIntent from the backend, which also returns the publishable key
+    const res = await fetch(`${API_BASE}/create-payment-intent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tier: tierKey }),
+    });
 
-function handlePayment() {
-  const cardNum = document.getElementById('card-number').value.replace(/\s/g, '');
-  const expiry = document.getElementById('card-expiry').value.replace(/\s/g, '');
-  const cvc = document.getElementById('card-cvc').value;
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to initialize payment');
+    }
 
-  // Validate
-  document.getElementById('error-msg').style.display = 'none';
+    const data = await res.json();
+    clientSecret = data.clientSecret;
+    currentTierData = data.tier;
 
-  if (cardNum.length < 16) {
-    showError('Please enter a valid card number');
+    // Initialize Stripe.js with the publishable key from the backend
+    stripe = Stripe(data.publishableKey);
+    const elements = stripe.elements({
+      clientSecret: clientSecret,
+      appearance: {
+        theme: 'night',
+        variables: {
+          colorPrimary: '#FFB7C9',
+          colorBackground: 'rgba(255,255,255,0.03)',
+          colorText: '#F0E4E8',
+          colorTextPlaceholder: '#5A4550',
+          colorDanger: '#FF7070',
+          fontFamily: 'Inter, system-ui, sans-serif',
+          fontSizeBase: '14px',
+          borderRadius: '8px',
+          spacingUnit: '4px',
+        },
+        rules: {
+          '.Input': {
+            border: '1px solid rgba(255,176,192,0.12)',
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+          },
+          '.Input:focus': {
+            border: '1px solid rgba(255,176,192,0.3)',
+            boxShadow: 'none',
+          },
+          '.Label': {
+            color: '#8A7080',
+            fontSize: '11px',
+            fontWeight: '600',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          },
+        },
+      },
+    });
+
+    cardElement = elements.create('payment');
+    cardElement.mount('#card-element');
+
+    cardElement.on('change', (event) => {
+      const errEl = document.getElementById('card-errors');
+      errEl.textContent = event.error ? event.error.message : '';
+    });
+
+  } catch (err) {
+    showError(err.message || 'Could not connect to payment server. Make sure the backend is running.');
+  }
+}
+
+// Initialize on page load
+initStripe();
+
+// ---------------------------------------------------------------------------
+// Payment handler
+// ---------------------------------------------------------------------------
+
+let isProcessing = false;
+
+async function handlePayment() {
+  if (isProcessing) return;
+  if (!stripe || !cardElement || !clientSecret) {
+    showError('Payment not ready. Please wait a moment or refresh the page.');
     return;
   }
-  if (expiry.length < 4) {
-    showError('Please enter a valid expiry date');
-    return;
-  }
-  if (cvc.length < 3) {
-    showError('Please enter a valid CVC');
-    return;
-  }
 
-  // Validate expiry not in past
-  const month = parseInt(expiry.substring(0, 2));
-  const year = parseInt('20' + expiry.substring(expiry.indexOf('/') + 1));
-  const now = new Date();
-  if (year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) {
-    showError('Your card has expired');
-    return;
-  }
-
-  if (month < 1 || month > 12) {
-    showError('Invalid expiry month');
-    return;
-  }
-
+  isProcessing = true;
   const btn = document.getElementById('pay-btn');
   btn.disabled = true;
+  document.getElementById('error-msg').style.display = 'none';
 
+  // Show processing view
   document.getElementById('purchase-view').style.display = 'none';
   document.getElementById('processing-view').style.display = 'block';
 
-  // ═══════════════════════════════════════════════════════════
-  // STRIPE INTEGRATION POINT
-  //
-  // To process real payments, you need to:
-  // 1. Create a Stripe account at https://stripe.com
-  // 2. Set up a simple backend (Node.js, Python, etc.) that:
-  //    - Creates a PaymentIntent with the card details
-  //    - Confirms the payment
-  //    - Returns success/failure
-  // 3. Replace the setTimeout below with a fetch() to your backend
-  //
-  // Example backend endpoint:
-  //   POST /api/pay { amount: 299, card: "tok_xxx" }
-  //   Response: { success: true, points: 500 }
-  //
-  // For now: this shows an error that payments aren't configured yet.
-  // ═══════════════════════════════════════════════════════════
+  try {
+    // Confirm the payment using Stripe.js (card details never touch our server)
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements: cardElement._elements,
+      confirmParams: {
+        return_url: window.location.href,
+      },
+      redirect: 'if_required',
+    });
 
-  setTimeout(() => {
+    if (error) {
+      // Show the error in the purchase view
+      document.getElementById('processing-view').style.display = 'none';
+      document.getElementById('purchase-view').style.display = 'block';
+      btn.disabled = false;
+      isProcessing = false;
+      showError(error.message);
+      return;
+    }
+
+    if (paymentIntent.status === 'succeeded') {
+      // Verify with backend and get points
+      const verifyRes = await fetch(`${API_BASE}/verify-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentIntentId: paymentIntent.id }),
+      });
+
+      const verifyData = await verifyRes.json();
+
+      if (verifyData.success) {
+        // Show success
+        document.getElementById('processing-view').style.display = 'none';
+        document.getElementById('success-view').style.display = 'block';
+        document.getElementById('success-amount').textContent =
+          verifyData.totalPoints.toLocaleString() + ' Bloom Points';
+      } else {
+        throw new Error(verifyData.error || 'Payment verification failed');
+      }
+    } else {
+      throw new Error('Unexpected payment status: ' + paymentIntent.status);
+    }
+
+  } catch (err) {
     document.getElementById('processing-view').style.display = 'none';
     document.getElementById('purchase-view').style.display = 'block';
     btn.disabled = false;
-    showError('Payment processing is not yet configured. Please set up Stripe to accept real payments. See the README for instructions.');
-  }, 2000);
+    isProcessing = false;
+    showError(err.message || 'An unexpected error occurred');
+  }
 }
 
 function showError(msg) {
@@ -261,7 +328,10 @@ function showError(msg) {
   document.getElementById('error-text').textContent = msg;
 }
 
+// ---------------------------------------------------------------------------
 // Petals
+// ---------------------------------------------------------------------------
+
 function spawnPetal() {
   const p = document.createElement('div');
   p.className = 'petal';
