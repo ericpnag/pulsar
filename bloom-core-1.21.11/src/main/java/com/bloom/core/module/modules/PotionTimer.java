@@ -32,8 +32,8 @@ public class PotionTimer extends Module {
             String text = name + ampStr;
 
             boolean beneficial = effect.getEffectType().value().isBeneficial();
-            int nameColor = beneficial ? 0xFF6EE7A0 : 0xFFFF7070;
-            int timeColor = totalSecs <= 10 ? 0xFFFF7070 : 0xFFBBA4AC;
+            int nameColor = beneficial ? 0xFF98C379 : 0xFFE06C75;
+            int timeColor = totalSecs <= 10 ? 0xFFE06C75 : 0xFFABB2BF;
 
             int tw = client.textRenderer.getWidth(text);
             int ttw = client.textRenderer.getWidth(timeStr);
@@ -45,7 +45,7 @@ public class PotionTimer extends Module {
             context.fill(x - 2, drawY - 2, screenW - 2, drawY + 20, 0x55000000);
 
             // Left accent bar
-            context.fill(x - 2, drawY - 2, x, drawY + 20, beneficial ? 0xAA6EE7A0 : 0xAAFF7070);
+            context.fill(x - 2, drawY - 2, x, drawY + 20, beneficial ? 0xAA98C379 : 0xAAE06C75);
 
             // Name
             context.drawText(client.textRenderer, text, x + 4, drawY, nameColor, true);

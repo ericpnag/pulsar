@@ -47,56 +47,56 @@ public class ModuleScreen extends Screen {
         "SB",  // Scoreboard
         "~",   // Low Fire
         "|-|", // Low Shield
-        "C",   // Bloom Cape
+        "C",   // Pulsar Cape
         "FPS", // FPS Boost
         "Eye", // Freelook (bundled)
         "Hit", // Better Hitreg (bundled)
     };
 
     private static final int[] ICON_COLORS = {
-        0xFF6EE7A0, // Sprint - green
-        0xFF6EE7A0, // Sneak - green
-        0xFFFFB7C9, // FPS - pink
+        0xFF98C379, // Sprint - green
+        0xFF98C379, // Sneak - green
+        0xFFC678DD, // FPS - purple
         0xFFF0CC60, // Coords - yellow
         0xFF60C0F0, // Direction - blue
         0xFFBB80FF, // Zoom - purple
         0xFFBB80FF, // Freelook - purple
         0xFFF0CC60, // Ping - yellow
-        0xFFFF7070, // CPS - red
-        0xFFFF7070, // Combo - red
-        0xFFFF7070, // Reach - red
-        0xFF6EE7A0, // Potion Effects - green
-        0xFF6EE7A0, // Potion Timer - green
-        0xFFFFB7C9, // Keystrokes - pink
+        0xFFE06C75, // CPS - red
+        0xFFE06C75, // Combo - red
+        0xFFE06C75, // Reach - red
+        0xFF98C379, // Potion Effects - green
+        0xFF98C379, // Potion Timer - green
+        0xFFC678DD, // Keystrokes - purple
         0xFF60C0F0, // Armor HUD - blue
         0xFFF0CC60, // Saturation - yellow
         0xFF60C0F0, // Memory - blue
-        0xFFBBA4AC, // Server - gray
-        0xFFBBA4AC, // Pack - gray
+        0xFFABB2BF, // Server - gray
+        0xFFABB2BF, // Pack - gray
         0xFFF0CC60, // Time - yellow
-        0xFFBBA4AC, // Scoreboard - gray
-        0xFFFF7070, // Low Fire - red
+        0xFFABB2BF, // Scoreboard - gray
+        0xFFE06C75, // Low Fire - red
         0xFF60C0F0, // Low Shield - blue
-        0xFFFFB7C9, // Cape - pink
-        0xFF6EE7A0, // FPS Boost - green
+        0xFFC678DD, // Cape - purple
+        0xFF98C379, // FPS Boost - green
         0xFFBB80FF, // Freelook - purple
-        0xFFFF7070, // Better Hitreg - red
+        0xFFE06C75, // Better Hitreg - red
     };
 
-    public ModuleScreen() { super(Text.literal("Bloom Mods")); }
+    public ModuleScreen() { super(Text.literal("Pulsar Mods")); }
 
     @Override protected void init() { scrollOffset = 0; selectedModule = -1; }
 
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
         int w = this.width, h = this.height, cx = w / 2;
-        ctx.fill(0, 0, w, h, 0xEE0a0611);
+        ctx.fill(0, 0, w, h, 0xEE0A0A0F);
 
         // Title
-        String title = "BLOOM MODS";
+        String title = "PULSAR MODS";
         int tw = tw(title);
-        drawT(ctx, title, cx - tw / 2, 8, 0xFFFFD1DC, false);
-        ctx.fill(cx - 40, 19, cx + 40, 20, 0x22FFB7C9);
+        drawT(ctx, title, cx - tw / 2, 8, 0xFFC678DD, false);
+        ctx.fill(cx - 40, 19, cx + 40, 20, 0x22C678DD);
 
         List<Module> modules = BloomCore.MODULES.getModules();
 
@@ -123,17 +123,17 @@ public class ModuleScreen extends Screen {
             boolean on = m.isEnabled();
 
             // Card
-            int bg = sel ? 0x44FFB7C9 : (hov ? 0x28FFB7C9 : 0x15FFFFFF);
+            int bg = sel ? 0x44C678DD : (hov ? 0x28C678DD : 0x15FFFFFF);
             ctx.fill(x, y, x + cardW, y + cardH, bg);
             if (sel) {
-                ctx.fill(x, y, x + cardW, y + 1, 0x88FFB7C9);
-                ctx.fill(x, y + cardH - 1, x + cardW, y + cardH, 0x88FFB7C9);
+                ctx.fill(x, y, x + cardW, y + 1, 0x88C678DD);
+                ctx.fill(x, y + cardH - 1, x + cardW, y + cardH, 0x88C678DD);
             }
 
             // Icon box
             int iconSize = 20;
             int iconX = x + 4, iconY = y + 4;
-            int iconCol = i < ICON_COLORS.length ? ICON_COLORS[i] : 0xFFBBA4AC;
+            int iconCol = i < ICON_COLORS.length ? ICON_COLORS[i] : 0xFFABB2BF;
             ctx.fill(iconX, iconY, iconX + iconSize, iconY + iconSize, (iconCol & 0x00FFFFFF) | 0x22000000);
             // Icon text
             String ico = i < ICONS.length ? ICONS[i] : "?";
@@ -148,16 +148,16 @@ public class ModuleScreen extends Screen {
                     name = name.substring(0, name.length() - 1);
                 name += "..";
             }
-            drawT(ctx, name, iconX + iconSize + 4, iconY + 1, hov || sel ? 0xFFF0E4E8 : 0xFFBBA4AC, false);
+            drawT(ctx, name, iconX + iconSize + 4, iconY + 1, hov || sel ? 0xFFE0E0E8 : 0xFFABB2BF, false);
 
             // Status
             String status = on ? "ON" : "OFF";
-            int statusCol = on ? 0xFF6EE7A0 : 0xFF5A4550;
+            int statusCol = on ? 0xFF98C379 : 0xFF3E4451;
             drawT(ctx, status, iconX + iconSize + 4, iconY + 11, statusCol, false);
 
             // Toggle bar at bottom
             int barY = y + cardH - 4;
-            ctx.fill(x, barY, x + cardW, barY + 3, on ? (0x446EE7A0) : 0x22554455);
+            ctx.fill(x, barY, x + cardW, barY + 3, on ? (0x4498C379) : 0x22554455);
         }
 
         // Settings panel (right side)
@@ -165,20 +165,20 @@ public class ModuleScreen extends Screen {
             Module m = modules.get(selectedModule);
             int px = w / 2 + 2, pw = w / 2 - 6;
             ctx.fill(px, 26, px + pw, h - 20, 0x22FFFFFF);
-            ctx.fill(px, 26, px + pw, 27, 0x33FFB7C9);
+            ctx.fill(px, 26, px + pw, 27, 0x33C678DD);
 
             // Module name
-            drawT(ctx, m.getName(), px + 10, 34, 0xFFFFD1DC, false);
-            drawT(ctx, m.getDescription(), px + 10, 46, 0xFF8A7080, false);
+            drawT(ctx, m.getName(), px + 10, 34, 0xFFC678DD, false);
+            drawT(ctx, m.getDescription(), px + 10, 46, 0xFF5C6370, false);
 
             // Icon
-            int iconCol = selectedModule < ICON_COLORS.length ? ICON_COLORS[selectedModule] : 0xFFBBA4AC;
+            int iconCol = selectedModule < ICON_COLORS.length ? ICON_COLORS[selectedModule] : 0xFFABB2BF;
             ctx.fill(px + pw - 30, 30, px + pw - 6, 54, (iconCol & 0x00FFFFFF) | 0x33000000);
             String ico = selectedModule < ICONS.length ? ICONS[selectedModule] : "?";
             int iw = tw(ico);
             drawT(ctx, ico, px + pw - 18 - iw / 2, 38, iconCol, false);
 
-            ctx.fill(px + 10, 58, px + pw - 10, 59, 0x22FFB7C9);
+            ctx.fill(px + 10, 58, px + pw - 10, 59, 0x22C678DD);
 
             // Toggle button
             int btnX = px + 10, btnY = 66, btnW = pw - 20, btnH = 18;
@@ -187,47 +187,47 @@ public class ModuleScreen extends Screen {
             ctx.fill(btnX, btnY, btnX + btnW, btnY + btnH, on ? (btnHov ? 0x885ECC70 : 0x6644AA55) : (btnHov ? 0x44FFFFFF : 0x22FFFFFF));
             String toggleText = on ? "Enabled — Click to Disable" : "Disabled — Click to Enable";
             int ttw = tw(toggleText);
-            drawT(ctx, toggleText, btnX + btnW / 2 - ttw / 2, btnY + 5, on ? 0xFFFFFFFF : 0xFF8A7080, false);
+            drawT(ctx, toggleText, btnX + btnW / 2 - ttw / 2, btnY + 5, on ? 0xFFFFFFFF : 0xFF5C6370, false);
 
             // Info section
             int infoY = 94;
-            drawT(ctx, "Status:", px + 10, infoY, 0xFF8A7080, false);
-            drawT(ctx, on ? "Active" : "Inactive", px + 50, infoY, on ? 0xFF6EE7A0 : 0xFF5A4550, false);
+            drawT(ctx, "Status:", px + 10, infoY, 0xFF5C6370, false);
+            drawT(ctx, on ? "Active" : "Inactive", px + 50, infoY, on ? 0xFF98C379 : 0xFF3E4451, false);
 
-            drawT(ctx, "Type:", px + 10, infoY + 14, 0xFF8A7080, false);
+            drawT(ctx, "Type:", px + 10, infoY + 14, 0xFF5C6370, false);
             String type = m.hasHud() ? "HUD Overlay" : "Toggle";
-            drawT(ctx, type, px + 50, infoY + 14, 0xFFBBA4AC, false);
+            drawT(ctx, type, px + 50, infoY + 14, 0xFFABB2BF, false);
 
             // Keybind section (if this module has one)
             String bindId = KeyBindConfig.getBindId(m.getName());
             if (bindId != null) {
                 int kbY = infoY + 32;
-                ctx.fill(px + 10, kbY - 4, px + pw - 10, kbY - 3, 0x15FFB7C9);
-                drawT(ctx, "Keybind:", px + 10, kbY, 0xFF8A7080, false);
+                ctx.fill(px + 10, kbY - 4, px + pw - 10, kbY - 3, 0x15C678DD);
+                drawT(ctx, "Keybind:", px + 10, kbY, 0xFF5C6370, false);
 
                 // Keybind button
                 int kbBtnX = px + 60, kbBtnW = pw - 80, kbBtnH = 16;
                 boolean kbHov = mx >= kbBtnX && mx <= kbBtnX + kbBtnW && my >= kbY - 2 && my <= kbY + kbBtnH - 2;
-                ctx.fill(kbBtnX, kbY - 2, kbBtnX + kbBtnW, kbY + kbBtnH - 2, waitingForKey ? 0x66FFB7C9 : (kbHov ? 0x33FFB7C9 : 0x22FFFFFF));
+                ctx.fill(kbBtnX, kbY - 2, kbBtnX + kbBtnW, kbY + kbBtnH - 2, waitingForKey ? 0x66C678DD : (kbHov ? 0x33C678DD : 0x22FFFFFF));
 
                 String keyText = waitingForKey ? "> Press a key <" : KeyBindConfig.getKeyName(KeyBindConfig.getKey(bindId));
                 int ktw = tw(keyText);
-                drawT(ctx, keyText, kbBtnX + kbBtnW / 2 - ktw / 2, kbY + 2, waitingForKey ? 0xFFFFB7C9 : 0xFFF0E4E8, false);
+                drawT(ctx, keyText, kbBtnX + kbBtnW / 2 - ktw / 2, kbY + 2, waitingForKey ? 0xFFC678DD : 0xFFE0E0E8, false);
             }
 
             // Close button
             int closeX = px + pw - 14, closeY = 28;
             boolean closeHov = mx >= closeX && mx <= closeX + 10 && my >= closeY && my <= closeY + 10;
-            drawT(ctx, "x", closeX + 1, closeY, closeHov ? 0xFFFF7070 : 0xFF5A4550, false);
+            drawT(ctx, "x", closeX + 1, closeY, closeHov ? 0xFFE06C75 : 0xFF3E4451, false);
         }
 
         // Bottom bar
-        ctx.fill(0, h - 16, w, h, 0xCC0a0611);
-        ctx.fill(0, h - 16, w, h - 15, 0x15FFB7C9);
+        ctx.fill(0, h - 16, w, h, 0xCC0A0A0F);
+        ctx.fill(0, h - 16, w, h - 15, 0x15C678DD);
         long enabled = modules.stream().filter(Module::isEnabled).count();
         String info = modules.size() + " mods | " + enabled + " active | Right Shift to close";
         int infoW = tw(info);
-        drawT(ctx, info, cx - infoW / 2, h - 12, 0xFF5A4550, false);
+        drawT(ctx, info, cx - infoW / 2, h - 12, 0xFF3E4451, false);
 
         super.render(ctx, mx, my, delta);
     }

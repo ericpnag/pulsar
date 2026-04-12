@@ -7,7 +7,7 @@ import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-/** Shared rendering utilities for all Bloom GUI screens. */
+/** Shared rendering utilities for all Pulsar GUI screens. */
 public class BloomGui {
     public static final StyleSpriteSource BLOOM_FONT =
         new StyleSpriteSource.Font(Identifier.of("bloom-core", "inter"));

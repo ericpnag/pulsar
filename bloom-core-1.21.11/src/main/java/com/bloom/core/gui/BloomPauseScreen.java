@@ -18,7 +18,7 @@ public class BloomPauseScreen extends Screen {
 
     private static final int BTN_COUNT = 5;
     private final float[] hoverAnim = new float[BTN_COUNT];
-    private static final String[] BTN_LABELS = {"Resume", "Bloom Mods", "Cosmetics", "Settings", "Disconnect"};
+    private static final String[] BTN_LABELS = {"Resume", "Pulsar Mods", "Cosmetics", "Settings", "Disconnect"};
     private static final boolean[] BTN_DANGER = {false, false, false, false, true};
 
     public BloomPauseScreen() { super(Text.literal("Game Menu")); }
@@ -38,8 +38,8 @@ public class BloomPauseScreen extends Screen {
         p.vx = 0.1f + rng.nextFloat() * 0.25f;
         p.vy = 0.12f + rng.nextFloat() * 0.2f;
         p.size = 1 + rng.nextInt(2);
-        int[] pinks = {0xFFB7C9, 0xFFC0CB, 0xFFD1DC, 0xF8A4B8};
-        p.color = pinks[rng.nextInt(pinks.length)];
+        int[] purples = {0xC678DD, 0xBB70D6, 0xD19A66, 0xE06C75};
+        p.color = purples[rng.nextInt(purples.length)];
         p.phase = rng.nextFloat() * 6.28f;
         p.wobble = 1 + rng.nextFloat() * 2;
         p.alpha = 0.3f + rng.nextFloat() * 0.3f;
@@ -80,27 +80,27 @@ public class BloomPauseScreen extends Screen {
         // Panel shadow
         drawRoundRect(ctx, px - 1, py - 1, pw + 2, ph + 2, (int)(0x20 * ease) << 24);
         // Panel background
-        drawRoundRect(ctx, px, py, pw, ph, (panelAlpha << 24) | 0x0a0611);
+        drawRoundRect(ctx, px, py, pw, ph, (panelAlpha << 24) | 0x0A0A0F);
         // Top border
-        ctx.fill(px + 2, py, px + pw - 2, py + 1, ((int)(0x44 * ease) << 24) | 0xFFB7C9);
+        ctx.fill(px + 2, py, px + pw - 2, py + 1, ((int)(0x44 * ease) << 24) | 0xC678DD);
         // Bottom border
-        ctx.fill(px + 2, py + ph - 1, px + pw - 2, py + ph, ((int)(0x22 * ease) << 24) | 0xFFB7C9);
+        ctx.fill(px + 2, py + ph - 1, px + pw - 2, py + ph, ((int)(0x22 * ease) << 24) | 0xC678DD);
 
-        // "BLOOM" title in Inter at 2x
+        // "PULSAR" title in Inter at 2x
         ctx.getMatrices().pushMatrix();
         ctx.getMatrices().scale(2.0f, 2.0f);
-        int bw = textW(this.textRenderer, "BLOOM");
-        ctx.drawText(this.textRenderer, text("BLOOM", 0xFFD1DC),
+        int bw = textW(this.textRenderer, "PULSAR");
+        ctx.drawText(this.textRenderer, text("PULSAR", 0xC678DD),
             (int)(cx / 2.0f - bw / 2.0f), (int)((py + 10) / 2.0f), -1, false);
         ctx.getMatrices().popMatrix();
 
         // Subtitle
         String sub = "MINECRAFT CLIENT";
         int sw = textW(this.textRenderer, sub);
-        ctx.drawText(this.textRenderer, text(sub, 0x5A4550), cx - sw / 2, py + 28, -1, false);
+        ctx.drawText(this.textRenderer, text(sub, 0x3E4451), cx - sw / 2, py + 28, -1, false);
 
         // Separator
-        ctx.fill(px + 20, py + 40, px + pw - 20, py + 41, ((int)(0x22 * ease) << 24) | 0xFFB7C9);
+        ctx.fill(px + 20, py + 40, px + pw - 20, py + 41, ((int)(0x22 * ease) << 24) | 0xC678DD);
 
         // Buttons
         int btnW = 180, btnH = 22, gap = 4, sy = py + 48;
@@ -118,12 +118,12 @@ public class BloomPauseScreen extends Screen {
             // Glow
             if (ha > 0.01f) {
                 int gAlpha = (int)(ha * 0x12);
-                drawRoundRect(ctx, bx - 2, by - 2, btnW + 4, btnH + 4, (gAlpha << 24) | 0xFFB0C0);
+                drawRoundRect(ctx, bx - 2, by - 2, btnW + 4, btnH + 4, (gAlpha << 24) | 0xC070DD);
             }
 
             // Background
             int bgAlpha2 = (int)(0x12 + ha * (0x38 - 0x12));
-            int bgColor = BTN_DANGER[i] ? 0xFF5050 : 0xFFB7C9;
+            int bgColor = BTN_DANGER[i] ? 0xFF5050 : 0xC678DD;
             drawRoundRect(ctx, bx, by, btnW, btnH, (bgAlpha2 << 24) | (bgColor & 0xFFFFFF));
 
             // Top highlight
@@ -134,13 +134,13 @@ public class BloomPauseScreen extends Screen {
             if (ha > 0.05f) {
                 int accentH = (int)(btnH * ha);
                 int accentY = by + (btnH - accentH) / 2;
-                ctx.fill(bx, accentY, bx + 2, accentY + accentH, BTN_DANGER[i] ? 0xBBFF7070 : 0xBBFFB7C9);
+                ctx.fill(bx, accentY, bx + 2, accentY + accentH, BTN_DANGER[i] ? 0xBBFF7070 : 0xBBC678DD);
             }
 
             // Label
             int textColor;
             if (BTN_DANGER[i]) textColor = lerpColor(0xFF8A5555, 0xFFFF9090, ha);
-            else textColor = lerpColor(0xFFBBA4AC, 0xFFF0E4E8, ha);
+            else textColor = lerpColor(0xFFABB2BF, 0xFFE0E0E8, ha);
             int tw = textW(this.textRenderer, BTN_LABELS[i]);
             ctx.drawText(this.textRenderer, text(BTN_LABELS[i], textColor & 0xFFFFFF),
                 cx - tw / 2, by + (btnH - 8) / 2, -1, false);

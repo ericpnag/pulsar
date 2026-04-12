@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Tracks which players are using Bloom Client.
+ * Tracks which players are using Pulsar Client.
  * Currently only the local player is detected (safe for all servers).
  */
 public class BloomPresence {
@@ -28,7 +28,7 @@ public class BloomPresence {
     }
 
     public static void init() {
-        // On join, mark ourselves as a Bloom user
+        // On join, mark ourselves as a Pulsar user
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             if (client.player != null) {
                 BLOOM_USERS.add(client.player.getUuid());

@@ -10,7 +10,7 @@ public class MemoryDisplay extends Module {
         long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
         long max = Runtime.getRuntime().maxMemory() / 1048576;
         int pct = (int)(used * 100 / max);
-        int color = pct < 60 ? 0xFF6EE7A0 : pct < 80 ? 0xFFF0CC60 : 0xFFFF7070;
+        int color = pct < 60 ? 0xFF98C379 : pct < 80 ? 0xFFF0CC60 : 0xFFE06C75;
         String text = used + "/" + max + " MB";
         int tw = client.textRenderer.getWidth(text);
         ctx.fill(2, y - 1, tw + 8, y + 10, 0x44000000);

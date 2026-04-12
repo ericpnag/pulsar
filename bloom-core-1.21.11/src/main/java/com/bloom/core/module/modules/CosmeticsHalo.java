@@ -9,7 +9,7 @@ public class CosmeticsHalo extends Module {
     private int tickCount = 0;
 
     public CosmeticsHalo() {
-        super("Bloom Halo", "Show a glowing halo above your head", false);
+        super("Pulsar Halo", "Show a glowing halo above your head", false);
     }
 
     @Override

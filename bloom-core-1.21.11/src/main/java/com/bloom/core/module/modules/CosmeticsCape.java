@@ -8,11 +8,11 @@ import net.minecraft.client.gui.DrawContext;
 public class CosmeticsCape extends Module {
     public static boolean showCape = true;
     public static boolean animated = true;
-    public static int capeColor = 0xFFB7C9;
+    public static int capeColor = 0xC678DD;
     public static String capeFile = "bloom_cape.png";
 
     public CosmeticsCape() {
-        super("Bloom Cape", "Show your Bloom cosmetic cape", true);
+        super("Pulsar Cape", "Show your Pulsar cosmetic cape", true);
     }
 
     @Override

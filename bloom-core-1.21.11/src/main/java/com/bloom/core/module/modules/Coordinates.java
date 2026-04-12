@@ -19,7 +19,7 @@ public class Coordinates extends Module {
                 client.player.getX(), client.player.getY(), client.player.getZ());
         int tw = client.textRenderer.getWidth(coords);
         context.fill(2, y - 1, tw + 8, y + 10, 0x44000000);
-        context.fill(2, y - 1, 3, y + 10, 0x44FFB0C0);
+        context.fill(2, y - 1, 3, y + 10, 0x44C070DD);
         context.drawText(client.textRenderer, coords, 6, y, 0xFFCCBBAA, true);
     }
 }

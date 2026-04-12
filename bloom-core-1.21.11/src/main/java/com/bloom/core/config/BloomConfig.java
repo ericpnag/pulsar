@@ -29,7 +29,7 @@ public class BloomConfig {
             }
 
             try (OutputStream out = Files.newOutputStream(getConfigPath())) {
-                props.store(out, "Bloom Client Config");
+                props.store(out, "Pulsar Client Config");
             }
         } catch (Exception ignored) {}
     }

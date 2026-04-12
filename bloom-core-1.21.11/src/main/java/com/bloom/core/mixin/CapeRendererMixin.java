@@ -39,10 +39,10 @@ public class CapeRendererMixin {
             }
 
             SkinTextures original = cir.getReturnValue();
-            AssetInfo.TextureAssetInfo bloomCape = new AssetInfo.TextureAssetInfo(capePath, capePath);
+            AssetInfo.TextureAssetInfo pulsarCape = new AssetInfo.TextureAssetInfo(capePath, capePath);
             cir.setReturnValue(SkinTextures.create(
                 original.body(),
-                bloomCape,
+                pulsarCape,
                 original.elytra(),
                 original.model()
             ));

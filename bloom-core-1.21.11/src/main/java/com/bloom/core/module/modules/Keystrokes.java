@@ -33,7 +33,7 @@ public class Keystrokes extends Module {
     }
 
     private void drawKey(DrawContext ctx, MinecraftClient client, String key, int x, int y, boolean pressed) {
-        ctx.fill(x, y, x + 11, y + 12, pressed ? 0x88FFB0C0 : 0x44000000);
+        ctx.fill(x, y, x + 11, y + 12, pressed ? 0x88C070DD : 0x44000000);
         int tw = client.textRenderer.getWidth(key);
         ctx.drawText(client.textRenderer, key, x + (11 - tw) / 2, y + 2, pressed ? 0xFFFFFFFF : 0xFF888888, true);
     }

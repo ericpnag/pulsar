@@ -37,7 +37,7 @@ public class CpsCounter extends Module {
         String text = cps + " CPS";
         int tw = client.textRenderer.getWidth(text);
         context.fill(2, y - 1, tw + 8, y + 10, 0x44000000);
-        context.fill(2, y - 1, 3, y + 10, 0x44FFB0C0);
-        context.drawText(client.textRenderer, text, 6, y, 0xFFFFB7C9, true);
+        context.fill(2, y - 1, 3, y + 10, 0x44C070DD);
+        context.drawText(client.textRenderer, text, 6, y, 0xFFC678DD, true);
     }
 }

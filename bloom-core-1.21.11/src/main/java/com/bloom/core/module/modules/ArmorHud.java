@@ -40,12 +40,12 @@ public class ArmorHud extends Module {
         int startY = screenH - 22;
 
         // Background panel
-        context.fill(startX - 1, startY - 1, startX + totalW, startY + slotSize + 1, 0xCC0a0611);
+        context.fill(startX - 1, startY - 1, startX + totalW, startY + slotSize + 1, 0xCC0A0A0F);
         // Border
-        context.fill(startX - 1, startY - 1, startX + totalW, startY, 0x44FFB7C9);
-        context.fill(startX - 1, startY + slotSize, startX + totalW, startY + slotSize + 1, 0x33FFB7C9);
-        context.fill(startX - 1, startY, startX, startY + slotSize, 0x33FFB7C9);
-        context.fill(startX + totalW - 1, startY, startX + totalW, startY + slotSize, 0x33FFB7C9);
+        context.fill(startX - 1, startY - 1, startX + totalW, startY, 0x44C678DD);
+        context.fill(startX - 1, startY + slotSize, startX + totalW, startY + slotSize + 1, 0x33C678DD);
+        context.fill(startX - 1, startY, startX, startY + slotSize, 0x33C678DD);
+        context.fill(startX + totalW - 1, startY, startX + totalW, startY + slotSize, 0x33C678DD);
 
         int drawX = startX + 1;
         for (EquipmentSlot slot : SLOTS) {
@@ -68,7 +68,7 @@ public class ArmorHud extends Module {
                 int barY = startY + slotSize - 3;
 
                 // Bar background
-                context.fill(barX, barY, barX + barW, barY + 2, 0xFF0a0611);
+                context.fill(barX, barY, barX + barW, barY + 2, 0xFF0A0A0F);
 
                 // Bar fill — green to red
                 int g = (int) (pct * 255);

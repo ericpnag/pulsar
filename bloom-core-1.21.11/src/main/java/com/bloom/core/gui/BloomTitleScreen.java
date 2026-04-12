@@ -22,11 +22,11 @@ public class BloomTitleScreen extends Screen {
 
     private static final int BTN_COUNT = 6;
     private final float[] hoverAnim = new float[BTN_COUNT];
-    private static final String[] BTN_LABELS = {"Singleplayer", "Multiplayer", "Bloom Mods", "Cosmetics", "Settings", "Quit Game"};
+    private static final String[] BTN_LABELS = {"Singleplayer", "Multiplayer", "Pulsar Mods", "Cosmetics", "Settings", "Quit Game"};
     private static final boolean[] BTN_DANGER = {false, false, false, false, false, true};
 
     public BloomTitleScreen() {
-        super(Text.literal("Bloom Client"));
+        super(Text.literal("Pulsar Client"));
     }
 
     @Override
@@ -47,8 +47,8 @@ public class BloomTitleScreen extends Screen {
         p.phase = rng.nextFloat() * 6.28f;
         p.wobble = 1 + rng.nextFloat() * 2;
         p.alpha = 0.15f + rng.nextFloat() * 0.35f;
-        int[] pinks = {0xFFB7C9, 0xFFC0CB, 0xFFD1DC, 0xF8A4B8, 0xFFE4E9};
-        p.color = pinks[rng.nextInt(pinks.length)];
+        int[] purples = {0xC678DD, 0xBB70D6, 0xD19A66, 0xE06C75, 0xD4BFFF};
+        p.color = purples[rng.nextInt(purples.length)];
         return p;
     }
 
@@ -91,23 +91,23 @@ public class BloomTitleScreen extends Screen {
 
         // Breathing glow behind logo
         int ga = (int)((8 + Math.sin(time * 1.0) * 5) * ease);
-        drawRoundRect(ctx, cx - 90, logoY - 6, 180, 55, (ga << 24) | 0xFFB0C0);
+        drawRoundRect(ctx, cx - 90, logoY - 6, 180, 55, (ga << 24) | 0xC070DD);
 
-        // "BLOOM" title in Inter at 3x
+        // "PULSAR" title in Inter at 3x
         ctx.getMatrices().pushMatrix();
         ctx.getMatrices().scale(3.0f, 3.0f);
-        int bw3 = textW(this.textRenderer, "BLOOM");
-        ctx.drawText(this.textRenderer, text("BLOOM", 0xFFD1DC), (int)(cx / 3.0f - bw3 / 2.0f), (int)(logoY / 3.0f), -1, false);
+        int bw3 = textW(this.textRenderer, "PULSAR");
+        ctx.drawText(this.textRenderer, text("PULSAR", 0xC678DD), (int)(cx / 3.0f - bw3 / 2.0f), (int)(logoY / 3.0f), -1, false);
         ctx.getMatrices().popMatrix();
 
         // Subtitle in Inter
         String sub = "MINECRAFT CLIENT";
         int sw = textW(this.textRenderer, sub);
-        ctx.drawText(this.textRenderer, text(sub, 0x6A5060), cx - sw / 2, logoY + 30, -1, false);
+        ctx.drawText(this.textRenderer, text(sub, 0x5C6370), cx - sw / 2, logoY + 30, -1, false);
 
         // Separator
         int sa = (int)(15 + Math.sin(time * 1.8) * 8);
-        ctx.fill(cx - 50, logoY + 44, cx + 50, logoY + 45, (sa << 24) | 0xFFB0C0);
+        ctx.fill(cx - 50, logoY + 44, cx + 50, logoY + 45, (sa << 24) | 0xC070DD);
 
         // Buttons
         int btnW = 160, btnH = 22, gap = 4;
@@ -116,7 +116,7 @@ public class BloomTitleScreen extends Screen {
         // Panel behind buttons
         int panelAlpha = (int)(0x88 * ease);
         drawRoundRect(ctx, cx - btnW / 2 - 10, startY - 6, btnW + 20,
-            (btnH + gap) * 5 + gap + btnH + 18, (panelAlpha << 24) | 0x0A0611);
+            (btnH + gap) * 5 + gap + btnH + 18, (panelAlpha << 24) | 0x0A0A0F);
 
         for (int i = 0; i < BTN_COUNT; i++) {
             int by = startY + (btnH + gap) * i + (i == 5 ? 6 : 0);
@@ -133,12 +133,12 @@ public class BloomTitleScreen extends Screen {
             // Outer glow on hover
             if (ha > 0.01f) {
                 int glowAlpha2 = (int)(ha * 0x12);
-                drawRoundRect(ctx, bx - 2, by - 2, btnW + 4, btnH + 4, (glowAlpha2 << 24) | 0xFFB0C0);
+                drawRoundRect(ctx, bx - 2, by - 2, btnW + 4, btnH + 4, (glowAlpha2 << 24) | 0xC070DD);
             }
 
             // Button background
             int bgAlpha = (int)(0x15 + ha * (0x38 - 0x15));
-            int bgColor = BTN_DANGER[i] ? 0xFF5050 : 0xFFB7C9;
+            int bgColor = BTN_DANGER[i] ? 0xFF5050 : 0xC678DD;
             drawRoundRect(ctx, bx, by, btnW, btnH, (bgAlpha << 24) | (bgColor & 0xFFFFFF));
 
             // Top highlight
@@ -149,14 +149,14 @@ public class BloomTitleScreen extends Screen {
             if (ha > 0.05f) {
                 int accentH = (int)(btnH * ha);
                 int accentY = by + (btnH - accentH) / 2;
-                int accent = BTN_DANGER[i] ? 0xBBFF7070 : 0xBBFFB7C9;
+                int accent = BTN_DANGER[i] ? 0xBBFF7070 : 0xBBC678DD;
                 ctx.fill(bx, accentY, bx + 2, accentY + accentH, accent);
             }
 
             // Label in Inter font
             int textColor;
             if (BTN_DANGER[i]) textColor = lerpColor(0xFF8A5555, 0xFFFF9090, ha);
-            else textColor = lerpColor(0xFFBBA4AC, 0xFFF0E4E8, ha);
+            else textColor = lerpColor(0xFFABB2BF, 0xFFE0E0E8, ha);
             int tw = textW(this.textRenderer, BTN_LABELS[i]);
             ctx.drawText(this.textRenderer, text(BTN_LABELS[i], textColor & 0xFFFFFF),
                 cx - tw / 2, by + (btnH - 8) / 2, -1, false);
@@ -164,11 +164,11 @@ public class BloomTitleScreen extends Screen {
 
         // Bottom bar
         int barAlpha = (int)(0x99 * ease);
-        ctx.fill(0, h - 16, w, h, (barAlpha << 24) | 0x0a0611);
-        ctx.drawText(this.textRenderer, text("Bloom Client v1.2.0", 0x5A4550), 6, h - 12, -1, false);
+        ctx.fill(0, h - 16, w, h, (barAlpha << 24) | 0x0A0A0F);
+        ctx.drawText(this.textRenderer, text("Pulsar Client v1.2.0", 0x3E4451), 6, h - 12, -1, false);
         String user = MinecraftClient.getInstance().getSession().getUsername();
         int uw = textW(this.textRenderer, user);
-        ctx.drawText(this.textRenderer, text(user, 0x8A7080), w - uw - 6, h - 12, -1, false);
+        ctx.drawText(this.textRenderer, text(user, 0x5C6370), w - uw - 6, h - 12, -1, false);
 
         super.render(ctx, mx, my, delta);
     }

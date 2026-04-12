@@ -18,7 +18,7 @@ public class ToggleSneak extends Module {
         String text = "Sneaking";
         int tw = client.textRenderer.getWidth(text);
         ctx.fill(2, y - 1, tw + 8, y + 10, 0x44000000);
-        ctx.fill(2, y - 1, 3, y + 10, 0x44FFB0C0);
-        ctx.drawText(client.textRenderer, text, 6, y, 0xFFBBA4AC, true);
+        ctx.fill(2, y - 1, 3, y + 10, 0x44C070DD);
+        ctx.drawText(client.textRenderer, text, 6, y, 0xFFABB2BF, true);
     }
 }

@@ -17,11 +17,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Renders a small Bloom cherry-blossom icon next to the nametag of
- * players detected as Bloom Client users.
+ * Renders a small Pulsar icon next to the nametag of
+ * players detected as Pulsar Client users.
  *
  * Approach: We inject at HEAD of renderLabelIfPresent and modify the
- * playerName / displayName fields to prepend a pink cherry blossom
+ * playerName / displayName fields to prepend a purple Pulsar
  * symbol. This integrates naturally with MC's label rendering pipeline
  * and works with the new command-queue renderer in 1.21.11.
  *
@@ -32,15 +32,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class NametagMixin {
 
     /**
-     * Private Use Area character mapped to the bloom cherry blossom icon
+     * Private Use Area character mapped to the Pulsar icon
      * via the bitmap font provider in assets/minecraft/font/default.json.
      */
     @Unique
-    private static final String BLOOM_SYMBOL = "\uE100";
+    private static final String PULSAR_SYMBOL = "\uE100";
 
-    /** Bloom pink color matching the cape theme */
+    /** Pulsar purple color matching the cape theme */
     @Unique
-    private static final int BLOOM_PINK = 0xFFB7C5;
+    private static final int PULSAR_PURPLE = 0xC678DD;
 
     @Unique
     private Text originalPlayerName;
@@ -64,9 +64,9 @@ public class NametagMixin {
         originalPlayerName = state.playerName;
         originalDisplayName = state.displayName;
 
-        // Build the prefix: pink cherry blossom + space
-        MutableText prefix = Text.literal(BLOOM_SYMBOL + " ")
-                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(BLOOM_PINK)));
+        // Build the prefix: purple Pulsar icon + space
+        MutableText prefix = Text.literal(PULSAR_SYMBOL + " ")
+                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(PULSAR_PURPLE)));
 
         // Prepend to playerName (the main name shown above the head)
         if (state.playerName != null) {
