@@ -26,7 +26,7 @@ interface Cosmetic {
 }
 
 const COSMETICS: Cosmetic[] = [
-  { id: "cape_blossom", name: "Nebula", type: "cape", price: 0, color: "#7AA2F7", color2: "#5B6EAE", description: "Blue cape with star particles" },
+  { id: "cape_blossom", name: "Pulsar", type: "cape", price: 0, color: "#C678DD", color2: "#E06C75", description: "Purple cape with swirling particles" },
   { id: "cape_midnight", name: "Midnight", type: "cape", price: 500, color: "#1E0F32", color2: "#0F0820", description: "Dark purple with starlight" },
   { id: "cape_frost", name: "Frost", type: "cape", price: 750, color: "#8CC8FF", color2: "#508CDC", description: "Icy blue crystal cape" },
   { id: "cape_flame", name: "Flame", type: "cape", price: 750, color: "#FF7828", color2: "#C83C14", description: "Fiery orange-red cape" },
@@ -42,13 +42,13 @@ const TYPE_LABELS: Record<string, string> = { cape: "Capes", wings: "Wings", hat
 // Store URL — local payment server
 const STORE_BASE_URL = "http://localhost:3001";
 const POINT_TIERS = [
-  { amount: 500, price: "$2.99", priceNum: 2.99, color: "#89B4FA", popular: false, bonus: "",
+  { amount: 500, price: "$2.99", priceNum: 2.99, color: "#C678DD", popular: false, bonus: "",
     payUrl: `${STORE_BASE_URL}/store.html?tier=500` },
-  { amount: 1500, price: "$6.99", priceNum: 6.99, color: "#7AA2F7", popular: true, bonus: "+200 bonus",
+  { amount: 1500, price: "$6.99", priceNum: 6.99, color: "#C678DD", popular: true, bonus: "+200 bonus",
     payUrl: `${STORE_BASE_URL}/store.html?tier=1500` },
-  { amount: 3500, price: "$12.99", priceNum: 12.99, color: "#5B6EAE", popular: false, bonus: "+500 bonus",
+  { amount: 3500, price: "$12.99", priceNum: 12.99, color: "#E06C75", popular: false, bonus: "+500 bonus",
     payUrl: `${STORE_BASE_URL}/store.html?tier=3500` },
-  { amount: 8000, price: "$24.99", priceNum: 24.99, color: "#4A5899", popular: false, bonus: "+1500 bonus",
+  { amount: 8000, price: "$24.99", priceNum: 24.99, color: "#D19A66", popular: false, bonus: "+1500 bonus",
     payUrl: `${STORE_BASE_URL}/store.html?tier=8000` },
 ];
 
@@ -69,7 +69,7 @@ export function ShopPage() {
       setEquipped(data.equipped ?? {});
     }).catch(() => {
       // Fallback to localStorage for migration
-      const saved = localStorage.getItem("nebula-cosmetics");
+      const saved = localStorage.getItem("pulsar-cosmetics");
       if (saved) {
         const data = JSON.parse(saved);
         setPoints(data.points ?? 500);
@@ -84,7 +84,7 @@ export function ShopPage() {
     const json = JSON.stringify({ points: p, owned: o, equipped: e });
     // Save to shared file AND localStorage (belt and suspenders)
     invoke("save_cosmetics", { data: json }).catch(() => {});
-    localStorage.setItem("nebula-cosmetics", json);
+    localStorage.setItem("pulsar-cosmetics", json);
   }
 
   function buy(c: Cosmetic) {
@@ -116,9 +116,11 @@ export function ShopPage() {
           padding: "10px 18px", display: "flex", alignItems: "center", gap: "8px",
         }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="5" fill="#7AA2F7" opacity="0.3"/>
-            <circle cx="12" cy="12" r="3" fill="#89B4FA" opacity="0.7"/>
-            <circle cx="12" cy="12" r="1.5" fill="#B4BEFE" opacity="0.9"/>
+            <circle cx="12" cy="12" r="10" fill="#0A0A0F"/>
+            <circle cx="12" cy="12" r="8" fill="none" stroke="#C678DD" strokeWidth="0.5" opacity="0.3"/>
+            <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="#E06C75" strokeWidth="1.5" opacity="0.6"/>
+            <circle cx="12" cy="12" r="4" fill="#0A0A0F"/>
+            <circle cx="12" cy="12" r="3" fill="none" stroke="#C678DD" strokeWidth="0.3" opacity="0.5"/>
           </svg>
           <span style={{ fontSize: "18px", fontWeight: "800", color: "var(--pink-light)" }}>{points}</span>
           <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>points</span>
@@ -135,44 +137,44 @@ export function ShopPage() {
           }} style={{
             padding: "14px", textAlign: "center", cursor: "pointer",
             position: "relative", transition: "all 0.15s",
-            border: tier.popular ? "1px solid rgba(122,162,247,0.25)" : undefined,
-            background: tier.popular ? "rgba(122,162,247,0.06)" : undefined,
+            border: tier.popular ? "1px solid rgba(198,120,221,0.25)" : undefined,
+            background: tier.popular ? "rgba(198,120,221,0.06)" : undefined,
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(122,162,247,0.15)"; }}
+          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(198,120,221,0.15)"; }}
           onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
           >
             {tier.popular && (
               <div style={{
                 position: "absolute", top: "-8px", left: "50%", transform: "translateX(-50%)",
-                background: "linear-gradient(135deg, #7AA2F7, #5B6EAE)", color: "#0B0E1A",
+                background: "linear-gradient(135deg, #C678DD, #E06C75)", color: "#0A0A0F",
                 fontSize: "9px", fontWeight: "800", padding: "2px 10px", borderRadius: "8px",
                 letterSpacing: "0.05em", textTransform: "uppercase",
               }}>Popular</div>
             )}
             <div style={{ fontSize: "10px", fontWeight: "700", color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "6px" }}>
-              Nebula Points
+              Pulsar Points
             </div>
             <div style={{ fontSize: "22px", fontWeight: "800", color: tier.color, marginBottom: "2px" }}>
               {tier.amount.toLocaleString()}
             </div>
             <div style={{
               fontSize: "13px", fontWeight: "700", color: "var(--text-primary)",
-              background: "rgba(122,162,247,0.08)", borderRadius: "6px", padding: "4px 12px",
+              background: "rgba(198,120,221,0.08)", borderRadius: "6px", padding: "4px 12px",
               display: "inline-block", marginTop: "6px",
             }}>{tier.price}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ height: "1px", background: "rgba(122,162,247,0.06)" }} />
+      <div style={{ height: "1px", background: "rgba(198,120,221,0.06)" }} />
 
       {/* Filter tabs */}
       <div style={{ display: "flex", gap: "4px" }}>
         {["all", "cape", "hat"].map(t => (
           <button key={t} onClick={() => setFilter(t)} style={{
             padding: "7px 16px", borderRadius: "8px",
-            background: filter === t ? "rgba(122,162,247,0.1)" : "transparent",
-            border: filter === t ? "1px solid rgba(122,162,247,0.15)" : "1px solid transparent",
+            background: filter === t ? "rgba(198,120,221,0.1)" : "transparent",
+            border: filter === t ? "1px solid rgba(198,120,221,0.15)" : "1px solid transparent",
             color: filter === t ? "var(--pink-light)" : "var(--text-dim)",
             fontSize: "12px", fontWeight: "600", cursor: "pointer",
             transition: "all 0.15s", fontFamily: "inherit",
@@ -194,8 +196,8 @@ export function ShopPage() {
           return (
             <div key={c.id} className="bloom-card" style={{
               padding: "16px", position: "relative",
-              borderColor: eq ? "rgba(122,162,247,0.25)" : undefined,
-              background: eq ? "rgba(122,162,247,0.06)" : undefined,
+              borderColor: eq ? "rgba(198,120,221,0.25)" : undefined,
+              background: eq ? "rgba(198,120,221,0.06)" : undefined,
             }}>
               {/* Type badge */}
               <div style={{
@@ -229,7 +231,7 @@ export function ShopPage() {
                 <button onClick={() => equip(c)} className="bloom-btn" style={{
                   width: "100%", padding: "8px",
                   background: eq ? "linear-gradient(135deg, var(--pink), var(--pink-soft))" : "rgba(255,255,255,0.04)",
-                  color: eq ? "#0B0E1A" : "var(--text-muted)",
+                  color: eq ? "#0A0A0F" : "var(--text-muted)",
                   fontSize: "12px",
                 }}>
                   {eq ? "Equipped" : "Equip"}
@@ -239,7 +241,7 @@ export function ShopPage() {
                   className="bloom-btn-ghost"
                   style={{
                     width: "100%", padding: "8px",
-                    borderColor: c.price > points ? "rgba(255,255,255,0.04)" : "rgba(122,162,247,0.15)",
+                    borderColor: c.price > points ? "rgba(255,255,255,0.04)" : "rgba(198,120,221,0.15)",
                     color: c.price > points ? "var(--text-faint)" : "var(--pink)",
                     cursor: c.price > points ? "not-allowed" : "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
@@ -266,14 +268,14 @@ export function ShopPage() {
           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999,
         }} onClick={() => { if (purchasePhase !== "processing") setPurchaseModal(null); }}>
           <div onClick={e => e.stopPropagation()} className="fade-in" style={{
-            background: "rgba(12,8,18,0.97)", border: "1px solid rgba(122,162,247,0.12)",
+            background: "rgba(12,8,18,0.97)", border: "1px solid rgba(198,120,221,0.12)",
             borderRadius: "16px", padding: "32px 36px", width: "min(400px, 90vw)",
             boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
           }}>
             {purchasePhase === "confirm" && (<>
               <div style={{ textAlign: "center", marginBottom: "24px" }}>
                 <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
-                  Purchase Nebula Points
+                  Purchase Pulsar Points
                 </div>
                 <div style={{ fontSize: "42px", fontWeight: "800", color: purchaseModal.color, lineHeight: 1 }}>
                   {purchaseModal.amount.toLocaleString()}
@@ -283,7 +285,7 @@ export function ShopPage() {
                     {purchaseModal.bonus}
                   </div>
                 )}
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "12px" }}>Nebula Points</div>
+                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "12px" }}>Pulsar Points</div>
               </div>
 
               <div style={{
@@ -291,7 +293,7 @@ export function ShopPage() {
                 borderRadius: "10px", padding: "16px", marginBottom: "20px",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{purchaseModal.amount.toLocaleString()} Nebula Points</span>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{purchaseModal.amount.toLocaleString()} Pulsar Points</span>
                   <span style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: "600" }}>{purchaseModal.price}</span>
                 </div>
                 {purchaseModal.bonus && (
@@ -316,13 +318,13 @@ export function ShopPage() {
               }} style={{
                 width: "100%", padding: "14px", border: "none", borderRadius: "10px",
                 background: "linear-gradient(135deg, var(--pink-300), var(--pink-400))",
-                color: "#0B0E1A", fontSize: "13px", fontWeight: "800", cursor: "pointer",
+                color: "#0A0A0F", fontSize: "13px", fontWeight: "800", cursor: "pointer",
                 fontFamily: "inherit", letterSpacing: "0.06em",
-                boxShadow: "0 4px 20px rgba(122,162,247,0.25)",
+                boxShadow: "0 4px 20px rgba(198,120,221,0.25)",
                 transition: "all 0.2s",
               }}
-              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(122,162,247,0.35)"; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(122,162,247,0.25)"; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(198,120,221,0.35)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(198,120,221,0.25)"; }}
               >
                 PAY {purchaseModal.price}
               </button>
@@ -354,9 +356,9 @@ export function ShopPage() {
                 }} style={{
                   width: "100%", padding: "14px", border: "none", borderRadius: "10px",
                   background: "linear-gradient(135deg, var(--pink-300), var(--pink-400))",
-                  color: "#0B0E1A", fontSize: "13px", fontWeight: "800", cursor: "pointer",
+                  color: "#0A0A0F", fontSize: "13px", fontWeight: "800", cursor: "pointer",
                   fontFamily: "inherit", letterSpacing: "0.06em",
-                  boxShadow: "0 4px 20px rgba(122,162,247,0.25)",
+                  boxShadow: "0 4px 20px rgba(198,120,221,0.25)",
                 }}>
                   I'VE COMPLETED PAYMENT
                 </button>
@@ -386,7 +388,7 @@ export function ShopPage() {
                 </div>
                 <div style={{
                   width: "40px", height: "40px", margin: "0 auto",
-                  border: "3px solid rgba(122,162,247,0.1)", borderTopColor: "var(--pink-300)",
+                  border: "3px solid rgba(198,120,221,0.1)", borderTopColor: "var(--pink-300)",
                   borderRadius: "50%", animation: "spin 0.8s linear infinite",
                 }} />
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -405,7 +407,7 @@ export function ShopPage() {
                   Payment Successful!
                 </div>
                 <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                  +{purchaseModal.amount.toLocaleString()} Nebula Points added
+                  +{purchaseModal.amount.toLocaleString()} Pulsar Points added
                 </div>
               </div>
             )}

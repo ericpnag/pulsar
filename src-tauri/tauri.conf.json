@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "nebula-launcher",
+  "productName": "pulsar-launcher",
   "version": "1.2.0",
-  "identifier": "com.eric.nebula-launcher",
+  "identifier": "com.eric.pulsar-launcher",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "nebula-launcher",
+        "title": "pulsar-launcher",
         "width": 800,
         "height": 600
       }

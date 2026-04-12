@@ -1,35 +1,35 @@
-/* ── Nebula Client — Space Blue Theme v2 ── */
+/* ── Pulsar Client — Universe/Black Hole Theme ── */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg: #0B0E1A;
+  --bg: #0A0A0F;
   --bg-surface: rgba(255, 255, 255, 0.02);
   --bg-surface-hover: rgba(255, 255, 255, 0.04);
-  --bg-elevated: rgba(13, 16, 30, 0.95);
+  --bg-elevated: rgba(10, 10, 15, 0.95);
 
-  --border: rgba(122, 162, 247, 0.06);
-  --border-hover: rgba(122, 162, 247, 0.14);
-  --border-input: rgba(122, 162, 247, 0.1);
-  --border-active: rgba(122, 162, 247, 0.25);
+  --border: rgba(198, 120, 221, 0.06);
+  --border-hover: rgba(198, 120, 221, 0.14);
+  --border-input: rgba(198, 120, 221, 0.1);
+  --border-active: rgba(198, 120, 221, 0.25);
 
-  --pink-50: #E8EEFF;
-  --pink-100: #D0DFFE;
-  --pink-200: #89B4FA;
-  --pink-300: #7AA2F7;
-  --pink-400: #5B6EAE;
-  --pink-500: #4A5899;
-  --pink-600: #3D4A80;
-  --pink-glow: rgba(122, 162, 247, 0.2);
+  --pink-50: #F0D0FF;
+  --pink-100: #E0B0F0;
+  --pink-200: #C678DD;
+  --pink-300: #C678DD;
+  --pink-400: #E06C75;
+  --pink-500: #D19A66;
+  --pink-600: #9050A0;
+  --pink-glow: rgba(198, 120, 221, 0.2);
 
-  --text-primary: #CDD6F4;
-  --text-secondary: #A6ADC8;
-  --text-muted: #6C7086;
-  --text-faint: #45475A;
+  --text-primary: #E0E0E8;
+  --text-secondary: #ABB2BF;
+  --text-muted: #5C6370;
+  --text-faint: #3E4451;
 
-  --accent-green: #A6E3A1;
-  --accent-red: #F38BA8;
-  --accent-yellow: #F0CC60;
+  --accent-green: #98C379;
+  --accent-red: #E06C75;
+  --accent-yellow: #D19A66;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -51,10 +51,10 @@ body { margin: 0; overflow: hidden; }
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(122, 162, 247, 0.1); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(122, 162, 247, 0.2); }
+::-webkit-scrollbar-thumb { background: rgba(198, 120, 221, 0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(198, 120, 221, 0.2); }
 
-::selection { background: rgba(122, 162, 247, 0.25); color: #fff; }
+::selection { background: rgba(198, 120, 221, 0.25); color: #fff; }
 
 /* ── Cards ── */
 .bloom-card {
@@ -82,7 +82,7 @@ body { margin: 0; overflow: hidden; }
 }
 .bloom-input:focus {
   border-color: var(--pink-400);
-  box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.06);
+  box-shadow: 0 0 0 3px rgba(198, 120, 221, 0.06);
 }
 .bloom-input::placeholder { color: var(--text-faint); }
 
@@ -102,7 +102,7 @@ body { margin: 0; overflow: hidden; }
 /* ── Buttons ── */
 .bloom-btn {
   background: linear-gradient(135deg, var(--pink-300), var(--pink-400));
-  color: #0B0E1A;
+  color: #0A0A0F;
   border: none;
   border-radius: var(--radius-sm);
   padding: 10px 22px;
@@ -134,7 +134,7 @@ body { margin: 0; overflow: hidden; }
 .bloom-btn-ghost:hover {
   border-color: var(--pink-300);
   color: var(--pink-300);
-  background: rgba(122, 162, 247, 0.04);
+  background: rgba(198, 120, 221, 0.04);
 }
 
 .bloom-btn-install {
@@ -152,15 +152,15 @@ body { margin: 0; overflow: hidden; }
 .bloom-btn-install:hover:not(:disabled) {
   border-color: var(--pink-300);
   color: var(--pink-200);
-  background: rgba(122, 162, 247, 0.04);
+  background: rgba(198, 120, 221, 0.04);
 }
 .bloom-btn-install.installed {
-  border-color: rgba(110, 231, 160, 0.2);
+  border-color: rgba(152, 195, 121, 0.2);
   color: var(--accent-green);
-  background: rgba(110, 231, 160, 0.04);
+  background: rgba(152, 195, 121, 0.04);
   cursor: default;
 }
-.bloom-btn-install.failed { border-color: rgba(255, 112, 112, 0.2); color: var(--accent-red); }
+.bloom-btn-install.failed { border-color: rgba(224, 108, 117, 0.2); color: var(--accent-red); }
 .bloom-btn-install.loading { opacity: 0.5; cursor: wait; }
 
 /* ── Typography ── */
@@ -197,7 +197,7 @@ body { margin: 0; overflow: hidden; }
   width: 42px;
   height: 42px;
   border-radius: var(--radius-sm);
-  background: rgba(122, 162, 247, 0.04);
+  background: rgba(198, 120, 221, 0.04);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -219,8 +219,8 @@ body { margin: 0; overflow: hidden; }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 4px 20px rgba(122, 162, 247, 0.15); }
-  50% { box-shadow: 0 4px 32px rgba(122, 162, 247, 0.28); }
+  0%, 100% { box-shadow: 0 4px 20px rgba(198, 120, 221, 0.15); }
+  50% { box-shadow: 0 4px 32px rgba(198, 120, 221, 0.28); }
 }
 @keyframes shimmer {
   0% { background-position: -200% 0; }

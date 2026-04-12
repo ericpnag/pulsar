@@ -12,20 +12,20 @@ export function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(DEFAULT);
 
   useEffect(() => {
-    const saved = localStorage.getItem("nebula-settings");
+    const saved = localStorage.getItem("pulsar-settings");
     if (saved) setSettings({ ...DEFAULT, ...JSON.parse(saved) });
   }, []);
 
   function save(patch: Partial<Settings>) {
     const updated = { ...settings, ...patch };
     setSettings(updated);
-    localStorage.setItem("nebula-settings", JSON.stringify(updated));
+    localStorage.setItem("pulsar-settings", JSON.stringify(updated));
   }
 
   return (
     <div className="fade-in" style={{ padding: "28px 32px", overflowY: "auto", height: "100%", maxWidth: "560px" }}>
       <h2 className="page-title">Settings</h2>
-      <p className="page-subtitle" style={{ marginBottom: "24px" }}>Configure your Nebula Client</p>
+      <p className="page-subtitle" style={{ marginBottom: "24px" }}>Configure your Pulsar Client</p>
 
       {/* RAM */}
       <div className="bloom-card" style={{ padding: "20px", marginBottom: "12px" }}>
@@ -85,19 +85,20 @@ export function SettingsPage() {
       <div className="bloom-card" style={{ padding: "20px", marginTop: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="5" fill="#7AA2F7" opacity="0.3"/>
-            <circle cx="12" cy="12" r="3" fill="#89B4FA" opacity="0.7"/>
-            <circle cx="12" cy="12" r="1.5" fill="#B4BEFE" opacity="0.9"/>
-            <circle cx="7" cy="8" r="1" fill="#B4BEFE" opacity="0.4"/>
-            <circle cx="17" cy="9" r="0.8" fill="#89B4FA" opacity="0.5"/>
+            <circle cx="12" cy="12" r="10" fill="#0A0A0F"/>
+            <circle cx="12" cy="12" r="8" fill="none" stroke="#C678DD" strokeWidth="0.5" opacity="0.3"/>
+            <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="#E06C75" strokeWidth="1.5" opacity="0.6"/>
+            <ellipse cx="12" cy="12" rx="9" ry="3" fill="none" stroke="#D19A66" strokeWidth="0.8" opacity="0.4"/>
+            <circle cx="12" cy="12" r="4" fill="#0A0A0F"/>
+            <circle cx="12" cy="12" r="3" fill="none" stroke="#C678DD" strokeWidth="0.3" opacity="0.5"/>
           </svg>
           <div>
-            <div style={{ fontSize: "15px", fontWeight: "800", color: "var(--pink-light)" }}>Nebula Client</div>
+            <div style={{ fontSize: "15px", fontWeight: "800", color: "var(--pink-light)" }}>Pulsar Client</div>
             <div style={{ fontSize: "11px", color: "var(--text-dim)" }}>v1.0.0</div>
           </div>
         </div>
         <div style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.6 }}>
-          A space themed Minecraft experience.
+          A universe themed Minecraft experience.
         </div>
         <div style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "8px" }}>
           github.com/ericpnag/bloom-launcher

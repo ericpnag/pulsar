@@ -51,9 +51,11 @@ export function InstalledModsPage({ versions, selectedVersion }: Props) {
               <div className="bloom-icon-placeholder">
                 {isCore ? (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="5" fill="#7AA2F7" opacity="0.3"/>
-                    <circle cx="12" cy="12" r="3" fill="#89B4FA" opacity="0.7"/>
-                    <circle cx="12" cy="12" r="1.5" fill="#B4BEFE" opacity="0.9"/>
+                    <circle cx="12" cy="12" r="10" fill="#0A0A0F"/>
+                    <circle cx="12" cy="12" r="8" fill="none" stroke="#C678DD" strokeWidth="0.5" opacity="0.3"/>
+                    <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="#E06C75" strokeWidth="1.5" opacity="0.6"/>
+                    <circle cx="12" cy="12" r="4" fill="#0A0A0F"/>
+                    <circle cx="12" cy="12" r="3" fill="none" stroke="#C678DD" strokeWidth="0.3" opacity="0.5"/>
                   </svg>
                 ) : (
                   <span style={{ fontSize: "14px" }}>+</span>

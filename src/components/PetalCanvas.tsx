@@ -5,12 +5,17 @@ interface Star {
   speedX: number; speedY: number;
   wobbleSpeed: number; wobbleAmp: number; phase: number;
   alpha: number; color: string; rotation: number; rotSpeed: number;
+  // Gravitational pull parameters
+  pullX: number; pullY: number; pullStrength: number;
 }
 
-const BLUES = ["#7AA2F7", "#89B4FA", "#B4BEFE", "#CDD6F4", "#5B6EAE", "#A6ADC8", "#ffffff", "#9AB8F7"];
+const COLORS = ["#C678DD", "#E06C75", "#D19A66", "#E0E0E8", "#ABB2BF", "#61AFEF", "#ffffff", "#9B6EC7"];
 
 function newStar(w: number, h: number, randomY = false): Star {
   const r = Math.random;
+  // Random gravitational attractor point
+  const pullX = r() * w;
+  const pullY = r() * h;
   return {
     x: r() * (w + 80) - 40,
     y: randomY ? r() * h : -10 - r() * 50,
@@ -21,9 +26,12 @@ function newStar(w: number, h: number, randomY = false): Star {
     wobbleAmp: 5 + r() * 10,
     phase: r() * Math.PI * 2,
     alpha: 0.2 + r() * 0.6,
-    color: BLUES[Math.floor(r() * BLUES.length)],
+    color: COLORS[Math.floor(r() * COLORS.length)],
     rotation: r() * Math.PI * 2,
     rotSpeed: (r() - 0.5) * 0.01,
+    pullX,
+    pullY,
+    pullStrength: 0.0001 + r() * 0.0003,
   };
 }
 
@@ -56,6 +64,13 @@ export function PetalCanvas() {
 
       for (let i = 0; i < stars.length; i++) {
         const p = stars[i];
+        // Gravitational pull toward attractor
+        const dx = p.pullX - p.x;
+        const dy = p.pullY - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) + 1;
+        p.speedX += (dx / dist) * p.pullStrength;
+        p.speedY += (dy / dist) * p.pullStrength;
+
         p.x += p.speedX;
         p.y += p.speedY;
         p.phase += p.wobbleSpeed * 0.01;
@@ -65,7 +80,7 @@ export function PetalCanvas() {
         // Twinkle effect
         const twinkle = 0.7 + Math.sin(p.phase * 3) * 0.3;
 
-        if (p.y > h + 20 || p.x > w + 50) {
+        if (p.y > h + 20 || p.x > w + 50 || p.x < -50) {
           stars[i] = newStar(w, h, false);
           continue;
         }
