@@ -27,10 +27,10 @@ app.use(express.static(path.join(__dirname, '..', 'docs')));
 // ---------------------------------------------------------------------------
 
 const TIERS = {
-  '500':  { points: 500,  bonus: 0,    priceCents: 299,  label: '500 Bloom Points' },
-  '1500': { points: 1500, bonus: 200,  priceCents: 699,  label: '1500 Bloom Points' },
-  '3500': { points: 3500, bonus: 500,  priceCents: 1299, label: '3500 Bloom Points' },
-  '8000': { points: 8000, bonus: 1500, priceCents: 2499, label: '8000 Bloom Points' },
+  '500':  { points: 500,  bonus: 0,    priceCents: 10,  label: '500 Pulsar Points' },
+  '1500': { points: 1500, bonus: 200,  priceCents: 10,  label: '1500 Pulsar Points' },
+  '3500': { points: 3500, bonus: 500,  priceCents: 10,  label: '3500 Pulsar Points' },
+  '8000': { points: 8000, bonus: 1500, priceCents: 10,  label: '8000 Pulsar Points' },
 };
 
 // ---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ try {
     cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
   };
   https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
-    console.log(`Bloom Store (HTTPS) running on https://localhost:${HTTPS_PORT}`);
+    console.log(`Pulsar Store (HTTPS) running on https://localhost:${HTTPS_PORT}`);
     console.log(`  → Apple Pay, Google Pay, Link available over HTTPS`);
   });
 } catch (e) {
@@ -148,7 +148,7 @@ try {
 }
 
 app.listen(PORT, () => {
-  console.log(`Bloom Store (HTTP) running on http://localhost:${PORT}`);
+  console.log(`Pulsar Store (HTTP) running on http://localhost:${PORT}`);
   console.log(`CORS origin: ${ALLOWED_ORIGIN}`);
   if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test_XXX')) {
     console.warn('\n⚠  WARNING: STRIPE_SECRET_KEY is not set or still a placeholder.');
