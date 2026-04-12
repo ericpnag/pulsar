@@ -204,10 +204,13 @@ async function initStripe() {
         theme: 'night',
         variables: {
           colorPrimary: '#FFFFFF',
-          colorBackground: 'rgba(255,255,255,0.03)',
-          colorText: '#E0E0E8',
-          colorTextPlaceholder: '#3E4451',
+          colorBackground: '#1a1a1a',
+          colorText: '#FFFFFF',
+          colorTextPlaceholder: '#666666',
+          colorTextSecondary: '#AAAAAA',
           colorDanger: '#FF7070',
+          colorIconTab: '#AAAAAA',
+          colorIconTabSelected: '#FFFFFF',
           fontFamily: 'Inter, system-ui, sans-serif',
           fontSizeBase: '14px',
           borderRadius: '8px',
@@ -215,16 +218,25 @@ async function initStripe() {
         },
         rules: {
           '.Input': {
-            border: '1px solid rgba(255,255,255,0.12)',
-            backgroundColor: 'transparent',
+            border: '1px solid rgba(255,255,255,0.15)',
+            backgroundColor: '#111111',
             boxShadow: 'none',
+            color: '#FFFFFF',
           },
           '.Input:focus': {
-            border: '1px solid rgba(255,255,255,0.3)',
+            border: '1px solid rgba(255,255,255,0.35)',
             boxShadow: 'none',
           },
+          '.Tab': {
+            border: '1px solid rgba(255,255,255,0.1)',
+            backgroundColor: '#111111',
+          },
+          '.Tab--selected': {
+            border: '1px solid rgba(255,255,255,0.25)',
+            backgroundColor: '#1a1a1a',
+          },
           '.Label': {
-            color: '#5C6370',
+            color: '#888888',
             fontSize: '11px',
             fontWeight: '600',
             letterSpacing: '0.08em',
