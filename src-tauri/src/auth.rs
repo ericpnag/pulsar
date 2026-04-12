@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, State};
 use std::sync::Mutex;
 
-const CLIENT_ID: &str = "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb";
+const CLIENT_ID: &str = "ef9218b2-b1ed-47c5-ab68-2554ef79b244";
 
 #[derive(Deserialize)]
 struct DeviceCodeResp {
