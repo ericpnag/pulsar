@@ -70,6 +70,9 @@ const CREATOR_CODES: Record<string, { cosmetics: string[]; points: number; name:
   "TIKTOK": { cosmetics: ["cape_creator", "cape_tiktok"], points: 5000, name: "TikTok Creator" },
   "OG": { cosmetics: ["cape_og"], points: 2500, name: "OG Supporter" },
   "ERICPNAG": { cosmetics: ["cape_creator", "cape_youtube", "cape_twitch", "cape_tiktok", "cape_og"], points: 50000, name: "Developer" },
+  "CRAZYFISH564": { cosmetics: ["cape_creator", "cape_youtube"], points: 10000, name: "CrazyFish564 — youtube.com/@crazyfish564" },
+  "BIGBOBBY68": { cosmetics: ["cape_creator", "cape_youtube"], points: 10000, name: "BigBobby68 — youtube.com/@BigBobby68" },
+  "OLIVERTREEEE": { cosmetics: ["cape_creator", "cape_og"], points: 10000, name: "OliverTreeee — Pulsar Creator" },
 };
 
 const TYPE_LABELS: Record<string, string> = { cape: "Capes", wings: "Wings", hat: "Hats", aura: "Auras" };
