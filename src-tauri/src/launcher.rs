@@ -354,59 +354,63 @@ fn version_game_dir(mc_version: &str) -> PathBuf {
     game_dir().join(format!("profiles/{}", mc_version))
 }
 
-/// Install bloom-core.jar and Fabric API into per-version mods folder
+/// Install mods into per-version mods folder.
+/// bloom-core only installs on supported versions; Fabric API + performance mods install on all Fabric versions.
 fn install_mods(client: &Client, _game_dir: &PathBuf, mc_version: &str) -> Result<(), String> {
     let mods_dir = version_game_dir(mc_version).join("mods");
     fs::create_dir_all(&mods_dir).map_err(|e| e.to_string())?;
 
-    // Embed bloom-core JARs directly in binary
-    // Also remove any old bloom-core jars to avoid duplicates
+    // Versions that bloom-core supports (add more as we build for them)
+    let bloom_supported = ["1.21.11"];
+
+    // Clean old bloom-core JARs
     if let Ok(entries) = fs::read_dir(&mods_dir) {
         for entry in entries.flatten() {
-            let name = entry.file_name();
-            let name_str = name.to_string_lossy();
-            if name_str.starts_with("bloom-core-") && name_str.ends_with(".jar") {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with("bloom-core-") && name.ends_with(".jar") {
                 let _ = fs::remove_file(entry.path());
             }
         }
     }
-    let bloom_dest = mods_dir.join("bloom-core-1.2.0.jar");
-    let bloom_jar: &[u8] = match mc_version {
-        "1.21.11" => include_bytes!("../../bloom-core-1.21.11/build/libs/bloom-core-1.2.0.jar"),
-        _ => include_bytes!("../../bloom-core/build/libs/bloom-core-1.2.0.jar"),
-    };
-    let _ = fs::write(&bloom_dest, bloom_jar);
 
-    // Download Fabric API from Modrinth
+    // Only install bloom-core on supported versions
+    if bloom_supported.contains(&mc_version) {
+        let bloom_dest = mods_dir.join("bloom-core-1.2.0.jar");
+        let bloom_jar: &[u8] = include_bytes!("../../bloom-core-1.21.11/build/libs/bloom-core-1.2.0.jar");
+        let _ = fs::write(&bloom_dest, bloom_jar);
+    }
+
+    // Download Fabric API from Modrinth (works for all Fabric versions)
     let fabric_api_dest = mods_dir.join("fabric-api.jar");
     if !fabric_api_dest.exists() {
-        // Get latest Fabric API version for this MC version from Modrinth
         let url = format!(
             "https://api.modrinth.com/v2/project/P7dR8mSH/version?game_versions=[\"{}\"]&loaders=[\"fabric\"]",
             mc_version
         );
-        let resp = client.get(&url)
-            .header("User-Agent", "bloom-launcher/1.0")
-            .send().map_err(|e| e.to_string())?
-            .text().map_err(|e| e.to_string())?;
-
-        #[derive(Deserialize)]
-        struct ModrinthVersion { files: Vec<ModrinthFile> }
-        #[derive(Deserialize)]
-        struct ModrinthFile { url: String }
-
-        let versions: Vec<ModrinthVersion> = serde_json::from_str(&resp).map_err(|e| e.to_string())?;
-        if let Some(ver) = versions.first() {
-            if let Some(file) = ver.files.first() {
-                download_file(client, &file.url, &fabric_api_dest)?;
+        if let Ok(resp) = client.get(&url)
+            .header("User-Agent", "pulsar-launcher/1.0")
+            .send().and_then(|r| r.text())
+        {
+            #[derive(Deserialize)]
+            struct ModrinthVersion { files: Vec<ModrinthFile> }
+            #[derive(Deserialize)]
+            struct ModrinthFile { url: String }
+            if let Ok(versions) = serde_json::from_str::<Vec<ModrinthVersion>>(&resp) {
+                if let Some(ver) = versions.first() {
+                    if let Some(file) = ver.files.first() {
+                        let _ = download_file(client, &file.url, &fabric_api_dest);
+                    }
+                }
             }
         }
     }
 
-    // Auto-install bundled mods from Modrinth
+    // Auto-install popular performance & utility mods from Modrinth
+    // These are version-agnostic — Modrinth returns the right version automatically
     let bundled_mods = [
-        ("betterhitreg", "better-hitreg.jar"),  // Better Hitreg
-        ("freelook", "freelook.jar"),            // Freelook
+        ("AANobbMI", "sodium.jar"),         // Sodium (FPS boost)
+        ("gvQqBUqZ", "lithium.jar"),        // Lithium (server tick optimization)
+        ("NNAgCjsB", "entityculling.jar"),   // Entity Culling
     ];
     for (project_id, filename) in &bundled_mods {
         let dest = mods_dir.join(filename);
@@ -416,7 +420,7 @@ fn install_mods(client: &Client, _game_dir: &PathBuf, mc_version: &str) -> Resul
                 project_id, mc_version
             );
             if let Ok(resp) = client.get(&url)
-                .header("User-Agent", "bloom-launcher/1.0")
+                .header("User-Agent", "pulsar-launcher/1.0")
                 .send().and_then(|r| r.text())
             {
                 #[derive(Deserialize)]

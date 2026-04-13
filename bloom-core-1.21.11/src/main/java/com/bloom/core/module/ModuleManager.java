@@ -39,6 +39,28 @@ public class ModuleManager {
         modules.add(new WeatherChanger());
         modules.add(new AutoGG());
         modules.add(new TntTimer());
+        // New mods
+        modules.add(new MotionBlur());
+        modules.add(new CustomCrosshair());
+        modules.add(new BlockOutline());
+        modules.add(new HitColor());
+        modules.add(new HitboxDisplay());
+        modules.add(new BossBar());
+        modules.add(new ParticleMultiplier());
+        modules.add(new DamageIndicator());
+        modules.add(new NickHider());
+        modules.add(new SpeedDisplay());
+        modules.add(new ArrowCounter());
+        modules.add(new Clock());
+        modules.add(new Stopwatch());
+        modules.add(new Playtime());
+        // Bedwars & Hypixel
+        modules.add(new BedwarsOverlay());
+        modules.add(new AutoTip());
+        modules.add(new ItemCounter());
+        modules.add(new HealthDisplay());
+        modules.add(new GlintColor());
+        modules.add(new DropProtection());
     }
 
     public List<Module> getModules() {

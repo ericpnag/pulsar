@@ -12,7 +12,7 @@ import java.util.Random;
 import static com.bloom.core.gui.BloomGui.*;
 
 public class BloomPauseScreen extends Screen {
-    private final List<Petal> petals = new ArrayList<>();
+    private final List<Star> stars = new ArrayList<>();
     private final Random rng = new Random();
     private long openTime;
 
@@ -26,84 +26,94 @@ public class BloomPauseScreen extends Screen {
     @Override
     protected void init() {
         openTime = System.currentTimeMillis();
-        petals.clear();
-        for (int i = 0; i < 20; i++) petals.add(newPetal());
+        stars.clear();
+        for (int i = 0; i < 40; i++) stars.add(newStar());
         for (int i = 0; i < BTN_COUNT; i++) hoverAnim[i] = 0;
     }
 
-    private Petal newPetal() {
-        Petal p = new Petal();
-        p.x = rng.nextFloat() * this.width;
-        p.y = rng.nextFloat() * this.height;
-        p.vx = 0.1f + rng.nextFloat() * 0.25f;
-        p.vy = 0.12f + rng.nextFloat() * 0.2f;
-        p.size = 1 + rng.nextInt(2);
-        int[] purples = {0xC678DD, 0xBB70D6, 0xD19A66, 0xE06C75};
-        p.color = purples[rng.nextInt(purples.length)];
-        p.phase = rng.nextFloat() * 6.28f;
-        p.wobble = 1 + rng.nextFloat() * 2;
-        p.alpha = 0.3f + rng.nextFloat() * 0.3f;
-        return p;
+    private Star newStar() {
+        Star s = new Star();
+        s.x = rng.nextFloat() * this.width;
+        s.y = rng.nextFloat() * this.height;
+        s.vy = 0.03f + rng.nextFloat() * 0.1f;
+        s.size = 0.5f + rng.nextFloat() * 1.5f;
+        s.alpha = 0.1f + rng.nextFloat() * 0.4f;
+        s.twinkleSpeed = 0.5f + rng.nextFloat() * 2f;
+        s.phase = rng.nextFloat() * 6.28f;
+        return s;
     }
 
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
         int w = this.width, h = this.height, cx = w / 2;
         float time = (System.currentTimeMillis() - openTime) / 1000f;
-        float openProgress = Math.min(1.0f, time / 0.25f);
+        float openProgress = Math.min(1.0f, time / 0.3f);
         float ease = easeOutCubic(openProgress);
 
-        // Dark overlay
-        int overlayAlpha = (int)(0xCC * ease);
-        ctx.fillGradient(0, 0, w, h / 2, (overlayAlpha << 24) | 0x120a18, (overlayAlpha << 24) | 0x1a1028);
-        ctx.fillGradient(0, h / 2, w, h, (overlayAlpha << 24) | 0x1a1028, (overlayAlpha << 24) | 0x0e0814);
+        // Dark overlay with depth
+        int overlayA = (int)(0xDD * ease);
+        ctx.fill(0, 0, w, h, (overlayA << 24));
 
-        // Petals
-        for (Petal p : petals) {
-            p.x += p.vx * delta; p.y += p.vy * delta;
-            p.phase += p.wobble * delta * 0.04f;
-            p.x += (float) Math.sin(p.phase) * 0.08f * delta;
-            if (p.y > h + 5 || p.x > w + 10) { p.x = -5; p.y = rng.nextFloat() * h * 0.3f; }
-            int a = (int)(p.alpha * 180 * ease) << 24;
-            int col = a | (p.color & 0x00FFFFFF);
-            int s = (int) p.size;
-            ctx.fill((int) p.x - s, (int) p.y, (int) p.x + s, (int) p.y + s, col);
+        // Stars
+        for (Star s : stars) {
+            s.y += s.vy * delta;
+            s.phase += s.twinkleSpeed * delta * 0.03f;
+            if (s.y > h + 3) { s.y = -2; s.x = rng.nextFloat() * w; }
+            float twinkle = 0.4f + 0.6f * (float)Math.sin(s.phase);
+            int a = (int)(s.alpha * twinkle * 200 * ease);
+            if (a < 2) continue;
+            int sz = Math.max(1, (int)s.size);
+            ctx.fill((int)s.x, (int)s.y, (int)s.x + sz, (int)s.y + sz, (a << 24) | 0xFFFFFF);
         }
 
-        // Panel with slide-in animation
-        int pw = 220, ph = 190;
+        // === Panel ===
+        int pw = 230, ph = 200;
         int px = cx - pw / 2;
         int targetPy = h / 2 - ph / 2;
-        int py = (int)(targetPy - 12 * (1 - ease));
-        int panelAlpha = (int)(0xEE * ease);
+        int py = (int)(targetPy - 10 * (1 - ease));
+        int panelA = (int)(0xD0 * ease);
 
         // Panel shadow
-        drawRoundRect(ctx, px - 1, py - 1, pw + 2, ph + 2, (int)(0x20 * ease) << 24);
+        drawRoundRect(ctx, px - 2, py - 2, pw + 4, ph + 4, (int)(0x30 * ease) << 24);
         // Panel background
-        drawRoundRect(ctx, px, py, pw, ph, (panelAlpha << 24) | 0x0A0A0F);
-        // Top border
-        ctx.fill(px + 2, py, px + pw - 2, py + 1, ((int)(0x44 * ease) << 24) | 0xC678DD);
-        // Bottom border
-        ctx.fill(px + 2, py + ph - 1, px + pw - 2, py + ph, ((int)(0x22 * ease) << 24) | 0xC678DD);
+        drawRoundRect(ctx, px, py, pw, ph, (panelA << 24) | 0x080808);
+        // Panel border
+        drawRoundRectOutline(ctx, px, py, pw, ph, (int)(0x15 * ease) << 24 | 0xFFFFFF);
 
-        // "PULSAR" title in Inter at 2x
+        // Mini black hole in panel header
+        int bhX = cx, bhY = py + 18;
+        // Accretion rings
+        for (int r = 20; r > 5; r--) {
+            float t = (float)r / 20f;
+            float pulse = (float)(1 + 0.2 * Math.sin(time * 2 + r * 0.1));
+            int diskA = (int)((1 - t) * 15 * pulse * ease);
+            int ry = (int)(r * 0.3f);
+            ctx.fill(bhX - r, bhY - ry, bhX + r, bhY + ry, (diskA << 24) | 0xFFFFFF);
+        }
+        // Event horizon
+        ctx.fill(bhX - 5, bhY - 2, bhX + 5, bhY + 2, (int)(255 * ease) << 24);
+
+        // "PULSAR" at 2x
+        int titleY = bhY + 8;
         ctx.getMatrices().pushMatrix();
         ctx.getMatrices().scale(2.0f, 2.0f);
         int bw = textW(this.textRenderer, "PULSAR");
-        ctx.drawText(this.textRenderer, text("PULSAR", 0xC678DD),
-            (int)(cx / 2.0f - bw / 2.0f), (int)((py + 10) / 2.0f), -1, false);
+        ctx.drawText(this.textRenderer, text("PULSAR", 0xFFFFFF),
+            (int)(cx / 2.0f - bw / 2.0f), (int)(titleY / 2.0f), -1, false);
         ctx.getMatrices().popMatrix();
 
         // Subtitle
-        String sub = "MINECRAFT CLIENT";
+        String sub = "GAME PAUSED";
         int sw = textW(this.textRenderer, sub);
-        ctx.drawText(this.textRenderer, text(sub, 0x3E4451), cx - sw / 2, py + 28, -1, false);
+        ctx.drawText(this.textRenderer, text(sub, 0x404040), cx - sw / 2, titleY + 16, -1, false);
 
         // Separator
-        ctx.fill(px + 20, py + 40, px + pw - 20, py + 41, ((int)(0x22 * ease) << 24) | 0xC678DD);
+        int sepA = (int)(10 * ease);
+        ctx.fill(px + 20, titleY + 28, px + pw - 20, titleY + 29, (sepA << 24) | 0xFFFFFF);
 
-        // Buttons
-        int btnW = 180, btnH = 22, gap = 4, sy = py + 48;
+        // === Buttons ===
+        int btnW = 190, btnH = 22, gap = 4;
+        int sy = titleY + 36;
 
         for (int i = 0; i < BTN_COUNT; i++) {
             int by = sy + (btnH + gap) * i + (i == 4 ? 6 : 0);
@@ -117,32 +127,32 @@ public class BloomPauseScreen extends Screen {
 
             // Glow
             if (ha > 0.01f) {
-                int gAlpha = (int)(ha * 0x12);
-                drawRoundRect(ctx, bx - 2, by - 2, btnW + 4, btnH + 4, (gAlpha << 24) | 0xC070DD);
+                int gA = (int)(ha * 0x12);
+                drawRoundRect(ctx, bx - 2, by - 2, btnW + 4, btnH + 4, (gA << 24) | 0xFFFFFF);
             }
 
             // Background
-            int bgAlpha2 = (int)(0x12 + ha * (0x38 - 0x12));
-            int bgColor = BTN_DANGER[i] ? 0xFF5050 : 0xC678DD;
-            drawRoundRect(ctx, bx, by, btnW, btnH, (bgAlpha2 << 24) | (bgColor & 0xFFFFFF));
+            int bgA = (int)(0x0D + ha * 0x28);
+            int bgCol = BTN_DANGER[i] ? 0xFF4040 : 0xFFFFFF;
+            drawRoundRect(ctx, bx, by, btnW, btnH, (bgA << 24) | (bgCol & 0xFFFFFF));
 
             // Top highlight
-            int hlA = (int)(0x06 + ha * 0x3E);
-            ctx.fill(bx + 1, by, bx + btnW - 1, by + 1, (hlA << 24) | (bgColor & 0xFFFFFF));
+            int hlA = (int)(0x04 + ha * 0x30);
+            ctx.fill(bx + 1, by, bx + btnW - 1, by + 1, (hlA << 24) | (bgCol & 0xFFFFFF));
 
             // Left accent
             if (ha > 0.05f) {
                 int accentH = (int)(btnH * ha);
                 int accentY = by + (btnH - accentH) / 2;
-                ctx.fill(bx, accentY, bx + 2, accentY + accentH, BTN_DANGER[i] ? 0xBBFF7070 : 0xBBC678DD);
+                ctx.fill(bx, accentY, bx + 2, accentY + accentH, BTN_DANGER[i] ? 0xBBFF5050 : 0xBBFFFFFF);
             }
 
             // Label
-            int textColor;
-            if (BTN_DANGER[i]) textColor = lerpColor(0xFF8A5555, 0xFFFF9090, ha);
-            else textColor = lerpColor(0xFFABB2BF, 0xFFE0E0E8, ha);
+            int textCol;
+            if (BTN_DANGER[i]) textCol = lerpColor(0xFF774444, 0xFFFF9090, ha);
+            else textCol = lerpColor(0xFF707070, 0xFFFFFFFF, ha);
             int tw = textW(this.textRenderer, BTN_LABELS[i]);
-            ctx.drawText(this.textRenderer, text(BTN_LABELS[i], textColor & 0xFFFFFF),
+            ctx.drawText(this.textRenderer, text(BTN_LABELS[i], textCol & 0xFFFFFF),
                 cx - tw / 2, by + (btnH - 8) / 2, -1, false);
         }
 
@@ -151,8 +161,10 @@ public class BloomPauseScreen extends Screen {
 
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
-        int cx = this.width / 2, btnW = 180, btnH = 22, gap = 4;
-        int ph = 190, py = this.height / 2 - ph / 2, sy = py + 48;
+        int cx = this.width / 2, btnW = 190, btnH = 22, gap = 4;
+        int bhY = this.height / 2 - 100 + 18;
+        int titleY = bhY + 8;
+        int sy = titleY + 36;
         int x = cx - btnW / 2;
         double mouseX = click.x(), mouseY = click.y();
         for (int i = 0; i < BTN_COUNT; i++) {
@@ -173,8 +185,5 @@ public class BloomPauseScreen extends Screen {
 
     @Override public boolean shouldPause() { return true; }
 
-    static class Petal {
-        float x, y, size, vx, vy, phase, wobble, alpha;
-        int color;
-    }
+    static class Star { float x, y, size, vy, alpha, twinkleSpeed, phase; }
 }
