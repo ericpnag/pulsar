@@ -65,7 +65,6 @@ const CREATOR_CODES: Record<string, number> = {
   "CRAZYFISH564": 5000,
   "BIGBOBBY68": 5000,
   "OLIVERTREEEE": 5000,
-  "ERICPNAG": 50000,
 };
 
 const TYPE_LABELS: Record<string, string> = { cape: "Capes", wings: "Wings", hat: "Hats", aura: "Auras" };
