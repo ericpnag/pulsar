@@ -51,28 +51,21 @@ const COSMETICS: Cosmetic[] = [
   { id: "cape_drift", name: "Drift", type: "cape", price: 1250, color: "#C8B4DC", color2: "#B4D2DC", description: "Shifting pastel vaporwave" },
   { id: "cape_obsidian", name: "Obsidian", type: "cape", price: 3500, color: "#1E0F1E", color2: "#0A050F", description: "Dark obsidian purple cracks" },
   { id: "cape_blackhole", name: "Black Hole", type: "cape", price: 2500, color: "#FFA030", color2: "#080010", description: "Swirling accretion disk with event horizon" },
-];
-
-// Creator-exclusive cosmetics — only unlockable via creator codes
-const CREATOR_COSMETICS: Cosmetic[] = [
-  { id: "cape_creator", name: "Creator", type: "cape", price: 0, color: "#FFD700", color2: "#FF4500", description: "Exclusive gold & fire cape for content creators" },
-  { id: "cape_youtube", name: "YouTube", type: "cape", price: 0, color: "#FF0000", color2: "#CC0000", description: "Red play button themed cape" },
-  { id: "cape_twitch", name: "Twitch", type: "cape", price: 0, color: "#9146FF", color2: "#6441A5", description: "Purple streaming cape with chat particles" },
-  { id: "cape_tiktok", name: "TikTok", type: "cape", price: 0, color: "#00F2EA", color2: "#FF0050", description: "Cyan and pink viral cape" },
-  { id: "cape_og", name: "OG Pulsar", type: "cape", price: 0, color: "#FFFFFF", color2: "#808080", description: "Original white cape for early supporters" },
+  // Creator cosmetics — buyable with points
+  { id: "cape_creator", name: "Creator", type: "cape", price: 3000, color: "#FFD700", color2: "#FF4500", description: "Gold & fire cape — support a creator" },
+  { id: "cape_youtube", name: "YouTube", type: "cape", price: 2500, color: "#FF0000", color2: "#CC0000", description: "Red play button themed cape" },
+  { id: "cape_twitch", name: "Twitch", type: "cape", price: 2500, color: "#9146FF", color2: "#6441A5", description: "Purple streaming cape with chat particles" },
+  { id: "cape_tiktok", name: "TikTok", type: "cape", price: 2500, color: "#00F2EA", color2: "#FF0050", description: "Cyan and pink viral cape" },
+  { id: "cape_og", name: "OG Pulsar", type: "cape", price: 2000, color: "#FFFFFF", color2: "#808080", description: "Original white cape for early supporters" },
 ];
 
 // Creator codes that unlock exclusive cosmetics
-const CREATOR_CODES: Record<string, { cosmetics: string[]; points: number; name: string }> = {
-  "CREATOR": { cosmetics: ["cape_creator"], points: 5000, name: "Creator Program" },
-  "YOUTUBE": { cosmetics: ["cape_creator", "cape_youtube"], points: 5000, name: "YouTube Creator" },
-  "TWITCH": { cosmetics: ["cape_creator", "cape_twitch"], points: 5000, name: "Twitch Streamer" },
-  "TIKTOK": { cosmetics: ["cape_creator", "cape_tiktok"], points: 5000, name: "TikTok Creator" },
-  "OG": { cosmetics: ["cape_og"], points: 2500, name: "OG Supporter" },
-  "ERICPNAG": { cosmetics: ["cape_creator", "cape_youtube", "cape_twitch", "cape_tiktok", "cape_og"], points: 50000, name: "Developer" },
-  "CRAZYFISH564": { cosmetics: ["cape_creator", "cape_youtube"], points: 10000, name: "CrazyFish564 — youtube.com/@crazyfish564" },
-  "BIGBOBBY68": { cosmetics: ["cape_creator", "cape_youtube"], points: 10000, name: "BigBobby68 — youtube.com/@BigBobby68" },
-  "OLIVERTREEEE": { cosmetics: ["cape_creator", "cape_og"], points: 10000, name: "OliverTreeee — Pulsar Creator" },
+// Creator codes — support a creator and get bonus points
+const CREATOR_CODES: Record<string, number> = {
+  "CRAZYFISH564": 5000,
+  "BIGBOBBY68": 5000,
+  "OLIVERTREEEE": 5000,
+  "ERICPNAG": 50000,
 };
 
 const TYPE_LABELS: Record<string, string> = { cape: "Capes", wings: "Wings", hat: "Hats", aura: "Auras" };
@@ -180,18 +173,12 @@ export function ShopPage() {
     };
     const localUsed: string[] = JSON.parse(localStorage.getItem("pulsar-used-codes") || "[]");
 
-    // Creator codes — unlock exclusive cosmetics + points
+    // Creator codes — bonus points for supporting a creator
     if (CREATOR_CODES[code]) {
       if (localUsed.includes(code)) { setRedeemMsg({ text: "Code already used", ok: false }); return; }
-      const creator = CREATOR_CODES[code];
-      const newPurchased = [...purchased];
-      for (const id of creator.cosmetics) {
-        if (!newPurchased.includes(id)) newPurchased.push(id);
-      }
       localStorage.setItem("pulsar-used-codes", JSON.stringify([...localUsed, code]));
-      save(points + creator.points, newPurchased, equipped);
-      const unlocked = creator.cosmetics.length;
-      setRedeemMsg({ text: `${creator.name}: +${creator.points} points + ${unlocked} exclusive cosmetic${unlocked > 1 ? "s" : ""} unlocked!`, ok: true });
+      save(points + CREATOR_CODES[code], purchased, equipped);
+      setRedeemMsg({ text: `+${CREATOR_CODES[code]} points — thanks for supporting ${code}!`, ok: true });
       setRedeemCode("");
       return;
     }
@@ -402,43 +389,6 @@ export function ShopPage() {
       </div>
 
       <div style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
-
-      {/* Creator Cosmetics Section */}
-      {CREATOR_COSMETICS.some(c => purchased.includes(c.id)) && (
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-            <span style={{ fontSize: "16px" }}>⭐</span>
-            <span style={{ fontSize: "13px", fontWeight: "800", color: "#FFD700", letterSpacing: "0.06em" }}>CREATOR EXCLUSIVES</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "8px" }}>
-            {CREATOR_COSMETICS.filter(c => purchased.includes(c.id)).map(c => {
-              const eq = isEquipped(c.id);
-              return (
-                <div key={c.id} className="bloom-card" style={{
-                  padding: "14px", textAlign: "center",
-                  borderColor: eq ? "rgba(255,215,0,0.3)" : "rgba(255,215,0,0.08)",
-                  background: eq ? "rgba(255,215,0,0.06)" : "rgba(255,215,0,0.02)",
-                }}>
-                  <div style={{
-                    width: "100%", height: "50px", borderRadius: "6px", marginBottom: "8px",
-                    background: `linear-gradient(135deg, ${c.color}, ${c.color2})`,
-                  }} />
-                  <div style={{ fontSize: "12px", fontWeight: "700", color: "#FFD700", marginBottom: "4px" }}>{c.name}</div>
-                  <div style={{ fontSize: "10px", color: "var(--text-faint)", marginBottom: "8px" }}>{c.description}</div>
-                  <button onClick={() => equip(c)} className="bloom-btn" style={{
-                    width: "100%", padding: "6px", fontSize: "11px",
-                    background: eq ? "linear-gradient(135deg, #FFD700, #FF8C00)" : "rgba(255,255,255,0.04)",
-                    color: eq ? "#000" : "var(--text-muted)",
-                  }}>
-                    {eq ? "Equipped" : "Equip"}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", marginTop: "16px" }} />
-        </div>
-      )}
 
       {/* Filter tabs */}
       <div style={{ display: "flex", gap: "4px" }}>
