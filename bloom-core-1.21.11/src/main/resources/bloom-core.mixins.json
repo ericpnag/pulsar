@@ -19,7 +19,8 @@
     "InGameHudMixin",
     "BossBarMixin",
     "MotionBlurMixin",
-    "CrosshairMixin"
+    "CrosshairMixin",
+    "DropMixin"
   ],
   "injectors": {
     "defaultRequire": 1

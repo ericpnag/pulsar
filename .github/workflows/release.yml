@@ -50,6 +50,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgtk-3-dev
 
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build bloom-core mod
+        working-directory: bloom-core-1.21.11
+        run: |
+          chmod +x gradlew
+          ./gradlew build
+
       - name: Install npm dependencies
         run: npm install
 
