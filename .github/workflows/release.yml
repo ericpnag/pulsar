@@ -1,0 +1,82 @@
+name: Build & Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            name: macOS (Apple Silicon)
+          - platform: macos-13
+            target: x86_64-apple-darwin
+            name: macOS (Intel)
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: Windows
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            name: Linux
+
+    runs-on: ${{ matrix.platform }}
+    name: Build ${{ matrix.name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgtk-3-dev
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ''
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Pulsar Client ${{ github.ref_name }}'
+          releaseBody: |
+            ## Pulsar Client ${{ github.ref_name }}
+
+            - 51+ modules (HUD, PvP, Visual, Utility, Hypixel, Cosmetics)
+            - 22 animated capes including Black Hole
+            - Game modes: Minecraft, Bedwars, Speedrun
+            - Auto Java install (8/17/21)
+            - Black hole themed UI
+            - Stripe payment for Pulsar Points
+
+            ### Install
+            | Platform | File | Notes |
+            |---|---|---|
+            | **macOS (Apple Silicon)** | `.dmg` (aarch64) | Right-click → Open first time |
+            | **macOS (Intel)** | `.dmg` (x64) | Right-click → Open first time |
+            | **Windows** | `.exe` | No admin required |
+            | **Linux** | `.AppImage` | `chmod +x` then run |
+          releaseDraft: false
+          prerelease: false
