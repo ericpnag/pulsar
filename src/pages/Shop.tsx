@@ -51,16 +51,26 @@ const COSMETICS: Cosmetic[] = [
   { id: "cape_drift", name: "Drift", type: "cape", price: 1250, color: "#C8B4DC", color2: "#B4D2DC", description: "Shifting pastel vaporwave" },
   { id: "cape_obsidian", name: "Obsidian", type: "cape", price: 3500, color: "#1E0F1E", color2: "#0A050F", description: "Dark obsidian purple cracks" },
   { id: "cape_blackhole", name: "Black Hole", type: "cape", price: 2500, color: "#FFA030", color2: "#080010", description: "Swirling accretion disk with event horizon" },
-  // Creator cosmetics — buyable with points
-  { id: "cape_creator", name: "Creator", type: "cape", price: 3000, color: "#FFD700", color2: "#FF4500", description: "Gold & fire cape — support a creator" },
-  { id: "cape_youtube", name: "YouTube", type: "cape", price: 2500, color: "#FF0000", color2: "#CC0000", description: "Red play button themed cape" },
-  { id: "cape_twitch", name: "Twitch", type: "cape", price: 2500, color: "#9146FF", color2: "#6441A5", description: "Purple streaming cape with chat particles" },
-  { id: "cape_tiktok", name: "TikTok", type: "cape", price: 2500, color: "#00F2EA", color2: "#FF0050", description: "Cyan and pink viral cape" },
-  { id: "cape_og", name: "OG Pulsar", type: "cape", price: 2000, color: "#FFFFFF", color2: "#808080", description: "Original white cape for early supporters" },
 ];
 
+// Verified creator capes — NOT buyable, only through verification
+const CREATOR_ONLY_CAPES: Cosmetic[] = [
+  { id: "cape_creator", name: "Creator", type: "cape", price: 0, color: "#FFD700", color2: "#FF4500", description: "Verified content creators only" },
+  { id: "cape_youtube", name: "YouTube", type: "cape", price: 0, color: "#FF0000", color2: "#CC0000", description: "Verified YouTube creators only" },
+  { id: "cape_twitch", name: "Twitch", type: "cape", price: 0, color: "#9146FF", color2: "#6441A5", description: "Verified Twitch streamers only" },
+  { id: "cape_tiktok", name: "TikTok", type: "cape", price: 0, color: "#00F2EA", color2: "#FF0050", description: "Verified TikTok creators only" },
+];
+
+// OG cape — free for first 100 claims
+const OG_CAPE: Cosmetic = { id: "cape_og", name: "OG Pulsar", type: "cape", price: 0, color: "#FFFFFF", color2: "#808080", description: "Limited edition — first 100 players" };
+
 // Creator codes that unlock exclusive cosmetics
-// Creator codes — bonus points
+// Verified creator codes — only given to approved creators, unlocks exclusive capes
+const VERIFIED_CREATORS: Record<string, string[]> = {
+  "CRAZYFISH564": ["cape_creator", "cape_youtube"],
+  "BIGBOBBY68": ["cape_creator", "cape_youtube"],
+  "OLIVERTREEEE": ["cape_creator"],
+};
 const CREATOR_CODES: Record<string, number> = {};
 
 const TYPE_LABELS: Record<string, string> = { cape: "Capes", wings: "Wings", hat: "Hats", aura: "Auras" };
@@ -168,12 +178,15 @@ export function ShopPage() {
     };
     const localUsed: string[] = JSON.parse(localStorage.getItem("pulsar-used-codes") || "[]");
 
-    // Creator codes — bonus points for supporting a creator
-    if (CREATOR_CODES[code]) {
+    // Verified creator codes — unlock exclusive capes
+    if (VERIFIED_CREATORS[code]) {
       if (localUsed.includes(code)) { setRedeemMsg({ text: "Code already used", ok: false }); return; }
+      const capes = VERIFIED_CREATORS[code];
+      const newPurchased = [...purchased];
+      for (const id of capes) { if (!newPurchased.includes(id)) newPurchased.push(id); }
       localStorage.setItem("pulsar-used-codes", JSON.stringify([...localUsed, code]));
-      save(points + CREATOR_CODES[code], purchased, equipped);
-      setRedeemMsg({ text: `+${CREATOR_CODES[code]} points — thanks for supporting ${code}!`, ok: true });
+      save(points, newPurchased, equipped);
+      setRedeemMsg({ text: `Verified! ${capes.length} creator cape${capes.length > 1 ? "s" : ""} unlocked`, ok: true });
       setRedeemCode("");
       return;
     }
@@ -304,13 +317,22 @@ export function ShopPage() {
 
       <div style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 
+      {/* OG Cape — Limited Edition */}
+      <OGCapeSection purchased={purchased} onClaim={() => {
+        if (!purchased.includes("cape_og")) {
+          save(points, [...purchased, "cape_og"], equipped);
+        }
+      }} isOwned={purchased.includes("cape_og")} />
+
+      <div style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
+
       {/* Creators Section */}
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ fontSize: "16px" }}>⭐</span>
-            <span style={{ fontSize: "14px", fontWeight: "800", color: "#FFD700", letterSpacing: "0.04em" }}>CREATORS</span>
-            <span style={{ fontSize: "11px", color: "var(--text-faint)" }}>Use their code to support them</span>
+            <span style={{ fontSize: "14px", fontWeight: "800", color: "#FFD700", letterSpacing: "0.04em" }}>VERIFIED CREATORS</span>
+            <span style={{ fontSize: "11px", color: "var(--text-faint)" }}>Exclusive capes for verified partners</span>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "10px" }}>
@@ -360,7 +382,7 @@ export function ShopPage() {
                 <div style={{ fontSize: "10px", color: "var(--text-faint)", marginBottom: "10px" }}>
                   {creator.role}
                 </div>
-                {/* Social + Buy */}
+                {/* Social + Verified badge */}
                 <div style={{ display: "flex", gap: "6px" }}>
                   {creator.yt && (
                     <div onClick={() => invoke("open_browser", { url: creator.yt })} style={{
@@ -372,18 +394,14 @@ export function ShopPage() {
                       YouTube
                     </div>
                   )}
-                  {cape && (
-                    <button onClick={() => { if (!isOwned(cape.id)) buy(cape); else equip(cape); }} style={{
-                      flex: 1, padding: "7px", borderRadius: "6px", fontSize: "10px", fontWeight: "700",
-                      background: isOwned(cape.id)
-                        ? (isEquipped(cape.id) ? "linear-gradient(135deg, #FFFFFF, #C0C0C0)" : "rgba(255,255,255,0.08)")
-                        : "rgba(255,215,0,0.12)",
-                      color: isOwned(cape.id) ? (isEquipped(cape.id) ? "#000" : "#fff") : "#FFD700",
-                      border: "none", cursor: "pointer", fontFamily: "inherit",
-                    }}>
-                      {isOwned(cape.id) ? (isEquipped(cape.id) ? "Equipped" : "Equip") : `Buy ${cape.price}`}
-                    </button>
-                  )}
+                  <div style={{
+                    flex: 1, padding: "7px", borderRadius: "6px", fontSize: "10px", fontWeight: "700",
+                    background: "rgba(76,175,80,0.1)", color: "#4CAF50",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "4px",
+                  }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    Verified
+                  </div>
                 </div>
               </div>
             </div>
@@ -1066,5 +1084,79 @@ function CosmeticPreview({ cosmetic: c }: { cosmetic: Cosmetic }) {
         <circle key={i} cx={x} cy={y} r={1.5+i*0.3} fill="#fff" opacity={0.15+i*0.03} />
       ))}
     </svg>
+  );
+}
+
+function OGCapeSection({ purchased, onClaim, isOwned }: { purchased: string[]; onClaim: () => void; isOwned: boolean }) {
+  const [ogInfo, setOgInfo] = useState<{ count: number; remaining: number } | null>(null);
+  const [claiming, setClaiming] = useState(false);
+  const [claimed, setClaimed] = useState(isOwned);
+
+  useEffect(() => {
+    fetch("https://bloom-launcher.vercel.app/api/claim-og")
+      .then(r => r.json())
+      .then(setOgInfo)
+      .catch(() => setOgInfo({ count: 0, remaining: 100 }));
+  }, []);
+
+  async function handleClaim() {
+    if (claiming || claimed) return;
+    setClaiming(true);
+    try {
+      const res = await fetch("https://bloom-launcher.vercel.app/api/claim-og", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (data.success) {
+        onClaim();
+        setClaimed(true);
+        setOgInfo({ count: data.count, remaining: data.remaining });
+      }
+    } catch {}
+    setClaiming(false);
+  }
+
+  const soldOut = ogInfo && ogInfo.remaining <= 0 && !claimed;
+
+  return (
+    <div className="bloom-card" style={{
+      padding: "0", overflow: "hidden",
+      border: "1px solid rgba(255,255,255,0.12)",
+    }}>
+      {/* Banner */}
+      <div style={{
+        height: "60px", background: "linear-gradient(135deg, #FFFFFF, #C0C0C0, #808080)",
+        display: "flex", alignItems: "center", justifyContent: "center", position: "relative",
+      }}>
+        <span style={{ fontSize: "20px", fontWeight: "900", color: "#000", letterSpacing: "0.1em" }}>OG PULSAR</span>
+        <div style={{
+          position: "absolute", top: "8px", right: "10px", fontSize: "9px", fontWeight: "800",
+          background: soldOut ? "rgba(255,50,50,0.9)" : "rgba(0,0,0,0.6)", color: "#fff",
+          padding: "3px 10px", borderRadius: "4px", letterSpacing: "0.06em",
+        }}>
+          {soldOut ? "SOLD OUT" : `${ogInfo?.remaining ?? "?"}/100 LEFT`}
+        </div>
+      </div>
+      {/* Content */}
+      <div style={{ padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <div style={{ fontSize: "14px", fontWeight: "700", color: "#fff", marginBottom: "2px" }}>
+            OG Pulsar Cape
+          </div>
+          <div style={{ fontSize: "11px", color: "var(--text-faint)" }}>
+            Limited edition — free for the first 100 players
+          </div>
+        </div>
+        <button onClick={handleClaim} disabled={!!soldOut || claimed || claiming} style={{
+          padding: "10px 24px", borderRadius: "8px", border: "none",
+          background: claimed ? "rgba(76,175,80,0.12)" : soldOut ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #fff, #ccc)",
+          color: claimed ? "#4CAF50" : soldOut ? "var(--text-faint)" : "#000",
+          fontSize: "12px", fontWeight: "800", cursor: soldOut || claimed ? "default" : "pointer",
+          fontFamily: "inherit", transition: "all 0.15s", letterSpacing: "0.04em",
+        }}>
+          {claimed ? "Claimed ✓" : claiming ? "..." : soldOut ? "Sold Out" : "Claim Free"}
+        </button>
+      </div>
+    </div>
   );
 }
