@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+}
+
+version = "1.0.0"
+group = "com.pulsar.agent"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.ow2.asm:asm:9.7"
+    implementation "org.ow2.asm:asm-commons:9.7"
+    implementation "org.ow2.asm:asm-tree:9.7"
+    compileOnly "org.lwjgl.lwjgl:lwjgl:2.9.2"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(JavaCompile) {
+    options.release = 8
+}
+
+jar {
+    manifest {
+        attributes(
+            'Premain-Class': 'com.pulsar.agent.PulsarAgent',
+            'Agent-Class': 'com.pulsar.agent.PulsarAgent',
+            'Can-Redefine-Classes': 'true',
+            'Can-Retransform-Classes': 'true',
+        )
+    }
+    // Bundle ASM into the agent JAR
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

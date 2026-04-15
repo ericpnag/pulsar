@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Premain-Class: com.pulsar.agent.PulsarAgent
+Agent-Class: com.pulsar.agent.PulsarAgent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true
+

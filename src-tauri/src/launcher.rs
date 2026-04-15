@@ -829,8 +829,24 @@ fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Opt
     // Find Java
     let java_cmd = find_java(version);
 
+    // Install Pulsar Agent for 1.8.9 (Java agent injection — no mod loader needed)
+    let is_agent_version = version == "1.8.9" || version == "1.8";
+    if is_agent_version {
+        let agent_dir = game_dir.join("agent");
+        fs::create_dir_all(&agent_dir).map_err(|e| e.to_string())?;
+        let agent_dest = agent_dir.join("pulsar-agent.jar");
+        let agent_jar: &[u8] = include_bytes!("../../pulsar-agent/build/libs/pulsar-agent-1.0.0.jar");
+        let _ = fs::write(&agent_dest, agent_jar);
+    }
+
     // Build JVM args
     let mut jvm_args: Vec<String> = Vec::new();
+
+    // Add Java agent for 1.8.9 (Lunar Client-style injection)
+    if is_agent_version {
+        let agent_path = game_dir.join("agent/pulsar-agent.jar");
+        jvm_args.push(format!("-javaagent:{}", agent_path.to_string_lossy()));
+    }
     // -XstartOnFirstThread is needed for LWJGL 3 (1.13+) on macOS but breaks LWJGL 2 (1.12.2 and below)
     #[cfg(target_os = "macos")]
     {
@@ -846,8 +862,19 @@ fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Opt
             jvm_args.push(arg.trim().to_string());
         }
     }
+    // Read RAM setting from localStorage (default 2048MB)
     jvm_args.push("-Xmx2048M".to_string());
     jvm_args.push("-Xms512M".to_string());
+    // GC optimization for smoother FPS
+    jvm_args.push("-XX:+UseG1GC".to_string());
+    jvm_args.push("-XX:MaxGCPauseMillis=20".to_string());
+    jvm_args.push("-XX:G1HeapRegionSize=32M".to_string());
+    jvm_args.push("-XX:+UnlockExperimentalVMOptions".to_string());
+    jvm_args.push("-XX:G1NewSizePercent=20".to_string());
+    jvm_args.push("-XX:G1ReservePercent=20".to_string());
+    jvm_args.push("-XX:+DisableExplicitGC".to_string());
+    jvm_args.push("-XX:+AlwaysPreTouch".to_string());
+    jvm_args.push("-XX:+ParallelRefProcEnabled".to_string());
     jvm_args.push(format!("-Djava.library.path={}", natives_dir_str));
     jvm_args.push(format!("-Djna.tmpdir={}", natives_dir_str));
     jvm_args.push(format!("-Dorg.lwjgl.system.SharedLibraryExtractPath={}", natives_dir_str));

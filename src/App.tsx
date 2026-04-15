@@ -22,12 +22,11 @@ export interface AccountInfo {
   accessToken: string;
 }
 
-type GameMode = "default" | "bedwars" | "bedwars189" | "speedrun";
+type GameMode = "default" | "bedwars" | "speedrun";
 
 const GAME_MODES: { id: GameMode; name: string; icon: string; desc: string; version: string; server?: string }[] = [
   { id: "default", name: "Minecraft", icon: "▶", desc: "Latest version", version: "1.21.11" },
-  { id: "bedwars", name: "Bedwars", icon: "🛏", desc: "Hypixel + Mods", version: "1.21.11", server: "mc.hypixel.net" },
-  { id: "bedwars189", name: "1.8.9 PvP", icon: "⚔", desc: "Classic PvP", version: "1.8.9", server: "mc.hypixel.net" },
+  { id: "bedwars", name: "1.8.9 Bedwars", icon: "🛏", desc: "Hypixel 1.8.9", version: "1.8.9", server: "mc.hypixel.net" },
   { id: "speedrun", name: "Speedrun", icon: "⏱", desc: "1.16.1 + Timer", version: "1.16.1" },
 ];
 
@@ -217,7 +216,7 @@ export default function App() {
             )}
 
             {/* Game Mode Selector */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
               {GAME_MODES.map(mode => {
                 const active = gameMode === mode.id;
                 return (
