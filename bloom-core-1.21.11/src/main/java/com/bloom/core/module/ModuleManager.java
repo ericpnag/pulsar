@@ -8,17 +8,19 @@ public class ModuleManager {
     private final List<Module> modules = new ArrayList<>();
 
     public void init() {
+        // Sprint & Movement
         modules.add(new ToggleSprint());
         modules.add(new ToggleSneak());
+        // HUD displays
         modules.add(new FpsDisplay());
         modules.add(new Coordinates());
         modules.add(new DirectionHud());
-        modules.add(new Zoom());
-        modules.add(new Freelook());
         modules.add(new PingDisplay());
         modules.add(new CpsCounter());
         modules.add(new ComboCounter());
         modules.add(new ReachDisplay());
+        modules.add(new SpeedDisplay());
+        modules.add(new ArrowCounter());
         modules.add(new PotionEffects());
         modules.add(new PotionTimer());
         modules.add(new Keystrokes());
@@ -27,40 +29,35 @@ public class ModuleManager {
         modules.add(new MemoryDisplay());
         modules.add(new ServerDisplay());
         modules.add(new PackDisplay());
-        modules.add(new TimeChanger());
-        modules.add(new Scoreboard());
-        modules.add(new LowFire());
-        modules.add(new LowShield());
-        modules.add(new CosmeticsCape());
-        modules.add(new PerformanceBoost());
-        modules.add(new Fullbright());
-        modules.add(new FovChanger());
-        modules.add(new HurtCam());
-        modules.add(new WeatherChanger());
-        modules.add(new AutoGG());
-        modules.add(new TntTimer());
-        // New mods
-        modules.add(new MotionBlur());
-        modules.add(new CustomCrosshair());
-        modules.add(new BlockOutline());
-        modules.add(new HitColor());
-        modules.add(new HitboxDisplay());
-        modules.add(new BossBar());
-        modules.add(new ParticleMultiplier());
-        modules.add(new DamageIndicator());
-        modules.add(new NickHider());
-        modules.add(new SpeedDisplay());
-        modules.add(new ArrowCounter());
         modules.add(new Clock());
         modules.add(new Stopwatch());
         modules.add(new Playtime());
-        // Bedwars & Hypixel
-        modules.add(new BedwarsOverlay());
-        modules.add(new AutoTip());
         modules.add(new ItemCounter());
-        modules.add(new HealthDisplay());
-        modules.add(new GlintColor());
+        // Visual
+        modules.add(new Fullbright());
+        modules.add(new FovChanger());
+        modules.add(new TimeChanger());
+        modules.add(new WeatherChanger());
+        modules.add(new Scoreboard());
+        modules.add(new BossBar());
+        modules.add(new LowFire());
+        modules.add(new LowShield());
+        modules.add(new HurtCam());
+        modules.add(new MotionBlur());
+        modules.add(new CustomCrosshair());
+        // Utility
+        modules.add(new Zoom());
+        modules.add(new Freelook());
+        modules.add(new PerformanceBoost());
         modules.add(new DropProtection());
+        modules.add(new TntTimer());
+        modules.add(new DamageIndicator());
+        // Hypixel
+        modules.add(new AutoGG());
+        modules.add(new AutoTip());
+        modules.add(new BedwarsOverlay());
+        // Cosmetics
+        modules.add(new CosmeticsCape());
     }
 
     public List<Module> getModules() {

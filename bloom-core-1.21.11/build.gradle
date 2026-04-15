@@ -11,6 +11,7 @@ base {
 
 repositories {
 	mavenCentral()
+	maven { url = "https://maven.ladysnake.org/releases" }
 }
 
 dependencies {
@@ -29,6 +30,8 @@ dependencies {
 	apiModules.each { module ->
 		modImplementation fabricApi.module(module, project.fabric_version)
 	}
+	// Satin API for post-processing shaders (motion blur)
+	modImplementation "org.ladysnake:satin:2.0.0"
 }
 
 processResources {

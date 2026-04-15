@@ -5,9 +5,9 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 
 public class CustomCrosshair extends Module {
-    public static int crosshairColor = 0xFFFFFF;
-    public static int crosshairSize = 4;
-    public static int crosshairGap = 2;
+    public static int crosshairColor = 0x00FF00;
+    public static int crosshairSize = 6;
+    public static int crosshairGap = 3;
     public static int crosshairThickness = 1;
     public static boolean dot = true;
     public static boolean dynamic = true; // changes color on entity hit

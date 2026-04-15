@@ -16,11 +16,12 @@
     "WorldTimeMixin",
     "InGameHudMixin",
     "BossBarMixin",
-    "MotionBlurMixin",
     "CrosshairMixin",
-    "DropMixin"
+    "DropMixin",
+    "FreelookMixin",
+    "FreelookCameraMixin"
   ],
   "injectors": {
-    "defaultRequire": 1
+    "defaultRequire": 0
   }
 }

@@ -11,7 +11,7 @@ public class Freelook extends Module {
     private float savedYaw, savedPitch;
     private boolean wasPressed = false;
 
-    public Freelook() { super("Freelook", "Hold key to look around freely", false); }
+    public Freelook() { super("Freelook", "Hold F to look around freely", true); }
 
     @Override
     public void onDisable() {

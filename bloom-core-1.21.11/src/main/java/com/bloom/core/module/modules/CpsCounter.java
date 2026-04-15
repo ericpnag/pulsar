@@ -8,24 +8,24 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.bloom.core.gui.BloomGui.*;
+
 public class CpsCounter extends Module {
-    private final List<Long> clicks = new ArrayList<>();
-    private boolean wasPressed = false;
+    private final List<Long> leftClicks = new ArrayList<>();
+    private final List<Long> rightClicks = new ArrayList<>();
+    private boolean wasLeftPressed = false;
+    private boolean wasRightPressed = false;
 
     public CpsCounter() {
-        super("CPS Counter", "Show clicks per second", true);
+        super("CPS Counter", "Show clicks per second (left + right)", true);
     }
 
     @Override
     public void onTick(MinecraftClient client) {
-        if (client.getWindow() == null) return;
-        boolean pressed = GLFW.glfwGetMouseButton(client.getWindow().getHandle(), GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
-        if (pressed && !wasPressed) {
-            clicks.add(System.currentTimeMillis());
-        }
-        wasPressed = pressed;
+        // Clean old clicks
         long now = System.currentTimeMillis();
-        clicks.removeIf(t -> now - t > 1000);
+        leftClicks.removeIf(t -> now - t > 1000);
+        rightClicks.removeIf(t -> now - t > 1000);
     }
 
     @Override
@@ -33,11 +33,21 @@ public class CpsCounter extends Module {
 
     @Override
     public void renderHud(DrawContext context, MinecraftClient client, int y) {
-        int cps = clicks.size();
-        String text = cps + " CPS";
-        int tw = client.textRenderer.getWidth(text);
-        context.fill(2, y - 1, tw + 8, y + 10, 0x44000000);
-        context.fill(2, y - 1, 3, y + 10, 0x44C070DD);
-        context.drawText(client.textRenderer, text, 6, y, 0xFFC678DD, true);
+        // Check clicks at render time (runs every frame = 60+ times/sec) for accuracy
+        if (client.getWindow() != null) {
+            long handle = client.getWindow().getHandle();
+            boolean leftDown = GLFW.glfwGetMouseButton(handle, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+            boolean rightDown = GLFW.glfwGetMouseButton(handle, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+
+            if (leftDown && !wasLeftPressed) leftClicks.add(System.currentTimeMillis());
+            if (rightDown && !wasRightPressed) rightClicks.add(System.currentTimeMillis());
+            wasLeftPressed = leftDown;
+            wasRightPressed = rightDown;
+        }
+
+        int left = leftClicks.size();
+        int right = rightClicks.size();
+        String t = left + " | " + right + " CPS";
+        context.drawText(client.textRenderer, text(t, 0xC0C0C0), 4, y, -1, true);
     }
 }

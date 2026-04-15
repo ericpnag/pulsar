@@ -47,17 +47,16 @@ public class ModuleScreen extends Screen {
             MODULE_CATEGORIES.put(n, "PvP");
         // Visual
         for (String n : new String[]{"Fullbright", "FOV Changer", "Time Changer", "Weather Changer",
-                "Scoreboard", "TNT Timer", "Motion Blur", "Block Outline", "Boss Bar",
-                "Hitbox Display", "Particles", "Nick Hider"})
+                "Scoreboard", "TNT Timer", "Motion Blur", "Boss Bar", "Custom Crosshair"})
             MODULE_CATEGORIES.put(n, "Visual");
         // Utility
         for (String n : new String[]{"Zoom", "Freelook", "FPS Boost", "Stopwatch", "Clock", "Playtime"})
             MODULE_CATEGORIES.put(n, "Utility");
         // Hypixel / Bedwars
-        for (String n : new String[]{"Auto GG", "Auto Tip", "Bedwars Overlay", "Health Display"})
+        for (String n : new String[]{"Auto GG", "Auto Tip", "Bedwars Overlay"})
             MODULE_CATEGORIES.put(n, "Hypixel");
         // Cosmetics
-        for (String n : new String[]{"Pulsar Cape", "Glint Color"})
+        for (String n : new String[]{"Pulsar Cape"})
             MODULE_CATEGORIES.put(n, "Cosmetics");
     }
 

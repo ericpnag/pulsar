@@ -21,6 +21,9 @@ public class BloomCore implements ClientModInitializer {
         com.bloom.core.presence.BloomPresence.init();
         MODULES.init();
 
+        // Initialize motion blur shader
+        com.bloom.core.module.modules.MotionBlur.initShader();
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.getWindow() == null) return;
 
