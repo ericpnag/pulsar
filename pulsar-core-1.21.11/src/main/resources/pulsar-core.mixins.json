@@ -17,6 +17,7 @@
     "InGameHudMixin",
     "BossBarMixin",
     "CrosshairMixin",
+    "MotionBlurMixin",
     "DropMixin",
     "FreelookMixin",
     "FreelookCameraMixin"
