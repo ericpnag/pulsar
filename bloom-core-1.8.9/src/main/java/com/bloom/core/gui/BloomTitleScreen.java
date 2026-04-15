@@ -3,7 +3,7 @@ package com.bloom.core.gui;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
-import net.minecraft.client.gui.screen.options.OptionsScreen;
+import net.minecraft.client.gui.screen.SettingsScreen;
 import net.minecraft.client.gui.screen.world.SelectWorldScreen;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ public class BloomTitleScreen extends Screen {
         int w = this.width, h = this.height, cx = w / 2;
 
         // Background gradient
-        drawGradientRect(0, 0, w, h, 0xFF120a18, 0xFF1e1030);
+        fillGradient(0, 0, w, h, 0xFF120a18, 0xFF1e1030);
 
         // Petals
         for (float[] p : petals) {
@@ -41,7 +41,7 @@ public class BloomTitleScreen extends Screen {
             if (p[1] > h + 10 || p[0] > w + 20) { p[0] = -5; p[1] = -rng.nextFloat() * 30; }
             int s = (int) p[4];
             int a = (int)(p[5] * 200) << 24;
-            drawRect((int)p[0] - s, (int)p[1] - s/2, (int)p[0] + s, (int)p[1] + s/2, a | 0xFFB7C9);
+            fill((int)p[0] - s, (int)p[1] - s/2, (int)p[0] + s, (int)p[1] + s/2, a | 0xFFB7C9);
         }
 
         // Title
@@ -55,14 +55,14 @@ public class BloomTitleScreen extends Screen {
         for (int i = 0; i < labels.length; i++) {
             int by = startY + (btnH + gap) * i + (i == 4 ? 4 : 0);
             boolean hov = mx >= cx - btnW/2 && mx <= cx + btnW/2 && my >= by && my <= by + btnH;
-            drawRect(cx - btnW/2, by, cx + btnW/2, by + btnH, hov ? 0x33FFB7C9 : 0x18FFFFFF);
-            if (hov) drawRect(cx - btnW/2, by, cx - btnW/2 + 2, by + btnH, i == 4 ? 0xBBFF7070 : 0xBBFFB7C9);
+            fill(cx - btnW/2, by, cx + btnW/2, by + btnH, hov ? 0x33FFB7C9 : 0x18FFFFFF);
+            if (hov) fill(cx - btnW/2, by, cx - btnW/2 + 2, by + btnH, i == 4 ? 0xBBFF7070 : 0xBBFFB7C9);
             int color = i == 4 ? (hov ? 0xFFFF9090 : 0xFF8A5555) : (hov ? 0xFFF0E4E8 : 0xFFBBA4AC);
             drawCenteredString(textRenderer, labels[i], cx, by + (btnH - 8) / 2, color);
         }
 
         // Bottom info
-        drawRect(0, h - 14, w, h, 0x990a0611);
+        fill(0, h - 14, w, h, 0x990a0611);
         textRenderer.drawWithShadow("Bloom Client v1.0.0", 6, h - 11, 0xFF5A4550);
         String user = MinecraftClient.getInstance().getSession().getUsername();
         textRenderer.drawWithShadow(user, w - textRenderer.getStringWidth(user) - 6, h - 11, 0xFF8A7080);
@@ -84,7 +84,7 @@ public class BloomTitleScreen extends Screen {
                     case 0: mc.setScreen(new SelectWorldScreen(this)); break;
                     case 1: mc.setScreen(new MultiplayerScreen(this)); break;
                     case 2: mc.setScreen(new ModuleScreen()); break;
-                    case 3: mc.setScreen(new OptionsScreen(this, mc.options)); break;
+                    case 3: mc.setScreen(new SettingsScreen(this, mc.options)); break;
                     case 4: mc.scheduleStop(); break;
                 }
                 return;

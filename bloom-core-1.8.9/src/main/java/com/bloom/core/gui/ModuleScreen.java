@@ -9,10 +9,10 @@ public class ModuleScreen extends Screen {
     @Override
     public void render(int mx, int my, float delta) {
         int w = this.width, h = this.height, cx = w / 2;
-        drawRect(0, 0, w, h, 0xEE0a0611);
+        fill(0, 0, w, h, 0xEE0a0611);
 
         drawCenteredString(textRenderer, "BLOOM MODS", cx, 10, 0xFFFFD1DC);
-        drawRect(cx - 40, 21, cx + 40, 22, 0x22FFB7C9);
+        fill(cx - 40, 21, cx + 40, 22, 0x22FFB7C9);
 
         List<Module> modules = BloomCore.MODULES.getModules();
         int cols = 2, cardW = 130, cardH = 30, gapX = 6, gapY = 4;
@@ -27,8 +27,8 @@ public class ModuleScreen extends Screen {
             boolean hov = mx >= x && mx <= x + cardW && my >= y && my <= y + cardH;
             boolean on = m.isEnabled();
 
-            drawRect(x, y, x + cardW, y + cardH, hov ? 0x33FFB7C9 : 0x15FFFFFF);
-            drawRect(x, y, x + 2, y + cardH, on ? 0xCC55DD88 : 0x44554444);
+            fill(x, y, x + cardW, y + cardH, hov ? 0x33FFB7C9 : 0x15FFFFFF);
+            fill(x, y, x + 2, y + cardH, on ? 0xCC55DD88 : 0x44554444);
 
             textRenderer.drawWithShadow(m.getName(), x + 6, y + 4, hov ? 0xFFFFFF : 0xDDCCCC);
             String desc = m.getDescription();

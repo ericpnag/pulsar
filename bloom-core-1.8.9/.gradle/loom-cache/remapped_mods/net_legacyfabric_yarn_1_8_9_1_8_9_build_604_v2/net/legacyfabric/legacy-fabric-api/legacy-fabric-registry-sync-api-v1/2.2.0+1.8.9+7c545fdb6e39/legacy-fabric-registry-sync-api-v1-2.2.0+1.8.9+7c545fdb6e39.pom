@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net_legacyfabric_yarn_1_8_9_1_8_9_build_604_v2.net.legacyfabric.legacy-fabric-api</groupId>
+	<artifactId>legacy-fabric-registry-sync-api-v1</artifactId>
+	<version>2.2.0+1.8.9+7c545fdb6e39</version>
+</project>

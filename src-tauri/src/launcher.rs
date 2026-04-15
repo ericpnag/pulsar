@@ -305,7 +305,17 @@ fn download_file(client: &Client, url: &str, dest: &PathBuf) -> Result<(), Strin
     if let Some(parent) = dest.parent() {
         fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     }
-    let bytes = client.get(url).send().map_err(|e| e.to_string())?.bytes().map_err(|e| e.to_string())?;
+    // URL-encode + characters for Legacy Fabric compatibility
+    let encoded_url = url.replace('+', "%2B");
+    let resp = client.get(&encoded_url).send().map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(format!("HTTP {} downloading {}", resp.status(), url));
+    }
+    let bytes = resp.bytes().map_err(|e| e.to_string())?;
+    // Verify it's not an HTML error page
+    if bytes.len() < 100 || (bytes.len() < 2000 && bytes.starts_with(b"<html")) {
+        return Err(format!("Invalid download (got HTML) for {}", url));
+    }
     fs::write(dest, &bytes).map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -386,7 +396,11 @@ fn install_mods(client: &Client, _game_dir: &PathBuf, mc_version: &str) -> Resul
     let mods_dir = version_game_dir(mc_version).join("mods");
     fs::create_dir_all(&mods_dir).map_err(|e| e.to_string())?;
 
-    // Versions that bloom-core supports (add more as we build for them)
+    // Versions that bloom-core supports
+    // 1.8.9 works on Windows via Legacy Fabric, macOS has native library issues
+    #[cfg(target_os = "windows")]
+    let bloom_supported = ["1.21.11", "1.8.9"];
+    #[cfg(not(target_os = "windows"))]
     let bloom_supported = ["1.21.11"];
 
     // Clean old bloom-core JARs
@@ -401,26 +415,20 @@ fn install_mods(client: &Client, _game_dir: &PathBuf, mc_version: &str) -> Resul
 
     // Only install bloom-core on supported versions
     if bloom_supported.contains(&mc_version) {
-        let bloom_dest = mods_dir.join("bloom-core-1.2.0.jar");
-        let bloom_jar: &[u8] = include_bytes!("../../bloom-core-1.21.11/build/libs/bloom-core-1.2.0.jar");
-        let _ = fs::write(&bloom_dest, bloom_jar);
+        let (jar_name, jar_bytes): (&str, &[u8]) = match mc_version {
+            "1.8.9" => ("bloom-core-1.0.0.jar", include_bytes!("../../bloom-core-1.8.9/build/libs/bloom-core-1.0.0.jar")),
+            _ => ("bloom-core-1.2.0.jar", include_bytes!("../../bloom-core-1.21.11/build/libs/bloom-core-1.2.0.jar")),
+        };
+        let bloom_dest = mods_dir.join(jar_name);
+        let _ = fs::write(&bloom_dest, jar_bytes);
     }
 
     // Download Fabric API from Modrinth
-    let is_legacy_version = mc_version.starts_with("1.8") || mc_version.starts_with("1.7")
-        || mc_version.starts_with("1.9") || mc_version.starts_with("1.10")
-        || mc_version.starts_with("1.11") || mc_version.starts_with("1.12");
     let fabric_api_dest = mods_dir.join("fabric-api.jar");
     if !fabric_api_dest.exists() {
-        // Use Legacy Fabric API for old versions
-        let (project, loader) = if is_legacy_version {
-            ("legacy-fabric-api", "fabric") // Legacy Fabric API on Modrinth
-        } else {
-            ("P7dR8mSH", "fabric")
-        };
         let url = format!(
-            "https://api.modrinth.com/v2/project/{}/version?game_versions=[\"{}\"]&loaders=[\"{}\"]",
-            project, mc_version, loader
+            "https://api.modrinth.com/v2/project/P7dR8mSH/version?game_versions=[\"{}\"]&loaders=[\"fabric\"]",
+            mc_version
         );
         if let Ok(resp) = client.get(&url)
             .header("User-Agent", "pulsar-launcher/1.0")
@@ -575,28 +583,32 @@ fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Opt
     let mut fabric_json: Option<FabricVersionJson> = None;
     let mut fabric_classpath: Vec<PathBuf> = Vec::new();
 
-    // Try regular Fabric first, then Legacy Fabric for old versions (1.8-1.13)
+    // Try regular Fabric, fall back to Legacy Fabric on Windows for old versions
     let fabric_meta_url = format!("https://meta.fabricmc.net/v2/versions/loader/{}", version);
-    let legacy_meta_url = format!("https://meta.legacyfabric.net/v2/versions/loader/{}", version);
+    let mut fabric_resp = client.get(&fabric_meta_url).send().and_then(|r| r.text()).unwrap_or_default();
+    let mut meta_base = "https://meta.fabricmc.net".to_string();
 
-    let meta_url = {
-        let resp = client.get(&fabric_meta_url).send().and_then(|r| r.text()).unwrap_or_default();
-        if let Ok(loaders) = serde_json::from_str::<Vec<FabricLoaderVersion>>(&resp) {
-            if !loaders.is_empty() { fabric_meta_url.clone() } else { legacy_meta_url.clone() }
-        } else { legacy_meta_url.clone() }
-    };
-    let is_legacy = meta_url.contains("legacyfabric");
-    let meta_base = if is_legacy { "https://meta.legacyfabric.net" } else { "https://meta.fabricmc.net" };
+    // Check if regular Fabric has loaders for this version
+    if let Ok(loaders) = serde_json::from_str::<Vec<FabricLoaderVersion>>(&fabric_resp) {
+        if loaders.is_empty() {
+            // Try Legacy Fabric (works on Windows, not macOS ARM)
+            #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+            {
+                let legacy_url = format!("https://meta.legacyfabric.net/v2/versions/loader/{}", version);
+                fabric_resp = client.get(&legacy_url).send().and_then(|r| r.text()).unwrap_or_default();
+                meta_base = "https://meta.legacyfabric.net".to_string();
+                emit(&app, 13, "Using Legacy Fabric...");
+            }
+        }
+    }
 
-    if let Ok(resp) = client.get(&meta_url).send().and_then(|r| r.text()) {
-        if let Ok(loaders) = serde_json::from_str::<Vec<FabricLoaderVersion>>(&resp) {
-            if let Some(first) = loaders.first() {
-                let loader_version = &first.loader.version;
-                if is_legacy { emit(&app, 13, "Using Legacy Fabric for this version..."); }
-                let fabric_json_url = format!(
-                    "{}/v2/versions/loader/{}/{}/profile/json",
-                    meta_base, version, loader_version
-                );
+    if let Ok(loaders) = serde_json::from_str::<Vec<FabricLoaderVersion>>(&fabric_resp) {
+        if let Some(first) = loaders.first() {
+            let loader_version = &first.loader.version;
+            let fabric_json_url = format!(
+                "{}/v2/versions/loader/{}/{}/profile/json",
+                meta_base, version, loader_version
+            );
                 if let Ok(fj_text) = client.get(&fabric_json_url).send().and_then(|r| r.text()) {
                     if let Ok(fj) = serde_json::from_str::<FabricVersionJson>(&fj_text) {
                         emit(&app, 14, "Downloading Fabric libraries...");
@@ -611,7 +623,6 @@ fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Opt
                         fabric_json = Some(fj);
                     }
                 }
-            }
         }
     }
 

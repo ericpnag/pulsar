@@ -1,0 +1,14 @@
+{
+  "mappings": {
+    "com/bloom/core/mixin/TitleScreenMixin": {
+      "init": "Lnet/minecraft/class_624;method_1044()V"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "com/bloom/core/mixin/TitleScreenMixin": {
+        "init": "Lnet/minecraft/class_624;method_1044()V"
+      }
+    }
+  }
+}

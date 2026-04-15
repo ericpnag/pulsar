@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "bloom-core",
+  "version": "1.0.0",
+  "name": "Bloom Core",
+  "description": "Cherry blossom Minecraft client modules",
+  "authors": ["Bloom"],
+  "contact": { "homepage": "https://github.com/ericpnag/bloom-launcher" },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.bloom.core.BloomCore"]
+  },
+  "mixins": ["bloom-core.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.14.0",
+    "minecraft": "1.8.9"
+  }
+}
