@@ -67,7 +67,6 @@ const VERIFIED_CREATORS: Record<string, string[]> = {
   "BIGBOBBY68": ["cape_creator", "cape_youtube"],
   "OLIVERTREEEE": ["cape_creator"],
 };
-const CREATOR_CODES: Record<string, number> = {};
 
 const TYPE_LABELS: Record<string, string> = { cape: "Capes", wings: "Wings", hat: "Hats", aura: "Auras" };
 
@@ -242,7 +241,7 @@ export function ShopPage() {
       </div>
 
       {/* OG Cape — Limited Edition — top of shop until sold out */}
-      <OGCapeSection purchased={purchased} onClaim={() => {
+      <OGCapeSection onClaim={() => {
         if (!purchased.includes("cape_og")) {
           save(points, [...purchased, "cape_og"], equipped);
         }
@@ -1190,7 +1189,7 @@ function CosmeticPreview({ cosmetic: c }: { cosmetic: Cosmetic }) {
   );
 }
 
-function OGCapeSection({ purchased, onClaim, isOwned }: { purchased: string[]; onClaim: () => void; isOwned: boolean }) {
+function OGCapeSection({ onClaim, isOwned }: { onClaim: () => void; isOwned: boolean }) {
   const [ogInfo, setOgInfo] = useState<{ count: number; remaining: number } | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [claimed, setClaimed] = useState(isOwned);
