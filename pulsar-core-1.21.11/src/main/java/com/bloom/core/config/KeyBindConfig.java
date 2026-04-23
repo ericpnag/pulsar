@@ -12,6 +12,7 @@ public class KeyBindConfig {
         defaults.put("zoom", GLFW.GLFW_KEY_C);
         defaults.put("freelook", GLFW.GLFW_KEY_F);
         defaults.put("mod_menu", GLFW.GLFW_KEY_RIGHT_SHIFT);
+        defaults.put("hud_editor", GLFW.GLFW_KEY_GRAVE_ACCENT);
     }
 
     public static void init() {

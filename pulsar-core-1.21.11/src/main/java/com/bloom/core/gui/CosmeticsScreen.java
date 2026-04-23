@@ -36,7 +36,7 @@ public class CosmeticsScreen extends Screen {
         "cape_blossom", "cape_midnight", "cape_frost", "cape_flame",
         "cape_ocean", "cape_emerald", "cape_sunset", "cape_galaxy",
         "cape_void", "cape_lightning", "cape_blood", "cape_arctic",
-        "cape_phantom", "cape_neon", "cape_lava",
+        "cape_phantom", "cape_neon", "cape_lava", "cape_sakura",
         "cape_storm", "cape_solar", "cape_amethyst", "cape_inferno",
         "cape_drift", "cape_obsidian", "cape_blackhole",
         "cape_creator", "cape_youtube", "cape_twitch", "cape_tiktok", "cape_og"
@@ -45,7 +45,7 @@ public class CosmeticsScreen extends Screen {
         "Bloom", "Midnight", "Frost", "Flame",
         "Ocean", "Emerald", "Sunset", "Galaxy",
         "Void", "Lightning", "Bloodmoon", "Arctic",
-        "Phantom", "Neon", "Lava",
+        "Phantom", "Neon", "Lava", "Sakura",
         "Storm", "Solar", "Amethyst", "Inferno",
         "Drift", "Obsidian", "Black Hole",
         "Creator", "YouTube", "Twitch", "TikTok", "OG Pulsar", "None"
@@ -54,7 +54,7 @@ public class CosmeticsScreen extends Screen {
         "bloom_cape.png", "midnight_cape.png", "frost_cape.png", "flame_cape.png",
         "ocean_cape.png", "emerald_cape.png", "sunset_cape.png", "galaxy_cape.png",
         "void_cape.png", "lightning_cape.png", "blood_cape.png", "arctic_cape.png",
-        "phantom_cape.png", "neon_cape.png", "lava_cape.png",
+        "phantom_cape.png", "neon_cape.png", "lava_cape.png", "sakura_cape.png",
         "storm_cape.png", "solar_cape.png", "amethyst_cape.png", "inferno_cape.png",
         "drift_cape.png", "obsidian_cape.png", "blackhole_cape.png",
         "creator_cape.png", "youtube_cape.png", "twitch_cape.png", "tiktok_cape.png", "og_cape.png", null
@@ -63,7 +63,7 @@ public class CosmeticsScreen extends Screen {
         {255,190,210}, {30,15,50}, {140,200,255}, {255,120,40},
         {20,80,160}, {30,150,70}, {255,150,80}, {15,8,30},
         {26,10,46}, {232,212,77}, {139,0,0}, {224,240,255},
-        {200,200,210}, {15,5,25}, {255,160,20},
+        {200,200,210}, {15,5,25}, {255,160,20}, {255,200,220},
         {60,65,75}, {255,200,60}, {80,20,120}, {60,5,5},
         {200,180,220}, {25,15,30}, {255,160,50},
         {255,215,0}, {255,0,0}, {145,70,255}, {0,242,234}, {255,255,255}, {40,40,40}
@@ -72,7 +72,7 @@ public class CosmeticsScreen extends Screen {
         {215,120,150}, {15,8,30}, {80,140,220}, {200,60,20},
         {10,40,100}, {15,100,40}, {120,50,150}, {5,2,15},
         {13,5,24}, {184,150,15}, {74,0,0}, {160,196,232},
-        {100,100,120}, {5,2,15}, {50,25,5},
+        {100,100,120}, {5,2,15}, {50,25,5}, {200,140,160},
         {25,28,35}, {200,80,10}, {40,8,60}, {200,30,0},
         {180,200,220}, {10,5,15}, {80,30,5},
         {255,69,0}, {204,0,0}, {100,65,165}, {255,0,80}, {128,128,128}, {30,30,30}

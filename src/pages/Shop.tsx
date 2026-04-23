@@ -764,43 +764,92 @@ function CosmeticPreview({ cosmetic: c }: { cosmetic: Cosmetic }) {
         ))}
       </>}
       {c.id === "cape_ocean" && <>
+        {/* Deep ocean gradient layers */}
+        <ellipse cx={cx} cy={75} rx="30" ry="18" fill="#1040A0" opacity="0.12" filter={`url(#blur-${c.id})`} />
+        <ellipse cx={cx-10} cy={30} rx="20" ry="15" fill="#60C8FF" opacity="0.08" filter={`url(#blur-${c.id})`} />
         {/* Waves */}
-        {[28,40,52,64,76].map((y,i) => (
-          <path key={i} d={`M${cx-28} ${y} Q${cx-14} ${y-4-i} ${cx} ${y} Q${cx+14} ${y+4+i} ${cx+28} ${y}`}
-            fill="none" stroke={i%2===0?"#60B0EE":"#3088CC"} strokeWidth={1.5-i*0.15} opacity={0.25+i*0.06}
-            style={{animation:`pv-wave ${2+i*0.3}s ease-in-out ${i*0.4}s infinite`}} />
+        {[22,32,42,52,62,72,82].map((y,i) => (
+          <path key={i} d={`M${cx-30} ${y} Q${cx-18} ${y-5-i*0.5} ${cx-6} ${y} Q${cx+6} ${y+5+i*0.5} ${cx+18} ${y} Q${cx+26} ${y-3} ${cx+30} ${y}`}
+            fill="none" stroke={i%3===0?"#80D0FF":i%3===1?"#50A8EE":"#3888DD"} strokeWidth={1.8-i*0.12} opacity={0.2+i*0.06}
+            style={{animation:`pv-wave ${2+i*0.3}s ease-in-out ${i*0.35}s infinite`}} />
         ))}
-        {/* Foam highlights */}
-        {[[cx-16,30],[cx+10,42],[cx-8,56],[cx+14,68]].map(([x,y],i) => (
-          <ellipse key={i} cx={x} cy={y} rx="5" ry="1.5" fill="rgba(255,255,255,0.12)" />
+        {/* Foam crests */}
+        {[[cx-18,24],[cx+8,34],[cx-10,44],[cx+14,54],[cx-4,64],[cx+10,74]].map(([x,y],i) => (
+          <ellipse key={i} cx={x} cy={y} rx="6" ry="1.8" fill="rgba(255,255,255,0.15)"
+            style={{animation:`pv-shimmer ${2+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
+        ))}
+        {/* Underwater light rays */}
+        {[cx-12,cx-4,cx+4,cx+12].map((x,i) => (
+          <line key={i} x1={x} y1={10} x2={x+i*2-3} y2={90} stroke="#60D0FF" strokeWidth="0.5" opacity={0.04+i*0.01} />
+        ))}
+        {/* Bubbles */}
+        {[[cx-8,30,2],[cx+12,45,1.5],[cx-14,55,1.8],[cx+6,25,1.2],[cx,68,1.6],[cx+16,60,1],[cx-4,82,1.3]].map(([x,y,r],i) => (
+          <g key={i} style={{animation:`pv-float ${3+i*0.4}s ease-in-out ${i*0.25}s infinite`,transformOrigin:`${x}px ${y}px`}}>
+            <circle cx={x as number} cy={y as number} r={r as number} fill="none" stroke="#A0E0FF" strokeWidth="0.5" opacity={0.3+i*0.04} />
+            <circle cx={(x as number)+0.3} cy={(y as number)-0.3} r={(r as number)*0.25} fill="#fff" opacity={0.4} />
+          </g>
         ))}
       </>}
       {c.id === "cape_emerald" && <>
-        {/* Gem shapes */}
-        {[[cx-10,25,7],[cx+8,45,9],[cx-5,65,8],[cx+12,30,6],[cx-12,50,5]].map(([x,y,s],i) => (
-          <g key={i} style={{animation:`pv-shimmer ${2+i*0.5}s ease-in-out ${i*0.3}s infinite`}}>
+        {/* Background crystal glow */}
+        <ellipse cx={cx-5} cy={35} rx="18" ry="25" fill="#20A060" opacity="0.08" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 4s ease-in-out infinite"}} />
+        <ellipse cx={cx+8} cy={65} rx="15" ry="20" fill="#40FF80" opacity="0.06" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 5s ease-in-out 1s infinite"}} />
+        {/* Large gem shapes */}
+        {[[cx-10,25,9],[cx+8,40,11],[cx-5,60,10],[cx+12,28,7],[cx-12,48,6],[cx+4,75,8]].map(([x,y,s],i) => (
+          <g key={i} style={{animation:`pv-shimmer ${2+i*0.4}s ease-in-out ${i*0.25}s infinite`}}>
             <polygon points={`${x},${(y as number)-(s as number)} ${(x as number)+(s as number)*0.6},${y} ${x},${(y as number)+(s as number)*0.7} ${(x as number)-(s as number)*0.6},${y}`}
-              fill="#50FF90" opacity={0.25+i*0.06} />
-            <polygon points={`${x},${(y as number)-(s as number)} ${(x as number)+(s as number)*0.3},${(y as number)-(s as number)*0.2} ${x},${(y as number)+(s as number)*0.3} ${(x as number)-(s as number)*0.3},${(y as number)-(s as number)*0.2}`}
-              fill="#A0FFD0" opacity={0.2} />
-            <circle cx={x} cy={(y as number)-(s as number)*0.3} r="0.8" fill="#EEFFEE" opacity="0.6" />
+              fill="#50FF90" opacity={0.2+i*0.04} />
+            {/* Inner facet */}
+            <polygon points={`${x},${(y as number)-(s as number)*0.8} ${(x as number)+(s as number)*0.25},${(y as number)-(s as number)*0.1} ${x},${(y as number)+(s as number)*0.3} ${(x as number)-(s as number)*0.25},${(y as number)-(s as number)*0.1}`}
+              fill="#A0FFD0" opacity={0.18} />
+            {/* Top highlight */}
+            <circle cx={x} cy={(y as number)-(s as number)*0.4} r="1" fill="#E0FFF0" opacity="0.7" />
+            {/* Reflection edge */}
+            <line x1={x as number} y1={(y as number)-(s as number)} x2={(x as number)+(s as number)*0.6} y2={y as number}
+              stroke="#B0FFD0" strokeWidth="0.3" opacity="0.3" />
+          </g>
+        ))}
+        {/* Sparkle particles */}
+        {[[cx-15,18],[cx+15,22],[cx-8,38],[cx+16,55],[cx-14,70],[cx+8,82],[cx,15],[cx+3,85]].map(([x,y],i) => (
+          <g key={i} style={{animation:`pv-twinkle ${1.5+i*0.3}s ease-in-out ${i*0.2}s infinite`}}>
+            <line x1={(x as number)-2} y1={y} x2={(x as number)+2} y2={y} stroke="#B0FFD0" strokeWidth="0.4" opacity="0.5" />
+            <line x1={x} y1={(y as number)-2} x2={x} y2={(y as number)+2} stroke="#B0FFD0" strokeWidth="0.4" opacity="0.5" />
           </g>
         ))}
       </>}
       {c.id === "cape_sunset" && <>
+        {/* Sky gradient layers */}
+        <rect x={cx-28} y={60} width="56" height="30" fill="#FF6030" opacity="0.06" />
+        <rect x={cx-28} y={45} width="56" height="20" fill="#FFA050" opacity="0.04" />
         {/* Sun */}
-        <circle cx={cx} cy={25} r="12" fill="#FFD060" opacity="0.2" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 3s ease-in-out infinite"}} />
-        <circle cx={cx} cy={25} r="7" fill="#FFE080" opacity="0.25" style={{animation:"pv-pulse 3s ease-in-out infinite"}} />
-        <circle cx={cx} cy={25} r="4" fill="#FFF0B0" opacity="0.4" />
+        <circle cx={cx} cy={28} r="16" fill="#FFD060" opacity="0.12" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 3s ease-in-out infinite"}} />
+        <circle cx={cx} cy={28} r="10" fill="#FFE080" opacity="0.2" style={{animation:"pv-pulse 3s ease-in-out infinite"}} />
+        <circle cx={cx} cy={28} r="6" fill="#FFF0B0" opacity="0.35" />
+        <circle cx={cx} cy={28} r="3" fill="#FFFFD0" opacity="0.5" />
         {/* Sun rays */}
-        {[0,45,90,135,180,225,270,315].map(a => (
-          <line key={a} x1={cx+Math.cos(a*Math.PI/180)*9} y1={25+Math.sin(a*Math.PI/180)*9}
-            x2={cx+Math.cos(a*Math.PI/180)*16} y2={25+Math.sin(a*Math.PI/180)*16}
-            stroke="#FFD060" strokeWidth="0.5" opacity="0.2" />
+        {[0,30,60,90,120,150,180,210,240,270,300,330].map(a => (
+          <line key={a} x1={cx+Math.cos(a*Math.PI/180)*9} y1={28+Math.sin(a*Math.PI/180)*9}
+            x2={cx+Math.cos(a*Math.PI/180)*20} y2={28+Math.sin(a*Math.PI/180)*20}
+            stroke="#FFD060" strokeWidth={a%60===0?"0.8":"0.4"} opacity={0.15+Math.sin(a*Math.PI/60)*0.05}
+            style={{animation:`pv-glow ${2+a/200}s ease-in-out infinite`}} />
         ))}
-        {/* Horizon clouds */}
-        {[[cx-18,55],[cx+10,50],[cx-5,60]].map(([x,y],i) => (
-          <ellipse key={i} cx={x} cy={y} rx="10" ry="3" fill="rgba(255,180,120,0.12)" />
+        {/* Horizon line */}
+        <line x1={cx-28} y1={62} x2={cx+28} y2={62} stroke="#FF8040" strokeWidth="0.5" opacity="0.2" />
+        {/* Layered clouds */}
+        {[[cx-20,52,12,4],[cx+8,48,14,4.5],[cx-5,56,10,3.5],[cx+15,55,8,3],[cx-14,60,11,3]].map(([x,y,rx,ry],i) => (
+          <ellipse key={i} cx={x as number} cy={y as number} rx={rx as number} ry={ry as number}
+            fill={i%2===0?"#FFB080":"#FFC8A0"} opacity={0.1+i*0.02}
+            style={{animation:`pv-drift ${4+i*0.5}s ease-in-out ${i*0.4}s infinite`}} />
+        ))}
+        {/* Water reflection */}
+        {[68,74,80].map((y,i) => (
+          <line key={i} x1={cx-15+i*3} y1={y} x2={cx+15-i*3} y2={y}
+            stroke="#FFD080" strokeWidth="0.5" opacity={0.1-i*0.02} />
+        ))}
+        {/* Distant birds */}
+        {[[cx-14,35],[cx+10,32],[cx-6,38]].map(([x,y],i) => (
+          <path key={i} d={`M${(x as number)-2} ${y} Q${x} ${(y as number)-1.5} ${(x as number)+2} ${y}`}
+            fill="none" stroke="#553020" strokeWidth="0.5" opacity="0.15" />
         ))}
       </>}
       {c.id === "cape_galaxy" && <>
@@ -823,248 +872,551 @@ function CosmeticPreview({ cosmetic: c }: { cosmetic: Cosmetic }) {
         ))}
       </>}
       {c.id === "cape_phantom" && <>
-        {/* Spectral wisps */}
-        {[[cx-10,25],[cx+8,40],[cx-5,60],[cx+12,75],[cx-8,85]].map(([x,y],i) => (
-          <ellipse key={i} cx={x} cy={y} rx="6" ry="12" fill="#E8E8FF" opacity={0.12+i*0.03}
-            style={{animation:`pv-float ${3+i*0.5}s ease-in-out ${i*0.4}s infinite`}} />
+        {/* Ethereal glow */}
+        <ellipse cx={cx} cy={40} rx="22" ry="30" fill="#C0C0FF" opacity="0.06" filter={`url(#blur-${c.id})`} style={{animation:"pv-pulse 4s ease-in-out infinite"}} />
+        {/* Spectral wisps — layered */}
+        {[[cx-10,20,5,14],[cx+8,35,7,16],[cx-5,55,6,13],[cx+12,70,5,12],[cx-8,82,4,10],[cx+3,15,3,8]].map(([x,y,rx,ry],i) => (
+          <ellipse key={i} cx={x as number} cy={y as number} rx={rx as number} ry={ry as number} fill="#E0E0FF" opacity={0.08+i*0.02}
+            style={{animation:`pv-float ${3+i*0.5}s ease-in-out ${i*0.35}s infinite`}} />
         ))}
-        {/* Ghost faces */}
-        {[[cx-6,35],[cx+10,65]].map(([x,y],i) => (
-          <g key={i} opacity={0.15}>
-            <circle cx={x} cy={y} r="5" fill="none" stroke="#DDDDFF" strokeWidth="0.5" />
-            <circle cx={(x as number)-2} cy={(y as number)-1} r="0.8" fill="#CCCCFF" />
-            <circle cx={(x as number)+2} cy={(y as number)-1} r="0.8" fill="#CCCCFF" />
+        {/* Wisp trails */}
+        {[[cx-12,18,cx-6,40],[cx+10,30,cx+4,55],[cx-3,50,cx+6,72],[cx+8,65,cx-2,85]].map(([x1,y1,x2,y2],i) => (
+          <path key={i} d={`M${x1} ${y1} Q${(x1 as number)+(x2 as number)-(x1 as number)*1.5} ${((y1 as number)+(y2 as number))/2} ${x2} ${y2}`}
+            fill="none" stroke="#D0D0FF" strokeWidth="0.5" opacity={0.1+i*0.02}
+            style={{animation:`pv-drift ${4+i*0.4}s ease-in-out ${i*0.3}s infinite`}} />
+        ))}
+        {/* Ghost faces — detailed */}
+        {[[cx-6,32],[cx+10,60],[cx-2,80]].map(([x,y],i) => (
+          <g key={i} opacity={0.18+i*0.02} style={{animation:`pv-float ${4+i*0.6}s ease-in-out ${i*0.5}s infinite`,transformOrigin:`${x}px ${y}px`}}>
+            <circle cx={x} cy={y} r="6" fill="none" stroke="#D0D0FF" strokeWidth="0.4" />
+            <circle cx={(x as number)-2.5} cy={(y as number)-1} r="1" fill="#C0C0FF" />
+            <circle cx={(x as number)+2.5} cy={(y as number)-1} r="1" fill="#C0C0FF" />
+            <path d={`M${(x as number)-1.5} ${(y as number)+2} Q${x} ${(y as number)+3.5} ${(x as number)+1.5} ${(y as number)+2}`}
+              fill="none" stroke="#B0B0EE" strokeWidth="0.4" opacity="0.6" />
           </g>
+        ))}
+        {/* Floating orbs */}
+        {[[cx-15,28],[cx+15,45],[cx-12,65],[cx+14,78],[cx,42],[cx-8,50]].map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r={0.6+i*0.15} fill="#E8E8FF" opacity={0.2+i*0.04}
+            style={{animation:`pv-twinkle ${2+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
         ))}
       </>}
       {c.id === "cape_neon" && <>
-        {/* Neon grid */}
-        {[25,40,55,70].map((y,i) => (
-          <line key={`h${i}`} x1={cx-26} y1={y} x2={cx+26} y2={y} stroke="#FF32C8" strokeWidth="0.5" opacity="0.3" />
+        {/* Background glow zones */}
+        <ellipse cx={cx-8} cy={35} rx="18" ry="20" fill="#FF32C8" opacity="0.08" filter={`url(#blur-${c.id})`} />
+        <ellipse cx={cx+10} cy={65} rx="16" ry="18" fill="#00FFFF" opacity="0.06" filter={`url(#blur-${c.id})`} />
+        {/* Perspective grid — horizontal */}
+        {[18,28,38,48,58,68,78,85].map((y,i) => (
+          <line key={`h${i}`} x1={cx-26} y1={y} x2={cx+26} y2={y} stroke="#FF32C8" strokeWidth={0.4+i*0.05} opacity={0.12+i*0.025}
+            style={{animation:`pv-shimmer ${3+i*0.2}s ease-in-out ${i*0.1}s infinite`}} />
         ))}
-        {[cx-18,cx-6,cx+6,cx+18].map((x,i) => (
-          <line key={`v${i}`} x1={x} y1={12} x2={x} y2={85} stroke="#00FFFF" strokeWidth="0.5" opacity="0.25" />
+        {/* Vertical lines */}
+        {[cx-22,cx-14,cx-6,cx+2,cx+10,cx+18].map((x,i) => (
+          <line key={`v${i}`} x1={x} y1={10} x2={x} y2={88} stroke="#00FFFF" strokeWidth="0.4" opacity={0.1+i*0.02} />
         ))}
         {/* Glitch blocks */}
-        {[[cx-12,30,8,3,"#FF40D0"],[cx+5,55,10,2,"#00EEFF"],[cx-8,72,6,3,"#FF60E0"]].map(([x,y,w,h,col],i) => (
-          <rect key={i} x={x as number} y={y as number} width={w as number} height={h as number} fill={col as string} opacity={0.2+i*0.05}
-            style={{animation:`pv-shimmer ${1+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
+        {[[cx-14,28,10,3,"#FF40D0"],[cx+3,42,12,2.5,"#00EEFF"],[cx-10,60,8,3,"#FF60E0"],[cx+8,72,9,2,"#00DDFF"],[cx-6,82,14,2,"#FF50D8"]].map(([x,y,w,h,col],i) => (
+          <rect key={i} x={x as number} y={y as number} width={w as number} height={h as number} fill={col as string} opacity={0.18+i*0.03}
+            style={{animation:`pv-shimmer ${0.8+i*0.25}s ease-in-out ${i*0.15}s infinite`}} />
         ))}
-        {/* Neon glow spots */}
-        <circle cx={cx-8} cy={35} r="4" fill="#FF32C8" opacity="0.15" filter={`url(#blur-${c.id})`} />
-        <circle cx={cx+10} cy={60} r="5" fill="#00FFFF" opacity="0.12" filter={`url(#blur-${c.id})`} />
-      </>}
-      {c.id === "cape_lava" && <>
-        {/* Lava cracks */}
-        {[[cx-15,25,cx+5,35],[cx+3,45,cx+20,55],[cx-10,60,cx+8,75]].map(([x1,y1,x2,y2],i) => (
-          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#FF8020" strokeWidth="1.5" opacity={0.4+i*0.05}
-            style={{animation:`pv-glow ${2+i*0.3}s ease-in-out ${i*0.3}s infinite`}} />
-        ))}
-        {/* Molten pools */}
-        {[[cx-8,30],[cx+10,50],[cx-3,70]].map(([x,y],i) => (
-          <ellipse key={i} cx={x} cy={y} rx="5" ry="3" fill="#FF6010" opacity={0.2+i*0.05}
-            style={{animation:`pv-pulse ${1.5+i*0.2}s ease-in-out ${i*0.2}s infinite`}} />
-        ))}
-        <ellipse cx={cx} cy={80} rx="25" ry="8" fill="#FF4400" opacity="0.1" filter={`url(#blur-${c.id})`} />
-      </>}
-      {c.id === "cape_sakura" && <>
-        {/* Branch */}
-        <line x1={cx-20} y1={45} x2={cx+20} y2={30} stroke="#644028" strokeWidth="1.5" opacity="0.4" />
-        {/* Flowers */}
-        {[[cx-12,32],[cx+8,25],[cx-6,50],[cx+10,58],[cx-10,72],[cx+5,78]].map(([x,y],i) => (
-          <g key={i} style={{animation:`pv-float ${2.5+i*0.3}s ease-in-out ${i*0.25}s infinite`,transformOrigin:`${x}px ${y}px`}}>
-            {[0,72,144,216,288].map((a,j) => (
-              <ellipse key={j} cx={x} cy={(y as number)-3} rx="1.5" ry="3.5" fill="#FFD8E6" opacity="0.5"
-                transform={`rotate(${a} ${x} ${y})`} />
-            ))}
-            <circle cx={x} cy={y} r="1.5" fill="#FFF0F4" opacity="0.7" />
+        {/* Neon text-like symbols */}
+        {[[cx-8,35],[cx+6,55]].map(([x,y],i) => (
+          <g key={i} opacity={0.35} style={{animation:`pv-pulse ${2+i*0.5}s ease-in-out ${i*0.3}s infinite`}}>
+            <rect x={(x as number)-5} y={y as number} width="10" height="0.8" fill={i%2===0?"#FF32C8":"#00FFFF"} />
+            <rect x={(x as number)-3} y={(y as number)+2} width="6" height="0.8" fill={i%2===0?"#00FFFF":"#FF32C8"} />
           </g>
         ))}
-        {/* Falling petals */}
-        {Array.from({length:5}).map((_,i) => (
-          <ellipse key={i} cx={cx-15+i*8} cy={20+i*14} rx="2" ry="1" fill="#FFE0EC" opacity={0.3+i*0.05}
-            transform={`rotate(${30+i*25} ${cx-15+i*8} ${20+i*14})`}
-            style={{animation:`pv-drift ${3+i*0.4}s ease-in-out ${i*0.3}s infinite`}} />
+        {/* Scanline effect */}
+        {Array.from({length:12}).map((_,i) => (
+          <line key={i} x1={cx-26} y1={12+i*6.5} x2={cx+26} y2={12+i*6.5}
+            stroke="#fff" strokeWidth="0.2" opacity="0.04" />
+        ))}
+        {/* Pixel scatter */}
+        {[[cx-18,20],[cx+16,30],[cx-16,50],[cx+18,70],[cx-12,85],[cx+12,15]].map(([x,y],i) => (
+          <rect key={i} x={(x as number)-1} y={(y as number)-1} width="2" height="2"
+            fill={i%2===0?"#FF32C8":"#00FFFF"} opacity={0.25+i*0.04}
+            style={{animation:`pv-twinkle ${1.5+i*0.2}s ease-in-out ${i*0.15}s infinite`}} />
+        ))}
+      </>}
+      {c.id === "cape_lava" && <>
+        {/* Deep magma glow */}
+        <ellipse cx={cx} cy={80} rx="28" ry="12" fill="#FF3000" opacity="0.12" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 3s ease-in-out infinite"}} />
+        <ellipse cx={cx-5} cy={40} rx="18" ry="20" fill="#FF6020" opacity="0.06" filter={`url(#blur-${c.id})`} />
+        {/* Lava crack network */}
+        <path d={`M${cx-15} 18 L${cx-8} 30 L${cx+5} 28 L${cx+12} 38 L${cx+8} 50`}
+          fill="none" stroke="#FF8020" strokeWidth="1.2" opacity="0.4" style={{animation:"pv-glow 2.5s ease-in-out infinite"}} />
+        <path d={`M${cx-8} 30 L${cx-12} 45 L${cx-5} 58 L${cx+4} 65 L${cx} 78`}
+          fill="none" stroke="#FFA040" strokeWidth="1" opacity="0.35" style={{animation:"pv-glow 3s ease-in-out 0.5s infinite"}} />
+        <path d={`M${cx+5} 28 L${cx+16} 42 L${cx+10} 60 L${cx+14} 75`}
+          fill="none" stroke="#FF6010" strokeWidth="0.8" opacity="0.3" style={{animation:"pv-glow 2.8s ease-in-out 0.3s infinite"}} />
+        {/* Branch cracks */}
+        {[[cx-12,45,cx-18,52],[cx+4,65,cx+14,68],[cx-5,58,cx-14,62],[cx+10,60,cx+18,55]].map(([x1,y1,x2,y2],i) => (
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#FF9030" strokeWidth="0.6" opacity={0.25+i*0.04} />
+        ))}
+        {/* Molten pools */}
+        {[[cx-10,32,5,3],[cx+8,48,6,3.5],[cx-3,68,7,4],[cx+12,40,4,2.5]].map(([x,y,rx,ry],i) => (
+          <ellipse key={i} cx={x as number} cy={y as number} rx={rx as number} ry={ry as number}
+            fill="#FF6010" opacity={0.18+i*0.04}
+            style={{animation:`pv-pulse ${1.5+i*0.2}s ease-in-out ${i*0.2}s infinite`}} />
+        ))}
+        {/* Rising heat embers */}
+        {[[cx-6,20,1.5],[cx+10,15,1.2],[cx-14,30,1],[cx+6,12,0.8],[cx,25,1.3],[cx+16,22,0.7],[cx-10,18,0.9]].map(([x,y,r],i) => (
+          <circle key={i} cx={x as number} cy={y as number} r={r as number}
+            fill={i%2===0?"#FFD060":"#FFA030"} opacity={0.2+i*0.03}
+            style={{animation:`pv-float ${2.5+i*0.3}s ease-in-out ${i*0.2}s infinite`,transformOrigin:`${x}px ${y}px`}} />
+        ))}
+        {/* Surface texture */}
+        {Array.from({length:6}).map((_,i) => (
+          <line key={i} x1={cx-20+i*3} y1={75+Math.sin(i)*4} x2={cx-18+i*3} y2={82+Math.cos(i)*3}
+            stroke="#401008" strokeWidth="0.4" opacity="0.15" />
+        ))}
+      </>}
+      {c.id === "cape_sakura" && <>
+        {/* Soft pink glow */}
+        <ellipse cx={cx} cy={40} rx="25" ry="30" fill="#FF90B0" opacity="0.06" filter={`url(#blur-${c.id})`} />
+        {/* Main branch */}
+        <path d={`M${cx-22} 48 Q${cx-10} 42 ${cx} 38 Q${cx+10} 34 ${cx+20} 28`}
+          fill="none" stroke="#644028" strokeWidth="1.8" opacity="0.45" />
+        {/* Sub branches */}
+        <path d={`M${cx-10} 42 Q${cx-14} 55 ${cx-16} 65`} fill="none" stroke="#644028" strokeWidth="1" opacity="0.3" />
+        <path d={`M${cx+5} 36 Q${cx+10} 48 ${cx+8} 60`} fill="none" stroke="#644028" strokeWidth="1" opacity="0.3" />
+        <path d={`M${cx-5} 40 Q${cx-8} 32 ${cx-12} 25`} fill="none" stroke="#644028" strokeWidth="0.8" opacity="0.25" />
+        {/* Full flowers — detailed 5-petal */}
+        {[[cx-14,30],[cx+10,24],[cx-8,50],[cx+12,55],[cx-14,68],[cx+5,72],[cx,38],[cx-6,82],[cx+16,42]].map(([x,y],i) => (
+          <g key={i} style={{animation:`pv-float ${2.5+i*0.3}s ease-in-out ${i*0.2}s infinite`,transformOrigin:`${x}px ${y}px`}}>
+            {[0,72,144,216,288].map((a,j) => (
+              <ellipse key={j} cx={x} cy={(y as number)-3.5} rx="1.8" ry="4" fill={i%3===0?"#FFD8E6":i%3===1?"#FFCCD8":"#FFE0EC"} opacity={0.5+i*0.03}
+                transform={`rotate(${a} ${x} ${y})`} />
+            ))}
+            <circle cx={x} cy={y} r="2" fill="#FFF0F4" opacity="0.8" />
+            <circle cx={x} cy={y} r="0.8" fill="#FFD0DD" opacity="0.9" />
+          </g>
+        ))}
+        {/* Falling petals — scattered */}
+        {Array.from({length:10}).map((_,i) => (
+          <ellipse key={i} cx={cx-18+i*4+Math.sin(i*1.5)*5} cy={15+i*7+Math.cos(i)*4} rx="2.2" ry="1.2"
+            fill={i%2===0?"#FFE0EC":"#FFCCD8"} opacity={0.25+i*0.03}
+            transform={`rotate(${20+i*30} ${cx-18+i*4+Math.sin(i*1.5)*5} ${15+i*7+Math.cos(i)*4})`}
+            style={{animation:`pv-drift ${3+i*0.3}s ease-in-out ${i*0.25}s infinite`}} />
+        ))}
+        {/* Soft bokeh */}
+        {[[cx-20,20],[cx+18,65],[cx-16,78],[cx+20,18]].map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r="3" fill="#FFB0D0" opacity="0.06"
+            style={{animation:`pv-pulse ${3+i*0.4}s ease-in-out ${i*0.3}s infinite`}} />
         ))}
       </>}
       {c.id === "cape_storm" && <>
-        {/* Dark clouds */}
-        {[[cx-12,18],[cx+8,15],[cx,22]].map(([x,y],i) => (
-          <ellipse key={i} cx={x} cy={y} rx="12" ry="5" fill="#1A1C22" opacity={0.3+i*0.05} />
+        {/* Storm sky background */}
+        <ellipse cx={cx} cy={18} rx="30" ry="14" fill="#0A0C14" opacity="0.15" filter={`url(#blur-${c.id})`} />
+        {/* Layered dark clouds */}
+        {[[cx-14,14,14,5.5],[cx+6,12,16,6],[cx-2,18,12,5],[cx-18,20,10,4],[cx+14,22,11,4.5]].map(([x,y,rx,ry],i) => (
+          <ellipse key={i} cx={x as number} cy={y as number} rx={rx as number} ry={ry as number}
+            fill="#1A1C26" opacity={0.25+i*0.04} />
         ))}
-        {/* Lightning bolt */}
-        <path d={`M${cx+2} 28 L${cx-3} 45 L${cx+1} 45 L${cx-4} 65`} fill="none" stroke="#FFFFD8" strokeWidth="1.5" opacity="0.7"
+        {/* Main lightning bolt — detailed zigzag */}
+        <path d={`M${cx+2} 26 L${cx-2} 36 L${cx+3} 38 L${cx-4} 52 L${cx+1} 54 L${cx-5} 68`}
+          fill="none" stroke="#FFFFD8" strokeWidth="1.8" opacity="0.8"
           style={{animation:"pv-shimmer 2s ease-in-out infinite"}} />
-        {/* Rain streaks */}
-        {Array.from({length:8}).map((_,i) => (
-          <line key={i} x1={cx-20+i*6} y1={35+i*3} x2={cx-21+i*6} y2={42+i*3} stroke="#A0B8D0" strokeWidth="0.5" opacity={0.2+i*0.03} />
+        {/* Lightning glow */}
+        <path d={`M${cx+2} 26 L${cx-2} 36 L${cx+3} 38 L${cx-4} 52 L${cx+1} 54 L${cx-5} 68`}
+          fill="none" stroke="#FFFFAA" strokeWidth="4" opacity="0.1" filter={`url(#blur-${c.id})`}
+          style={{animation:"pv-shimmer 2s ease-in-out infinite"}} />
+        {/* Branch lightning */}
+        <path d={`M${cx-2} 36 L${cx-10} 42 L${cx-14} 48`} fill="none" stroke="#FFFFD8" strokeWidth="0.8" opacity="0.5"
+          style={{animation:"pv-shimmer 2s ease-in-out 0.1s infinite"}} />
+        <path d={`M${cx+1} 54 L${cx+8} 58 L${cx+12} 64`} fill="none" stroke="#FFFFD8" strokeWidth="0.6" opacity="0.4"
+          style={{animation:"pv-shimmer 2s ease-in-out 0.2s infinite"}} />
+        {/* Rain streaks — many and varied */}
+        {Array.from({length:14}).map((_,i) => (
+          <line key={i} x1={cx-24+i*4+Math.sin(i)*2} y1={30+Math.sin(i*1.5)*5}
+            x2={cx-25+i*4+Math.sin(i)*2} y2={38+Math.sin(i*1.5)*5+i*0.5}
+            stroke="#8098B0" strokeWidth={0.4+i*0.02} opacity={0.12+i*0.015}
+            style={{animation:`pv-drift ${1+i*0.1}s linear ${i*0.08}s infinite`}} />
         ))}
+        {/* Ground puddle reflections */}
+        {[[cx-12,82],[cx+8,85],[cx,80]].map(([x,y],i) => (
+          <ellipse key={i} cx={x} cy={y} rx="6" ry="2" fill="#A0B8D0" opacity={0.06+i*0.02}
+            style={{animation:`pv-shimmer ${2+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
+        ))}
+        {/* Distant flash */}
+        <circle cx={cx+15} cy={15} r="8" fill="#FFFFD0" opacity="0.04" filter={`url(#blur-${c.id})`}
+          style={{animation:"pv-shimmer 3s ease-in-out 1s infinite"}} />
       </>}
       {c.id === "cape_solar" && <>
-        {/* Corona */}
-        <circle cx={cx} cy={30} r="16" fill="#FFE060" opacity="0.1" filter={`url(#blur-${c.id})`} style={{animation:"pv-pulse 3s ease-in-out infinite"}} />
-        <circle cx={cx} cy={30} r="10" fill="#FFCC40" opacity="0.2" />
-        <circle cx={cx} cy={30} r="6" fill="#FFE080" opacity="0.4" />
-        {/* Sun rays */}
-        {[0,30,60,90,120,150,180,210,240,270,300,330].map(a => (
-          <line key={a} x1={cx+Math.cos(a*Math.PI/180)*11} y1={30+Math.sin(a*Math.PI/180)*11}
-            x2={cx+Math.cos(a*Math.PI/180)*22} y2={30+Math.sin(a*Math.PI/180)*22}
-            stroke="#FFD060" strokeWidth="0.5" opacity="0.25" style={{animation:`pv-glow ${2+a/180}s ease-in-out infinite`}} />
+        {/* Outer corona haze */}
+        <circle cx={cx} cy={35} r="30" fill="#FFD060" opacity="0.04" filter={`url(#blur-${c.id})`} style={{animation:"pv-pulse 4s ease-in-out infinite"}} />
+        {/* Corona rings */}
+        <circle cx={cx} cy={35} r="22" fill="#FFE060" opacity="0.06" filter={`url(#blur-${c.id})`} style={{animation:"pv-pulse 3s ease-in-out infinite"}} />
+        <circle cx={cx} cy={35} r="15" fill="#FFCC40" opacity="0.15" />
+        <circle cx={cx} cy={35} r="10" fill="#FFE080" opacity="0.3" />
+        <circle cx={cx} cy={35} r="6" fill="#FFF0A0" opacity="0.5" />
+        <circle cx={cx} cy={35} r="3" fill="#FFFFC0" opacity="0.7" />
+        {/* Sun rays — varying lengths */}
+        {Array.from({length:24}).map((_,i) => {
+          const a = i * 15 * Math.PI / 180;
+          const len = i%3===0 ? 26 : i%3===1 ? 20 : 16;
+          return <line key={i} x1={cx+Math.cos(a)*10} y1={35+Math.sin(a)*10}
+            x2={cx+Math.cos(a)*len} y2={35+Math.sin(a)*len}
+            stroke="#FFD060" strokeWidth={i%3===0?"0.8":"0.4"} opacity={0.15+Math.sin(i)*0.05}
+            style={{animation:`pv-glow ${2+i*0.15}s ease-in-out ${i*0.1}s infinite`}} />;
+        })}
+        {/* Solar flares */}
+        <path d={`M${cx-12} 55 Q${cx-18} 42 ${cx-14} 35`} fill="none" stroke="#FFA030" strokeWidth="1" opacity="0.2"
+          style={{animation:"pv-pulse 3s ease-in-out infinite"}} />
+        <path d={`M${cx+12} 55 Q${cx+20} 44 ${cx+16} 35`} fill="none" stroke="#FFA030" strokeWidth="0.8" opacity="0.15"
+          style={{animation:"pv-pulse 3s ease-in-out 0.5s infinite"}} />
+        {/* Solar wind particles */}
+        {[[cx-18,60],[cx+16,58],[cx-10,72],[cx+12,70],[cx-4,78],[cx+6,82],[cx-16,80],[cx+18,75]].map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r={0.5+i*0.1} fill="#FFD080" opacity={0.15+i*0.02}
+            style={{animation:`pv-drift ${3+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
         ))}
-        {/* Flare arc */}
-        <path d={`M${cx-15} 65 Q${cx} 45 ${cx+15} 65`} fill="none" stroke="#FFA030" strokeWidth="1" opacity="0.25" />
+        {/* Sunspot */}
+        <circle cx={cx-2} cy={33} r="1.5" fill="#CC9020" opacity="0.3" />
+        <circle cx={cx+3} cy={37} r="1" fill="#CC9020" opacity="0.25" />
       </>}
       {c.id === "cape_amethyst" && <>
-        {/* Crystal shards */}
-        {[[cx-10,25,12],[cx+8,35,14],[cx-5,55,10],[cx+12,65,11],[cx-8,80,9]].map(([x,y,h],i) => (
-          <polygon key={i} points={`${x},${(y as number)-(h as number)} ${(x as number)+4},${y} ${(x as number)-4},${y}`}
-            fill="#8840C0" opacity={0.3+i*0.05} style={{animation:`pv-shimmer ${2+i*0.4}s ease-in-out ${i*0.25}s infinite`}} />
+        {/* Deep purple ambient */}
+        <ellipse cx={cx} cy={45} rx="24" ry="35" fill="#6020A0" opacity="0.08" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 4s ease-in-out infinite"}} />
+        <ellipse cx={cx+8} cy={30} rx="12" ry="15" fill="#A050E0" opacity="0.06" filter={`url(#blur-${c.id})`} />
+        {/* Crystal cluster — varied sizes and angles */}
+        {[[cx-12,28,14,4,-8],[cx+6,22,16,5,12],[cx-4,42,12,3.5,-5],[cx+12,50,13,4,8],[cx-8,62,11,3.5,-10],[cx+4,72,10,3,5],[cx-14,48,8,2.5,-15],[cx+14,38,9,3,18]].map(([x,y,h,w,rot],i) => (
+          <g key={i} style={{animation:`pv-shimmer ${2+i*0.3}s ease-in-out ${i*0.2}s infinite`}}>
+            <polygon points={`${x},${(y as number)-(h as number)} ${(x as number)+(w as number)},${y} ${(x as number)-(w as number)},${y}`}
+              fill={i%3===0?"#8840C0":i%3===1?"#9950D0":"#7730B0"} opacity={0.25+i*0.03}
+              transform={`rotate(${rot} ${x} ${(y as number)-(h as number)/2})`} />
+            {/* Inner facet highlight */}
+            <polygon points={`${x},${(y as number)-(h as number)} ${(x as number)+(w as number)*0.4},${(y as number)-(h as number)*0.3} ${(x as number)-(w as number)*0.2},${(y as number)-(h as number)*0.3}`}
+              fill="#C080FF" opacity={0.15}
+              transform={`rotate(${rot} ${x} ${(y as number)-(h as number)/2})`} />
+          </g>
         ))}
-        {/* Crystal highlights */}
-        {[[cx-10,20],[cx+8,30],[cx-5,50],[cx+12,60]].map(([x,y],i) => (
-          <circle key={i} cx={x} cy={y} r="0.8" fill="#DDB0FF" opacity="0.6" />
+        {/* Crystal tips sparkle */}
+        {[[cx-12,14],[cx+6,6],[cx-4,30],[cx+12,37],[cx-8,51],[cx+4,62]].map(([x,y],i) => (
+          <g key={i} style={{animation:`pv-twinkle ${1.5+i*0.25}s ease-in-out ${i*0.15}s infinite`}}>
+            <line x1={(x as number)-2.5} y1={y} x2={(x as number)+2.5} y2={y} stroke="#DDB0FF" strokeWidth="0.4" opacity="0.6" />
+            <line x1={x} y1={(y as number)-2.5} x2={x} y2={(y as number)+2.5} stroke="#DDB0FF" strokeWidth="0.4" opacity="0.6" />
+            <circle cx={x} cy={y} r="0.6" fill="#fff" opacity="0.7" />
+          </g>
         ))}
-        {/* Purple glow */}
-        <ellipse cx={cx} cy={50} rx="20" ry="30" fill="#6020A0" opacity="0.08" filter={`url(#blur-${c.id})`} />
+        {/* Ambient particles */}
+        {[[cx-18,20],[cx+18,28],[cx-16,55],[cx+16,68],[cx,85],[cx-6,15]].map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r="0.8" fill="#C890FF" opacity={0.2+i*0.03}
+            style={{animation:`pv-float ${3+i*0.4}s ease-in-out ${i*0.25}s infinite`,transformOrigin:`${x}px ${y}px`}} />
+        ))}
       </>}
       {c.id === "cape_inferno" && <>
-        {/* Hellfire glow */}
-        <ellipse cx={cx} cy={85} rx="28" ry="10" fill="#FF2200" opacity="0.15" filter={`url(#blur-${c.id})`} />
-        {/* Flames */}
-        {[0,1,2,3,4,5,6].map(i => {
-          const fx = cx - 18 + i * 6;
-          const fh = 15 + Math.sin(i*1.8)*8;
-          return <path key={i} d={`M${fx} 88 Q${fx+2} ${88-fh*0.6} ${fx+3} ${88-fh} Q${fx+4} ${88-fh*0.6} ${fx+5} 88`}
-            fill={i%2===0?"#FF3010":"#CC1000"}
-            style={{animation:`pv-flicker ${0.5+i*0.12}s ease-in-out ${i*0.08}s infinite`,transformOrigin:`${fx+3}px 88px`}} />;
+        {/* Hellfire ambient */}
+        <ellipse cx={cx} cy={85} rx="30" ry="14" fill="#FF1500" opacity="0.15" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 2s ease-in-out infinite"}} />
+        <ellipse cx={cx} cy={50} rx="20" ry="25" fill="#FF3000" opacity="0.05" filter={`url(#blur-${c.id})`} />
+        {/* Multi-layer flames */}
+        {[0,1,2,3,4,5,6,7,8].map(i => {
+          const fx = cx - 22 + i * 5.5;
+          const fh = 20 + Math.sin(i*1.6)*12;
+          const fw = 4.5 + (i%2)*2;
+          return <g key={i}>
+            {/* Outer flame */}
+            <path d={`M${fx} 90 Q${fx+fw/3} ${90-fh*0.6} ${fx+fw/2} ${90-fh} Q${fx+fw*0.7} ${90-fh*0.6} ${fx+fw} 90`}
+              fill={i%3===0?"#FF2008":i%3===1?"#CC0800":"#AA0500"}
+              style={{animation:`pv-flicker ${0.5+i*0.1}s ease-in-out ${i*0.06}s infinite`,transformOrigin:`${fx+fw/2}px 90px`}} />
+            {/* Inner bright core */}
+            <path d={`M${fx+fw*0.3} 90 Q${fx+fw*0.4} ${90-fh*0.35} ${fx+fw/2} ${90-fh*0.5} Q${fx+fw*0.6} ${90-fh*0.35} ${fx+fw*0.7} 90`}
+              fill={i%2===0?"#FF6030":"#FF4020"} opacity="0.5"
+              style={{animation:`pv-flicker ${0.4+i*0.08}s ease-in-out ${i*0.05}s infinite`,transformOrigin:`${fx+fw/2}px 90px`}} />
+          </g>;
         })}
-        {/* Skull */}
-        <circle cx={cx} cy={40} r="6" fill="#401005" opacity="0.4" />
-        <circle cx={cx-2} cy={38} r="1" fill="#FF5500" opacity="0.6" />
-        <circle cx={cx+2} cy={38} r="1" fill="#FF5500" opacity="0.6" />
+        {/* Skull — detailed */}
+        <g opacity="0.5">
+          <ellipse cx={cx} cy={38} rx="7" ry="8" fill="#300808" />
+          <ellipse cx={cx} cy={35} rx="6.5" ry="6" fill="#401010" />
+          {/* Eyes */}
+          <ellipse cx={cx-2.5} cy={35} rx="1.5" ry="2" fill="#FF4400" style={{animation:"pv-pulse 2s ease-in-out infinite"}} />
+          <ellipse cx={cx+2.5} cy={35} rx="1.5" ry="2" fill="#FF4400" style={{animation:"pv-pulse 2s ease-in-out 0.3s infinite"}} />
+          {/* Nose */}
+          <path d={`M${cx-0.8} 38 L${cx} 37 L${cx+0.8} 38`} fill="none" stroke="#FF3300" strokeWidth="0.4" opacity="0.6" />
+          {/* Teeth */}
+          {[-3,-1,1,3].map((dx,i) => (
+            <rect key={i} x={cx+dx-0.4} y={40} width="0.8" height="1.5" fill="#501010" opacity="0.5" />
+          ))}
+        </g>
+        {/* Rising embers */}
+        {[[cx-10,20,1.8],[cx+12,15,1.5],[cx-15,28,1.2],[cx+8,10,1],[cx,22,1.4],[cx+18,25,0.8],[cx-6,12,1.1],[cx+4,18,0.9]].map(([x,y,r],i) => (
+          <circle key={i} cx={x as number} cy={y as number} r={r as number}
+            fill={i%3===0?"#FF8040":i%3===1?"#FFB060":"#FF6030"} opacity={0.2+i*0.025}
+            style={{animation:`pv-float ${2+i*0.25}s ease-in-out ${i*0.15}s infinite`,transformOrigin:`${x}px ${y}px`}} />
+        ))}
       </>}
       {c.id === "cape_drift" && <>
-        {/* Pastel gradient bands */}
-        {[[20,"#FFB8D0"],[35,"#B8D0FF"],[50,"#D0B8FF"],[65,"#FFD0B8"],[80,"#B8FFD0"]].map(([y,col],i) => (
-          <rect key={i} x={cx-25} y={y as number} width="50" height="8" fill={col as string} opacity={0.12+i*0.02} rx="2"
-            style={{animation:`pv-drift ${3+i*0.3}s ease-in-out ${i*0.3}s infinite`}} />
+        {/* Ambient glow */}
+        <ellipse cx={cx} cy={50} rx="22" ry="30" fill="#D0B8FF" opacity="0.06" filter={`url(#blur-${c.id})`} />
+        {/* Pastel gradient bands — more layers with blur */}
+        {[[14,"#FFB8D0",10],[24,"#B8D0FF",9],[34,"#D0B8FF",8],[44,"#FFD0B8",9],[54,"#B8FFD0",8],[64,"#FFE0B8",9],[74,"#C0B8FF",8],[82,"#FFB8E0",7]].map(([y,col,h],i) => (
+          <rect key={i} x={cx-26} y={y as number} width="52" height={h as number} fill={col as string} opacity={0.1+i*0.012} rx="3"
+            style={{animation:`pv-drift ${3+i*0.25}s ease-in-out ${i*0.25}s infinite`}} />
         ))}
-        {/* Sparkle dots */}
+        {/* Diagonal streaks */}
         {Array.from({length:6}).map((_,i) => (
-          <circle key={i} cx={cx-12+i*5} cy={25+i*10} r="0.6" fill="#fff" opacity={0.3+i*0.08}
-            style={{animation:`pv-twinkle ${2+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
+          <line key={i} x1={cx-24+i*10} y1={10} x2={cx-20+i*10} y2={90}
+            stroke={["#FFB8D0","#B8D0FF","#D0B8FF","#FFD0B8","#B8FFD0","#FFE0B8"][i]} strokeWidth="0.4" opacity="0.06" />
         ))}
-        {/* Vaporwave sun stripes */}
-        {[0,1,2].map(i => (
-          <line key={i} x1={cx-15} y1={78+i*3} x2={cx+15} y2={78+i*3} stroke="#FF78C8" strokeWidth="0.5" opacity="0.15" />
+        {/* Vaporwave sun — detailed */}
+        <circle cx={cx} cy={82} r="10" fill="#FF78C8" opacity="0.08" />
+        <circle cx={cx} cy={82} r="7" fill="#FF90D0" opacity="0.1" />
+        {[0,1,2,3,4].map(i => (
+          <line key={i} x1={cx-10} y1={78+i*2} x2={cx+10} y2={78+i*2} stroke="#FF78C8" strokeWidth="0.6" opacity={0.12-i*0.02} />
+        ))}
+        {/* Sparkle constellation */}
+        {[[cx-18,18],[cx+14,22],[cx-8,38],[cx+10,42],[cx-14,58],[cx+16,62],[cx-4,75],[cx+6,28],[cx,48]].map(([x,y],i) => (
+          <g key={i} style={{animation:`pv-twinkle ${2+i*0.25}s ease-in-out ${i*0.15}s infinite`}}>
+            <circle cx={x} cy={y} r="0.7" fill="#fff" opacity={0.3+i*0.03} />
+            {i%3===0 && <>
+              <line x1={(x as number)-1.5} y1={y} x2={(x as number)+1.5} y2={y} stroke="#fff" strokeWidth="0.3" opacity="0.25" />
+              <line x1={x} y1={(y as number)-1.5} x2={x} y2={(y as number)+1.5} stroke="#fff" strokeWidth="0.3" opacity="0.25" />
+            </>}
+          </g>
         ))}
       </>}
       {c.id === "cape_obsidian" && <>
-        {/* Purple crack lines */}
-        {[[cx-15,20,cx+5,35],[cx+3,40,cx-10,60],[cx-8,55,cx+15,75],[cx+5,70,cx-5,88]].map(([x1,y1,x2,y2],i) => (
-          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#7828B4" strokeWidth="0.8" opacity={0.3+i*0.05}
-            style={{animation:`pv-glow ${3+i*0.4}s ease-in-out ${i*0.3}s infinite`}} />
+        {/* Deep purple ambient */}
+        <ellipse cx={cx} cy={45} rx="22" ry="35" fill="#2A1040" opacity="0.1" filter={`url(#blur-${c.id})`} />
+        {/* Obsidian surface texture — angular facets */}
+        {[[cx-20,12,cx-5,30],[cx-5,30,cx+18,15],[cx+18,15,cx+10,45],[cx-20,12,cx-18,48],[cx-18,48,cx-5,30],
+          [cx-5,30,cx+10,45],[cx+10,45,cx+5,70],[cx-18,48,cx-8,65],[cx-8,65,cx+5,70],[cx+5,70,cx+18,60],
+          [cx-8,65,cx-15,85],[cx-15,85,cx+5,70],[cx+5,70,cx+15,88]].map(([x1,y1,x2,y2],i) => (
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#1A0830" strokeWidth="0.4" opacity={0.12+i*0.008} />
         ))}
-        {/* Purple glow points */}
-        {[[cx-10,28],[cx+8,50],[cx-5,68],[cx+10,82]].map(([x,y],i) => (
-          <circle key={i} cx={x} cy={y} r="2" fill="#A050E0" opacity={0.15+i*0.05}
+        {/* Purple energy crack network */}
+        <path d={`M${cx-16} 18 L${cx-8} 32 L${cx+6} 28 L${cx+14} 40 L${cx+8} 55`}
+          fill="none" stroke="#7828B4" strokeWidth="1" opacity="0.4" style={{animation:"pv-glow 3s ease-in-out infinite"}} />
+        <path d={`M${cx-8} 32 L${cx-14} 50 L${cx-6} 62 L${cx+4} 70 L${cx} 85`}
+          fill="none" stroke="#9040D0" strokeWidth="0.8" opacity="0.3" style={{animation:"pv-glow 3.5s ease-in-out 0.5s infinite"}} />
+        <path d={`M${cx+6} 28 L${cx+18} 48 L${cx+10} 68 L${cx+16} 82`}
+          fill="none" stroke="#6820A0" strokeWidth="0.6" opacity="0.25" style={{animation:"pv-glow 4s ease-in-out 1s infinite"}} />
+        {/* Energy glow at crack junctions */}
+        {[[cx-8,32],[cx+6,28],[cx+14,40],[cx-14,50],[cx-6,62],[cx+4,70],[cx+10,68]].map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r="2.5" fill="#A050E0" opacity={0.1+i*0.02}
+            filter={`url(#blur-${c.id})`}
             style={{animation:`pv-shimmer ${2+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
         ))}
-        {/* Dark sheen */}
-        <rect x={cx-22} y={30} width="44" height="2" fill="rgba(80,60,100,0.08)" transform={`rotate(-10 ${cx} 31)`} />
+        {/* Gloss sheen lines */}
+        {[25,45,65].map((y,i) => (
+          <rect key={i} x={cx-22} y={y} width="44" height="1.5" fill="rgba(120,80,160,0.06)"
+            transform={`rotate(${-12+i*6} ${cx} ${y})`} />
+        ))}
+        {/* Floating dark particles */}
+        {[[cx-16,22],[cx+16,35],[cx-12,58],[cx+14,75],[cx,15],[cx-6,82]].map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r="0.6" fill="#C080FF" opacity={0.2+i*0.03}
+            style={{animation:`pv-float ${3+i*0.3}s ease-in-out ${i*0.2}s infinite`,transformOrigin:`${x}px ${y}px`}} />
+        ))}
       </>}
       {c.id === "cape_blackhole" && <>
-        {/* Accretion disk ellipses */}
-        {[35,30,25,20].map((r,i) => (
-          <ellipse key={i} cx={cx} cy={45} rx={r} ry={r*0.3} fill="none" stroke="#FFA040"
-            strokeWidth={0.5+i*0.3} opacity={0.1+i*0.08}
-            style={{animation:`pv-spin ${20-i*3}s linear infinite`}} />
+        {/* Background gravitational lensing glow */}
+        <ellipse cx={cx} cy={45} rx="35" ry="20" fill="#FFA040" opacity="0.04" filter={`url(#blur-${c.id})`} />
+        {/* Accretion disk — multiple detailed rings */}
+        {[38,34,30,26,22,18].map((r,i) => (
+          <ellipse key={i} cx={cx} cy={45} rx={r} ry={r*0.28} fill="none"
+            stroke={i<2?"#FF6020":i<4?"#FFA040":"#FFD080"}
+            strokeWidth={0.3+i*0.2} opacity={0.06+i*0.06}
+            style={{animation:`pv-spin ${25-i*3}s linear infinite`}} />
         ))}
+        {/* Bright accretion band */}
+        <ellipse cx={cx} cy={45} rx="24" ry="7" fill="none" stroke="#FFD080" strokeWidth="1.2" opacity="0.15"
+          style={{animation:"pv-spin 18s linear infinite"}} />
         {/* Event horizon */}
-        <circle cx={cx} cy={45} r="8" fill="#000" />
-        <circle cx={cx} cy={45} r="9" fill="none" stroke="#FFA040" strokeWidth="0.5" opacity="0.4"
-          style={{animation:`pv-pulse 3s ease-in-out infinite`}} />
-        {/* Spiraling stars */}
-        {[0,1,2,3,4,5].map(i => {
-          const a = i * 1.05 + 0.5;
-          const r2 = 12 + i * 4;
-          return <circle key={i} cx={cx + Math.cos(a)*r2} cy={45 + Math.sin(a)*r2*0.3} r="1"
-            fill="#fff" opacity={0.3+i*0.08}
-            style={{animation:`pv-twinkle ${2+i*0.3}s ease-in-out ${i*0.4}s infinite`}} />;
+        <circle cx={cx} cy={45} r="9" fill="#000" />
+        <circle cx={cx} cy={45} r="10" fill="none" stroke="#FFA040" strokeWidth="0.6" opacity="0.5"
+          style={{animation:"pv-pulse 3s ease-in-out infinite"}} />
+        {/* Photon ring */}
+        <circle cx={cx} cy={45} r="11" fill="none" stroke="#FFD080" strokeWidth="0.3" opacity="0.25"
+          style={{animation:"pv-pulse 3s ease-in-out 0.5s infinite"}} />
+        {/* Spiraling matter */}
+        {[0,1,2,3,4,5,6,7].map(i => {
+          const a = i * 0.85 + 0.3;
+          const r2 = 13 + i * 3.2;
+          return <circle key={i} cx={cx + Math.cos(a)*r2} cy={45 + Math.sin(a)*r2*0.28} r={0.6+i*0.15}
+            fill={i<3?"#FFD080":i<6?"#FFA060":"#FF8040"} opacity={0.2+i*0.06}
+            style={{animation:`pv-twinkle ${2+i*0.25}s ease-in-out ${i*0.3}s infinite`}} />;
         })}
-        {/* Jets */}
-        <line x1={cx} y1={10} x2={cx} y2={30} stroke="#B0A0FF" strokeWidth="0.5" opacity="0.15"
-          style={{animation:`pv-glow 2.5s ease-in-out infinite`}} />
-        <line x1={cx} y1={60} x2={cx} y2={85} stroke="#B0A0FF" strokeWidth="0.5" opacity="0.15"
-          style={{animation:`pv-glow 2.5s ease-in-out 0.5s infinite`}} />
+        {/* Relativistic jets */}
+        <path d={`M${cx} 36 Q${cx-2} 22 ${cx-1} 8`} fill="none" stroke="#B0A0FF" strokeWidth="1" opacity="0.2"
+          style={{animation:"pv-glow 2.5s ease-in-out infinite"}} />
+        <path d={`M${cx} 54 Q${cx+2} 68 ${cx+1} 88`} fill="none" stroke="#B0A0FF" strokeWidth="1" opacity="0.2"
+          style={{animation:"pv-glow 2.5s ease-in-out 0.5s infinite"}} />
+        {/* Jet glow */}
+        <path d={`M${cx} 36 Q${cx-2} 22 ${cx-1} 8`} fill="none" stroke="#C0B0FF" strokeWidth="3" opacity="0.04"
+          filter={`url(#blur-${c.id})`} />
+        <path d={`M${cx} 54 Q${cx+2} 68 ${cx+1} 88`} fill="none" stroke="#C0B0FF" strokeWidth="3" opacity="0.04"
+          filter={`url(#blur-${c.id})`} />
+        {/* Background stars being warped */}
+        {[[cx-20,18],[cx+18,22],[cx-22,68],[cx+20,72],[cx-16,38],[cx+16,52]].map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r="0.5" fill="#fff" opacity={0.15+i*0.02}
+            style={{animation:`pv-twinkle ${2.5+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
+        ))}
       </>}
       {c.id === "cape_creator" && <>
-        {/* Gold star burst */}
-        {[0,1,2,3,4].map(i => {
-          const a = i * Math.PI * 2 / 5 - Math.PI/2;
-          return <line key={i} x1={cx} y1={45} x2={cx+Math.cos(a)*20} y2={45+Math.sin(a)*20}
-            stroke="#FFD700" strokeWidth="1" opacity={0.3}
-            style={{animation:`pv-glow ${2+i*0.2}s ease-in-out ${i*0.3}s infinite`}} />;
+        {/* Gold ambient */}
+        <ellipse cx={cx} cy={45} rx="25" ry="30" fill="#FFD700" opacity="0.06" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 3s ease-in-out infinite"}} />
+        {/* Star burst rays */}
+        {Array.from({length:10}).map((_,i) => {
+          const a = i * Math.PI * 2 / 10 - Math.PI/2;
+          const len = i%2===0 ? 24 : 16;
+          return <line key={i} x1={cx+Math.cos(a)*6} y1={45+Math.sin(a)*6} x2={cx+Math.cos(a)*len} y2={45+Math.sin(a)*len}
+            stroke="#FFD700" strokeWidth={i%2===0?"1":"0.5"} opacity={i%2===0?0.3:0.18}
+            style={{animation:`pv-glow ${2+i*0.15}s ease-in-out ${i*0.15}s infinite`}} />;
         })}
-        <circle cx={cx} cy={45} r="8" fill="#FFD700" opacity="0.3"
-          style={{animation:`pv-pulse 2s ease-in-out infinite`}} />
-        <circle cx={cx} cy={45} r="4" fill="#FFD700" opacity="0.6" />
-        {/* Sparkles */}
-        {[[cx-15,25],[cx+12,35],[cx-8,65],[cx+15,75],[cx,20]].map(([x,y],i) => (
-          <circle key={i} cx={x} cy={y} r="1.5" fill="#FFD700" opacity={0.4}
-            style={{animation:`pv-twinkle ${1.5+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
+        {/* Central star */}
+        <circle cx={cx} cy={45} r="10" fill="#FFD700" opacity="0.15" filter={`url(#blur-${c.id})`} style={{animation:"pv-pulse 2s ease-in-out infinite"}} />
+        <circle cx={cx} cy={45} r="6" fill="#FFD700" opacity="0.3" />
+        <circle cx={cx} cy={45} r="3" fill="#FFE860" opacity="0.6" />
+        <circle cx={cx} cy={45} r="1.5" fill="#FFFFF0" opacity="0.8" />
+        {/* 5-pointed star shape */}
+        {[0,1,2,3,4].map(i => {
+          const outer = i * Math.PI * 2 / 5 - Math.PI/2;
+          const inner = (i + 0.5) * Math.PI * 2 / 5 - Math.PI/2;
+          return <g key={i}>
+            <line x1={cx+Math.cos(outer)*12} y1={45+Math.sin(outer)*12}
+              x2={cx+Math.cos(inner)*5} y2={45+Math.sin(inner)*5}
+              stroke="#FFE060" strokeWidth="0.5" opacity="0.35" />
+            <line x1={cx+Math.cos(inner)*5} y1={45+Math.sin(inner)*5}
+              x2={cx+Math.cos((i+1)*Math.PI*2/5-Math.PI/2)*12} y2={45+Math.sin((i+1)*Math.PI*2/5-Math.PI/2)*12}
+              stroke="#FFE060" strokeWidth="0.5" opacity="0.35" />
+          </g>;
+        })}
+        {/* Sparkles with cross glints */}
+        {[[cx-18,20],[cx+16,25],[cx-14,40],[cx+18,55],[cx-16,68],[cx+14,78],[cx,15],[cx,82]].map(([x,y],i) => (
+          <g key={i} style={{animation:`pv-twinkle ${1.5+i*0.2}s ease-in-out ${i*0.15}s infinite`}}>
+            <circle cx={x} cy={y} r="1" fill="#FFD700" opacity={0.35+i*0.03} />
+            <line x1={(x as number)-2} y1={y} x2={(x as number)+2} y2={y} stroke="#FFD700" strokeWidth="0.3" opacity="0.3" />
+            <line x1={x} y1={(y as number)-2} x2={x} y2={(y as number)+2} stroke="#FFD700" strokeWidth="0.3" opacity="0.3" />
+          </g>
         ))}
       </>}
       {c.id === "cape_youtube" && <>
-        {/* Play button */}
-        <rect x={cx-14} y={35} width="28" height="20" rx="4" fill="#fff" opacity="0.9" />
-        <polygon points={`${cx-4},40 ${cx-4},50 ${cx+6},45`} fill="#FF0000" />
-        {/* Subtle video reel lines */}
-        {[20,25,65,70].map((y,i) => (
-          <rect key={i} x={cx-18} y={y} width="36" height="1" fill="#fff" opacity="0.06" />
+        {/* Red ambient glow */}
+        <ellipse cx={cx} cy={45} rx="22" ry="18" fill="#FF0000" opacity="0.06" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 3s ease-in-out infinite"}} />
+        {/* Play button — detailed with shadow */}
+        <rect x={cx-16} y={33} width="32" height="22" rx="5" fill="#CC0000" opacity="0.15" />
+        <rect x={cx-15} y={32} width="30" height="21" rx="5" fill="#FF0000" opacity="0.85" />
+        <rect x={cx-15} y={32} width="30" height="10" rx="5" fill="#FF2020" opacity="0.2" />
+        <polygon points={`${cx-4},38 ${cx-4},49 ${cx+7},43.5`} fill="#fff" opacity="0.95" />
+        {/* Glow rings */}
+        <rect x={cx-18} y={30} width="36" height="28" rx="7" fill="none" stroke="#FF0000" strokeWidth="0.5" opacity="0.15"
+          style={{animation:"pv-pulse 3s ease-in-out infinite"}} />
+        <rect x={cx-21} y={28} width="42" height="32" rx="9" fill="none" stroke="#FF0000" strokeWidth="0.3" opacity="0.08"
+          style={{animation:"pv-pulse 3s ease-in-out 0.3s infinite"}} />
+        {/* Video reel bars — top and bottom */}
+        {[14,18,22,66,70,74].map((y,i) => (
+          <rect key={i} x={cx-20+i*2} y={y} width="40-i*4" height="1.2" fill="#fff" opacity={0.04+i*0.005} rx="0.5" />
         ))}
-        {/* Glow */}
-        <circle cx={cx} cy={45} r="18" fill="none" stroke="#FF0000" strokeWidth="0.5" opacity="0.15"
-          style={{animation:`pv-pulse 3s ease-in-out infinite`}} />
+        {/* Subscriber count effect dots */}
+        {[[cx-18,20],[cx+16,22],[cx-14,72],[cx+18,68],[cx-20,45],[cx+20,42]].map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r="0.8" fill={i%2===0?"#FF4040":"#fff"} opacity={0.15+i*0.02}
+            style={{animation:`pv-twinkle ${2+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
+        ))}
       </>}
       {c.id === "cape_twitch" && <>
-        {/* Twitch icon shape */}
-        <path d={`M${cx-10},30 L${cx-10},58 L${cx-4},64 L${cx+2},64 L${cx+8},58 L${cx+8},30 Z`}
-          fill="#9146FF" opacity="0.5" stroke="#9146FF" strokeWidth="0.5" />
-        <rect x={cx-5} y={40} width="3" height="10" fill="#fff" opacity="0.8" />
-        <rect x={cx+2} y={40} width="3" height="10" fill="#fff" opacity="0.8" />
-        {/* Chat bubbles */}
-        {[[cx-16,25,4],[cx+14,35,3],[cx-12,70,3.5]].map(([x,y,r],i) => (
-          <circle key={i} cx={x} cy={y} r={r} fill="#9146FF" opacity={0.15+i*0.05}
-            style={{animation:`pv-float ${3+i*0.5}s ease-in-out ${i*0.3}s infinite`}} />
+        {/* Purple ambient */}
+        <ellipse cx={cx} cy={45} rx="22" ry="25" fill="#9146FF" opacity="0.06" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 3s ease-in-out infinite"}} />
+        {/* Twitch icon — detailed with depth */}
+        <path d={`M${cx-12},28 L${cx-12},60 L${cx-5},67 L${cx+3},67 L${cx+10},60 L${cx+10},28 Z`}
+          fill="#7028CC" opacity="0.2" />
+        <path d={`M${cx-11},27 L${cx-11},59 L${cx-4},66 L${cx+4},66 L${cx+11},59 L${cx+11},27 Z`}
+          fill="#9146FF" opacity="0.55" stroke="#A060FF" strokeWidth="0.4" />
+        {/* Icon sheen */}
+        <path d={`M${cx-11},27 L${cx+11},27 L${cx+11},38 L${cx-11},42 Z`}
+          fill="#B080FF" opacity="0.1" />
+        {/* Eyes — glowing */}
+        <rect x={cx-6} y={38} width="3.5" height="12" fill="#fff" opacity="0.9" rx="0.5" />
+        <rect x={cx+3} y={38} width="3.5" height="12" fill="#fff" opacity="0.9" rx="0.5" />
+        <rect x={cx-6} y={38} width="3.5" height="12" fill="#fff" opacity="0.15" rx="0.5" filter={`url(#blur-${c.id})`} />
+        <rect x={cx+3} y={38} width="3.5" height="12" fill="#fff" opacity="0.15" rx="0.5" filter={`url(#blur-${c.id})`} />
+        {/* Chat bubbles — floating with detail */}
+        {[[cx-18,22,4.5],[cx+16,32,3.5],[cx-14,72,4],[cx+18,75,3],[cx-20,50,3]].map(([x,y,r],i) => (
+          <g key={i} style={{animation:`pv-float ${3+i*0.4}s ease-in-out ${i*0.25}s infinite`,transformOrigin:`${x}px ${y}px`}}>
+            <circle cx={x as number} cy={y as number} r={r as number} fill="#9146FF" opacity={0.12+i*0.03} />
+            {/* Chat lines inside */}
+            <line x1={(x as number)-(r as number)*0.5} y1={(y as number)-0.5} x2={(x as number)+(r as number)*0.5} y2={(y as number)-0.5}
+              stroke="#fff" strokeWidth="0.4" opacity="0.3" />
+            <line x1={(x as number)-(r as number)*0.4} y1={(y as number)+1} x2={(x as number)+(r as number)*0.3} y2={(y as number)+1}
+              stroke="#fff" strokeWidth="0.3" opacity="0.2" />
+          </g>
         ))}
+        {/* Pulse ring */}
+        <path d={`M${cx-14},25 L${cx-14},62 L${cx-6},70 L${cx+6},70 L${cx+14},62 L${cx+14},25 Z`}
+          fill="none" stroke="#9146FF" strokeWidth="0.4" opacity="0.12"
+          style={{animation:"pv-pulse 3s ease-in-out infinite"}} />
       </>}
       {c.id === "cape_tiktok" && <>
-        {/* Music note */}
-        <circle cx={cx-4} cy={55} r="5" fill="#00F2EA" opacity="0.6" />
-        <rect x={cx-1} y={30} width="2" height="25" fill="#00F2EA" opacity="0.6" />
-        <circle cx={cx+6} cy={48} r="5" fill="#FF0050" opacity="0.4" />
-        <rect x={cx+5} y={25} width="2" height="23" fill="#FF0050" opacity="0.4" />
-        {/* Glitch offset lines */}
-        {[22,38,62,78].map((y,i) => (
-          <rect key={i} x={cx-18+i*3} y={y} width="12" height="1.5"
-            fill={i%2===0?"#00F2EA":"#FF0050"} opacity="0.12"
-            style={{animation:`pv-drift ${2+i*0.4}s ease-in-out ${i*0.2}s infinite`}} />
+        {/* Dual-color glow */}
+        <ellipse cx={cx-6} cy={45} rx="18" ry="25" fill="#00F2EA" opacity="0.05" filter={`url(#blur-${c.id})`} />
+        <ellipse cx={cx+6} cy={45} rx="18" ry="25" fill="#FF0050" opacity="0.05" filter={`url(#blur-${c.id})`} />
+        {/* Music note — cyan layer */}
+        <circle cx={cx-5} cy={56} r="5.5" fill="#00F2EA" opacity="0.55" />
+        <rect x={cx-2} y={30} width="2.5" height="26" fill="#00F2EA" opacity="0.55" />
+        <path d={`M${cx+0.5} 30 Q${cx+6} 28 ${cx+8} 32`} fill="none" stroke="#00F2EA" strokeWidth="2" opacity="0.55" />
+        {/* Music note — red layer (offset for 3D effect) */}
+        <circle cx={cx-3} cy={54} r="5.5" fill="#FF0050" opacity="0.35" />
+        <rect x={cx} y={28} width="2.5" height="26" fill="#FF0050" opacity="0.35" />
+        <path d={`M${cx+2.5} 28 Q${cx+8} 26 ${cx+10} 30`} fill="none" stroke="#FF0050" strokeWidth="2" opacity="0.35" />
+        {/* White core note */}
+        <circle cx={cx-4} cy={55} r="4" fill="#fff" opacity="0.15" />
+        <rect x={cx-1} y={29} width="1.5" height="26" fill="#fff" opacity="0.15" />
+        {/* Glitch blocks — scattered */}
+        {[[cx-20,18,10,2,"#00F2EA"],[cx+8,24,12,1.8,"#FF0050"],[cx-16,42,8,2,"#FF0050"],[cx+10,52,11,1.5,"#00F2EA"],
+          [cx-12,68,9,2,"#00F2EA"],[cx+6,76,13,1.8,"#FF0050"],[cx-18,82,7,1.5,"#FF0050"],[cx+14,85,8,1.5,"#00F2EA"]
+        ].map(([x,y,w,h,col],i) => (
+          <rect key={i} x={x as number} y={y as number} width={w as number} height={h as number}
+            fill={col as string} opacity={0.1+i*0.015} rx="0.5"
+            style={{animation:`pv-drift ${1.5+i*0.3}s ease-in-out ${i*0.12}s infinite`}} />
+        ))}
+        {/* Scanlines */}
+        {Array.from({length:8}).map((_,i) => (
+          <line key={i} x1={cx-24} y1={14+i*10} x2={cx+24} y2={14+i*10}
+            stroke="#fff" strokeWidth="0.2" opacity="0.03" />
+        ))}
+        {/* Floating music symbols */}
+        {[[cx-16,30],[cx+18,40],[cx-18,62],[cx+16,70]].map(([x,y],i) => (
+          <g key={i} opacity={0.2} style={{animation:`pv-float ${3+i*0.4}s ease-in-out ${i*0.3}s infinite`,transformOrigin:`${x}px ${y}px`}}>
+            <circle cx={x} cy={(y as number)+2} r="2" fill={i%2===0?"#00F2EA":"#FF0050"} />
+            <rect x={(x as number)+1} y={(y as number)-4} width="1" height="6" fill={i%2===0?"#00F2EA":"#FF0050"} />
+          </g>
         ))}
       </>}
       {c.id === "cape_og" && <>
-        {/* Clean minimal design — diagonal lines */}
-        {[0,1,2,3,4,5,6,7].map(i => (
-          <line key={i} x1={cx-25+i*8} y1={15} x2={cx-20+i*8} y2={88}
-            stroke="#fff" strokeWidth="0.5" opacity="0.06" />
+        {/* Clean premium glow */}
+        <ellipse cx={cx} cy={45} rx="20" ry="25" fill="#fff" opacity="0.03" filter={`url(#blur-${c.id})`} style={{animation:"pv-glow 4s ease-in-out infinite"}} />
+        {/* Elegant diagonal lines */}
+        {Array.from({length:10}).map((_,i) => (
+          <line key={i} x1={cx-28+i*7} y1={10} x2={cx-23+i*7} y2={90}
+            stroke="#fff" strokeWidth={i%3===0?"0.6":"0.3"} opacity={i%3===0?0.08:0.04} />
         ))}
-        {/* Pulsar logo outline */}
+        {/* Pulsar logo — detailed */}
+        <circle cx={cx} cy={45} r="14" fill="none" stroke="#fff" strokeWidth="0.6" opacity="0.15"
+          style={{animation:"pv-pulse 4s ease-in-out infinite"}} />
         <circle cx={cx} cy={45} r="12" fill="none" stroke="#fff" strokeWidth="0.8" opacity="0.2" />
-        <ellipse cx={cx} cy={45} rx="16" ry="5" fill="none" stroke="#fff" strokeWidth="0.5" opacity="0.15" />
-        <circle cx={cx} cy={45} r="4" fill="#fff" opacity="0.1" />
-        {/* Corner dots */}
-        {[[cx-18,22],[cx+18,22],[cx-18,70],[cx+18,70]].map(([x,y],i) => (
-          <circle key={i} cx={x} cy={y} r="1" fill="#fff" opacity="0.15" />
+        {/* Orbital rings */}
+        <ellipse cx={cx} cy={45} rx="18" ry="5.5" fill="none" stroke="#fff" strokeWidth="0.5" opacity="0.15"
+          style={{animation:"pv-spin 20s linear infinite"}} />
+        <ellipse cx={cx} cy={45} rx="15" ry="8" fill="none" stroke="#fff" strokeWidth="0.3" opacity="0.1"
+          transform={`rotate(60 ${cx} 45)`} style={{animation:"pv-spin 25s linear reverse infinite"}} />
+        {/* Core */}
+        <circle cx={cx} cy={45} r="5" fill="#fff" opacity="0.08" />
+        <circle cx={cx} cy={45} r="3" fill="#fff" opacity="0.12" />
+        <circle cx={cx} cy={45} r="1.5" fill="#fff" opacity="0.2" />
+        {/* Corner markers — premium feel */}
+        {[[cx-20,18],[cx+20,18],[cx-22,72],[cx+22,72]].map(([x,y],i) => (
+          <g key={i}>
+            <circle cx={x} cy={y} r="1.2" fill="#fff" opacity="0.12" />
+            <line x1={(x as number)-(i<2?3:-3)} y1={y} x2={x} y2={y} stroke="#fff" strokeWidth="0.3" opacity="0.08" />
+            <line x1={x} y1={(y as number)+(i<2?-3:3)} x2={x} y2={y} stroke="#fff" strokeWidth="0.3" opacity="0.08" />
+          </g>
+        ))}
+        {/* "OG" text feel — subtle pattern */}
+        <line x1={cx-10} y1={20} x2={cx+10} y2={20} stroke="#fff" strokeWidth="0.3" opacity="0.06" />
+        <line x1={cx-10} y1={70} x2={cx+10} y2={70} stroke="#fff" strokeWidth="0.3" opacity="0.06" />
+        {/* Particle scatter */}
+        {[[cx-16,28],[cx+14,32],[cx-12,58],[cx+16,62],[cx,82],[cx-8,15],[cx+8,80]].map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r="0.5" fill="#fff" opacity={0.1+i*0.02}
+            style={{animation:`pv-twinkle ${2.5+i*0.3}s ease-in-out ${i*0.2}s infinite`}} />
         ))}
       </>}
       {/* Default capes without custom detail */}

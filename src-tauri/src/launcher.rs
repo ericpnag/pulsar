@@ -507,7 +507,7 @@ fn install_mods(client: &Client, _game_dir: &PathBuf, mc_version: &str) -> Resul
 }
 
 #[tauri::command]
-pub fn get_versions() -> Result<Vec<String>, String> {
+pub fn get_versions(show_snapshots: Option<bool>, show_betas: Option<bool>) -> Result<Vec<String>, String> {
     let client = Client::new();
     let game_dir = game_dir();
     let manifest_path = game_dir.join("version_manifest.json");
@@ -517,18 +517,24 @@ pub fn get_versions() -> Result<Vec<String>, String> {
     }
     let text = fs::read_to_string(&manifest_path).map_err(|e| e.to_string())?;
     let manifest: VersionManifest = serde_json::from_str(&text).map_err(|e| e.to_string())?;
+    let snaps = show_snapshots.unwrap_or(false);
+    let betas = show_betas.unwrap_or(false);
     let versions: Vec<String> = manifest.versions.iter()
-        .filter(|v| v.r#type == "release")
+        .filter(|v| {
+            v.r#type == "release"
+                || (snaps && v.r#type == "snapshot")
+                || (betas && (v.r#type == "old_beta" || v.r#type == "old_alpha"))
+        })
         .map(|v| v.id.clone())
         .collect();
     Ok(versions)
 }
 
 #[tauri::command]
-pub fn launch_minecraft(app: AppHandle, version: String, username: Option<String>, uuid: Option<String>, access_token: Option<String>) -> Result<(), String> {
+pub fn launch_minecraft(app: AppHandle, version: String, username: Option<String>, uuid: Option<String>, access_token: Option<String>, ram_mb: Option<u32>, java_args: Option<String>) -> Result<(), String> {
     // Run everything in a background thread so we don't block Tauri IPC
     std::thread::spawn(move || {
-        match do_launch(&app, &version, username, uuid, access_token) {
+        match do_launch(&app, &version, username, uuid, access_token, ram_mb, java_args) {
             Ok(()) => {
                 let _ = app.emit("launch_done", serde_json::json!({ "success": true }));
             }
@@ -540,7 +546,7 @@ pub fn launch_minecraft(app: AppHandle, version: String, username: Option<String
     Ok(())
 }
 
-fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Option<String>, access_token: Option<String>) -> Result<(), String> {
+fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Option<String>, access_token: Option<String>, ram_mb: Option<u32>, java_args: Option<String>) -> Result<(), String> {
     // Auto-download the right Java version for this MC version
     download_java(app, version)?;
 
@@ -862,9 +868,15 @@ fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Opt
             jvm_args.push(arg.trim().to_string());
         }
     }
-    // Read RAM setting from localStorage (default 2048MB)
-    jvm_args.push("-Xmx2048M".to_string());
-    jvm_args.push("-Xms512M".to_string());
+    let ram = ram_mb.unwrap_or(2048);
+    jvm_args.push(format!("-Xmx{}M", ram));
+    jvm_args.push(format!("-Xms{}M", std::cmp::min(512, ram)));
+    // Custom JVM args from settings
+    if let Some(ref extra) = java_args {
+        for arg in extra.split_whitespace() {
+            if !arg.is_empty() { jvm_args.push(arg.to_string()); }
+        }
+    }
     // GC optimization for smoother FPS
     jvm_args.push("-XX:+UseG1GC".to_string());
     jvm_args.push("-XX:MaxGCPauseMillis=20".to_string());

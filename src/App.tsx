@@ -48,7 +48,13 @@ export default function App() {
       if (a) setAccount({ username: a.username, uuid: a.uuid, accessToken: a.access_token });
     }).catch(() => {});
 
-    invoke<string[]>("get_versions").then(v => {
+    // Load version type settings
+    const s = localStorage.getItem("pulsar-settings");
+    const cfg = s ? JSON.parse(s) : {};
+    invoke<string[]>("get_versions", {
+      showSnapshots: cfg.showSnapshots || false,
+      showBetas: cfg.showBetas || false,
+    }).then(v => {
       setVersions(v);
       if (v.includes("1.21.11")) setSelectedVersion("1.21.11");
       else if (v.length) setSelectedVersion(v[0]);
@@ -118,11 +124,17 @@ export default function App() {
         }
       }
 
+      // Read settings for launch params
+      const settingsRaw = localStorage.getItem("pulsar-settings");
+      const settings = settingsRaw ? JSON.parse(settingsRaw) : {};
+
       await invoke("launch_minecraft", {
         version: selectedVersion,
         username: launchAccount?.username ?? null,
         uuid: launchAccount?.uuid ?? null,
         accessToken: launchAccount?.accessToken ?? null,
+        ramMb: settings.ram || 2048,
+        javaArgs: settings.javaArgs || null,
       });
     } catch (e: any) {
       setPhase("error");

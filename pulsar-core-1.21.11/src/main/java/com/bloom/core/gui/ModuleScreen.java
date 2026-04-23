@@ -167,6 +167,12 @@ public class ModuleScreen extends Screen {
             catY += 24;
         }
 
+        // HUD Editor button at bottom of sidebar
+        int hudBtnY = h - 50;
+        boolean hudHov = mx >= 4 && mx < sideW - 4 && my >= hudBtnY && my < hudBtnY + 22;
+        fillRound(ctx, 4, hudBtnY, sideW - 8, 22, hudHov ? 0x30C678DD : 0x15C678DD);
+        drawT(ctx, "HUD Editor", sideW / 2 - tw("HUD Editor") / 2, hudBtnY + 7, hudHov ? 0xC678DD : 0x8060A0, false);
+
         // Module count at bottom of sidebar
         List<Module> allMods = PulsarCore.MODULES.getModules();
         long enabledCount = allMods.stream().filter(Module::isEnabled).count();
@@ -328,6 +334,13 @@ public class ModuleScreen extends Screen {
         double mx = click.x(), my = click.y();
         int w = this.width, h = this.height;
         int sideW = 90;
+
+        // HUD Editor button
+        int hudBtnY = h - 50;
+        if (mx >= 4 && mx < sideW - 4 && my >= hudBtnY && my < hudBtnY + 22) {
+            client.setScreen(new HudEditorScreen());
+            return true;
+        }
 
         // Category sidebar clicks
         int catY = 34;

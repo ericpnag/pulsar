@@ -7,6 +7,9 @@ public abstract class Module {
     private final String name;
     private final String description;
     private boolean enabled;
+    private int hudX = -1; // -1 = use default position
+    private int hudY = -1;
+    private int hudWidth = 60;
 
     public Module(String name, String description, boolean enabledByDefault) {
         this.name = name;
@@ -17,6 +20,14 @@ public abstract class Module {
     public String getName() { return name; }
     public String getDescription() { return description; }
     public boolean isEnabled() { return enabled; }
+
+    public int getHudX() { return hudX; }
+    public int getHudY() { return hudY; }
+    public void setHudX(int x) { this.hudX = x; }
+    public void setHudY(int y) { this.hudY = y; }
+    public int getHudWidth() { return hudWidth; }
+    public void setHudWidth(int w) { this.hudWidth = w; }
+    public boolean hasCustomPosition() { return hudX >= 0 && hudY >= 0; }
 
     public void toggle() {
         enabled = !enabled;
