@@ -35,9 +35,14 @@ pub fn run() {
             launcher::save_cosmetics,
             auth::start_microsoft_login,
             auth::get_account,
+            auth::get_accounts,
+            auth::switch_account,
+            auth::remove_account,
             auth::save_account,
             auth::refresh_account,
             auth::logout,
+            auth::get_system_ram,
+            auth::repair_game,
             open_browser,
         ])
         .run(tauri::generate_context!())

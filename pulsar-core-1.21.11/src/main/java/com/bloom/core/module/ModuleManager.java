@@ -32,6 +32,7 @@ public class ModuleManager {
         modules.add(new Clock());
         modules.add(new Stopwatch());
         modules.add(new Playtime());
+        modules.add(new SessionStats());
         modules.add(new ItemCounter());
         // Visual
         modules.add(new Fullbright());

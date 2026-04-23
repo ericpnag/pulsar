@@ -1,18 +1,33 @@
-/* ── Pulsar Client — Deep Space Theme ── */
+/* ── Pulsar Client — Accretion Disk Theme ── */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg: #000000;
-  --bg-surface: rgba(255, 255, 255, 0.03);
+  /* ── Core palette: deep space with warm accretion glow ── */
+  --bg: #06060C;
+  --bg-surface: rgba(255, 255, 255, 0.028);
   --bg-surface-hover: rgba(255, 255, 255, 0.05);
-  --bg-elevated: rgba(0, 0, 0, 0.95);
+  --bg-elevated: rgba(8, 8, 16, 0.95);
+  --bg-card: rgba(255, 255, 255, 0.028);
 
+  /* ── Borders ── */
   --border: rgba(255, 255, 255, 0.06);
   --border-hover: rgba(255, 255, 255, 0.12);
   --border-input: rgba(255, 255, 255, 0.08);
   --border-active: rgba(255, 255, 255, 0.2);
 
+  /* ── Accent: accretion disk warm tones ── */
+  --accent: #C678DD;
+  --accent-soft: #A855F7;
+  --accent-glow: rgba(198, 120, 221, 0.15);
+  --accent-hot: #FF8C42;
+  --accent-warm: #E8614D;
+
+  /* ── Legacy pink vars (mapped to accent) ── */
+  --pink: var(--accent);
+  --pink-soft: var(--accent-soft);
+  --pink-light: #D4A0E8;
+  --pink-glow: var(--accent-glow);
   --pink-50: #FFFFFF;
   --pink-100: #E0E0E0;
   --pink-200: #FFFFFF;
@@ -20,48 +35,64 @@
   --pink-400: #B0B0B0;
   --pink-500: #E0E0E0;
   --pink-600: #808080;
-  --pink-glow: rgba(255, 255, 255, 0.1);
 
+  /* ── Text hierarchy ── */
+  --text: #FFFFFF;
   --text-primary: #FFFFFF;
-  --text-secondary: #A0A0A0;
-  --text-muted: #606060;
-  --text-faint: #383838;
+  --text-secondary: #9CA3AF;
+  --text-dim: #6B7280;
+  --text-muted: #4B5563;
+  --text-faint: #2D3340;
 
-  --accent-green: #70FF70;
-  --accent-red: #FF5050;
-  --accent-yellow: #E0E0E0;
+  /* ── Status ── */
+  --green: #34D399;
+  --accent-green: #34D399;
+  --red: #F87171;
+  --accent-red: #F87171;
+  --yellow: #FBBF24;
+  --accent-yellow: #FBBF24;
 
+  /* ── Spacing scale ── */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px;
+
+  /* ── Radius scale ── */
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
 
+  /* ── Typography ── */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-primary);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; overflow: hidden; }
 
+/* ── Mono font for stats/numbers ── */
+.mono { font-family: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace; }
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.06); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.12); }
 
-::selection { background: rgba(255, 255, 255, 0.2); color: #fff; }
+::selection { background: rgba(198, 120, 221, 0.25); color: #fff; }
 
 /* ── Cards ── */
 .pulsar-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 .pulsar-card:hover {
   background: var(--bg-surface-hover);
@@ -81,8 +112,8 @@ body { margin: 0; overflow: hidden; }
   font-family: inherit;
 }
 .pulsar-input:focus {
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+  border-color: rgba(198, 120, 221, 0.4);
+  box-shadow: 0 0 0 3px rgba(198, 120, 221, 0.06);
 }
 .pulsar-input::placeholder { color: var(--text-faint); }
 
@@ -101,8 +132,8 @@ body { margin: 0; overflow: hidden; }
 
 /* ── Buttons ── */
 .pulsar-btn {
-  background: linear-gradient(135deg, #FFFFFF, #B0B0B0);
-  color: #000000;
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+  color: #FFFFFF;
   border: none;
   border-radius: var(--radius-sm);
   padding: 10px 22px;
@@ -115,9 +146,9 @@ body { margin: 0; overflow: hidden; }
 }
 .pulsar-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 6px 24px var(--accent-glow);
 }
-.pulsar-btn:active { transform: translateY(0); }
+.pulsar-btn:active { transform: scale(0.98) translateY(0); }
 .pulsar-btn:disabled { opacity: 0.4; cursor: default; transform: none; box-shadow: none; }
 
 .pulsar-btn-ghost {
@@ -132,10 +163,11 @@ body { margin: 0; overflow: hidden; }
   transition: all 0.15s ease;
 }
 .pulsar-btn-ghost:hover {
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(198, 120, 221, 0.3);
   color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(198, 120, 221, 0.06);
 }
+.pulsar-btn-ghost:active { transform: scale(0.97); }
 
 .pulsar-btn-install {
   background: transparent;
@@ -150,17 +182,18 @@ body { margin: 0; overflow: hidden; }
   flex-shrink: 0;
 }
 .pulsar-btn-install:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(198, 120, 221, 0.3);
   color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(198, 120, 221, 0.06);
 }
+.pulsar-btn-install:active:not(:disabled) { transform: scale(0.97); }
 .pulsar-btn-install.installed {
-  border-color: rgba(112, 255, 112, 0.2);
+  border-color: rgba(52, 211, 153, 0.2);
   color: var(--accent-green);
-  background: rgba(112, 255, 112, 0.04);
+  background: rgba(52, 211, 153, 0.04);
   cursor: default;
 }
-.pulsar-btn-install.failed { border-color: rgba(255, 80, 80, 0.2); color: var(--accent-red); }
+.pulsar-btn-install.failed { border-color: rgba(248, 113, 113, 0.2); color: var(--accent-red); }
 .pulsar-btn-install.loading { opacity: 0.5; cursor: wait; }
 
 /* ── Typography ── */
@@ -213,18 +246,109 @@ body { margin: 0; overflow: hidden; }
   font-size: 13px;
 }
 
+/* ── Game Mode Cards ── */
+.mode-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+.mode-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.mode-card:active {
+  transform: scale(0.98) translateY(0);
+}
+.mode-card.active {
+  border-color: rgba(198, 120, 221, 0.35);
+  box-shadow: 0 4px 24px var(--accent-glow), inset 0 1px 0 rgba(198, 120, 221, 0.1);
+}
+.mode-card.active:hover {
+  box-shadow: 0 8px 32px rgba(198, 120, 221, 0.2), inset 0 1px 0 rgba(198, 120, 221, 0.1);
+}
+
+/* ── Launch Button ── */
+.launch-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.launch-btn.ready {
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft), #7C3AED);
+  color: #FFFFFF;
+  box-shadow: 0 4px 24px var(--accent-glow);
+  animation: launch-glow 3s ease-in-out infinite;
+}
+.launch-btn.ready:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(198, 120, 221, 0.25);
+}
+.launch-btn.ready:active {
+  transform: scale(0.98);
+}
+.launch-btn.disabled {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-faint);
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ── Mode Transition ── */
+.mode-transition {
+  animation: modeSwitch 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes modeSwitch {
+  0% { opacity: 0.6; transform: scale(0.98); }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 /* ── Animations ── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes launch-glow {
+  0%, 100% { box-shadow: 0 4px 24px var(--accent-glow); }
+  50% { box-shadow: 0 4px 36px rgba(198, 120, 221, 0.22); }
+}
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 4px 20px rgba(255, 255, 255, 0.08); }
-  50% { box-shadow: 0 4px 32px rgba(255, 255, 255, 0.15); }
+  0%, 100% { box-shadow: 0 4px 20px rgba(198, 120, 221, 0.1); }
+  50% { box-shadow: 0 4px 32px rgba(198, 120, 221, 0.2); }
 }
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+@keyframes stagger1 { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes stagger2 { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes stagger3 { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-.fade-in { animation: fadeIn 0.25s ease-out; }
+/* ── Colorblind modes ── */
+.colorblind-deuteranopia { --accent-green: #4DA6FF; --green: #4DA6FF; --accent-red: #FFB347; --red: #FFB347; }
+.colorblind-protanopia { --accent-green: #66B2FF; --green: #66B2FF; --accent-red: #FFD700; --red: #FFD700; }
+.colorblind-tritanopia { --accent-green: #FF6B9D; --green: #FF6B9D; --accent-red: #00CED1; --red: #00CED1; }
+
+.fade-in { animation: fadeIn 0.22s ease-out; }
+.stagger-1 { animation: stagger1 0.3s ease-out 0.05s both; }
+.stagger-2 { animation: stagger2 0.3s ease-out 0.12s both; }
+.stagger-3 { animation: stagger3 0.3s ease-out 0.19s both; }

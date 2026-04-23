@@ -425,63 +425,101 @@ export function ShopPage() {
 
       <style>{PREVIEW_ANIMATIONS}</style>
       {/* Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "10px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "12px" }}>
         {filtered.map(c => {
           const own = isOwned(c.id);
           const eq = isEquipped(c.id);
           return (
-            <div key={c.id} className="pulsar-card" style={{
-              padding: "16px", position: "relative",
-              borderColor: eq ? "rgba(255,255,255,0.22)" : undefined,
-              background: eq ? "rgba(255,255,255,0.05)" : undefined,
-            }}>
-              {/* Type badge */}
+            <div key={c.id} style={{
+              position: "relative", borderRadius: "14px", overflow: "hidden",
+              border: eq ? "1px solid rgba(198,120,221,0.35)" : "1px solid rgba(255,255,255,0.06)",
+              background: "rgba(255,255,255,0.02)",
+              transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+              cursor: "pointer",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 8px 30px rgba(0,0,0,0.4)`; e.currentTarget.style.borderColor = eq ? "rgba(198,120,221,0.5)" : "rgba(255,255,255,0.12)"; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = eq ? "rgba(198,120,221,0.35)" : "rgba(255,255,255,0.06)"; }}
+            >
+              {/* Preview — fills the top of the card */}
               <div style={{
-                position: "absolute", top: "10px", right: "10px",
-                fontSize: "10px", color: "var(--text-dim)",
-                background: "rgba(0,0,0,0.3)", padding: "2px 8px", borderRadius: "4px",
-                fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em",
-              }}>
-                {c.type}
-              </div>
-
-              {/* Preview */}
-              <div style={{
-                width: "100%", height: "90px", margin: "0 auto 8px",
-                borderRadius: "8px", overflow: "hidden",
-                filter: own ? "none" : "grayscale(0.6) opacity(0.5)",
+                width: "100%", height: "140px", position: "relative",
+                filter: own ? "none" : "grayscale(0.7) brightness(0.5)",
+                transition: "filter 0.3s",
               }}>
                 <CosmeticPreview cosmetic={c} />
+                {/* Gradient overlay for text readability */}
+                <div style={{
+                  position: "absolute", bottom: 0, left: 0, right: 0, height: "60px",
+                  background: "linear-gradient(transparent, rgba(6,6,12,0.95))",
+                  pointerEvents: "none",
+                }} />
+                {/* Name overlaid on preview */}
+                <div style={{
+                  position: "absolute", bottom: "8px", left: "12px", right: "12px",
+                  display: "flex", justifyContent: "space-between", alignItems: "flex-end",
+                }}>
+                  <div>
+                    <div style={{ fontSize: "14px", fontWeight: "800", color: "#fff", letterSpacing: "-0.01em" }}>{c.name}</div>
+                    <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", marginTop: "1px" }}>{c.description}</div>
+                  </div>
+                  {eq && <div style={{
+                    fontSize: "8px", fontWeight: "700", color: "#C678DD", letterSpacing: "0.08em",
+                    background: "rgba(198,120,221,0.15)", padding: "2px 6px", borderRadius: "4px",
+                  }}>EQUIPPED</div>}
+                </div>
+                {/* Price badge */}
+                {!own && c.price >= 0 && (
+                  <div style={{
+                    position: "absolute", top: "8px", right: "8px",
+                    fontSize: "11px", fontWeight: "700",
+                    background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
+                    padding: "3px 8px", borderRadius: "6px",
+                    color: c.price > points ? "rgba(255,255,255,0.3)" : "#fff",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                  }}>
+                    {c.price === 0 ? "FREE" : `${c.price}`}
+                  </div>
+                )}
+                {c.price === -1 && (
+                  <div style={{
+                    position: "absolute", top: "8px", right: "8px",
+                    fontSize: "10px", fontWeight: "700", color: "#FFD700",
+                    background: "rgba(255,215,0,0.1)", padding: "3px 8px", borderRadius: "6px",
+                    border: "1px solid rgba(255,215,0,0.2)",
+                  }}>VERIFIED</div>
+                )}
+                {c.price === -2 && (
+                  <div style={{
+                    position: "absolute", top: "8px", right: "8px",
+                    fontSize: "10px", fontWeight: "700", color: "#C678DD",
+                    background: "rgba(198,120,221,0.1)", padding: "3px 8px", borderRadius: "6px",
+                    border: "1px solid rgba(198,120,221,0.2)",
+                  }}>LIMITED</div>
+                )}
               </div>
 
-              {/* Name */}
-              <div style={{ fontSize: "13px", fontWeight: "700", color: "var(--text)", textAlign: "center", marginBottom: "4px" }}>
-                {c.name}
-              </div>
-              <div style={{ fontSize: "11px", color: "var(--text-faint)", textAlign: "center", marginBottom: "12px", lineHeight: 1.4 }}>
-                {c.description}
-              </div>
-
-              {/* Action */}
+              {/* Action bar */}
+              <div style={{ padding: "8px 12px 10px" }}>
               {own ? (
-                <button onClick={() => equip(c)} className="pulsar-btn" style={{
-                  width: "100%", padding: "8px",
-                  background: eq ? "linear-gradient(135deg, #FFFFFF, #C0C0C0)" : "rgba(255,255,255,0.04)",
-                  color: eq ? "#000000" : "var(--text-muted)",
-                  fontSize: "12px",
+                <button onClick={() => equip(c)} style={{
+                  width: "100%", padding: "7px", border: "none", borderRadius: "8px",
+                  background: eq ? "linear-gradient(135deg, #C678DD, #A855F7)" : "rgba(255,255,255,0.04)",
+                  color: eq ? "#fff" : "var(--text-muted)",
+                  fontSize: "11px", fontWeight: "700", cursor: "pointer", fontFamily: "inherit",
+                  transition: "all 0.2s", letterSpacing: "0.02em",
                 }}>
                   {eq ? "Equipped" : "Equip"}
                 </button>
               ) : (
                 <button onClick={() => { if (c.price >= 0) buy(c); }} disabled={c.price < 0 || c.price > points}
-                  className="pulsar-btn-ghost"
                   style={{
-                    width: "100%", padding: "8px",
-                    borderColor: c.price === -1 ? "rgba(255,215,0,0.15)" : c.price === -2 ? "rgba(255,255,255,0.1)" : c.price > points ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.15)",
-                    color: c.price === -1 ? "#FFD700" : c.price === -2 ? "#A0A0A0" : c.price > points ? "var(--text-faint)" : "#FFFFFF",
+                    width: "100%", padding: "7px", borderRadius: "8px",
+                    background: c.price >= 0 && c.price <= points ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: c.price < 0 ? "var(--text-faint)" : c.price > points ? "var(--text-faint)" : "#fff",
                     cursor: c.price < 0 ? "default" : c.price > points ? "not-allowed" : "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-                    fontSize: "12px",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "5px",
+                    fontSize: "11px", fontWeight: "600", fontFamily: "inherit", transition: "all 0.15s",
                   }}
                 >
                   {c.price === -1 ? (
@@ -497,6 +535,7 @@ export function ShopPage() {
                   )}
                 </button>
               )}
+              </div>
             </div>
           );
         })}
@@ -656,7 +695,7 @@ export function ShopPage() {
 }
 
 function CosmeticPreview({ cosmetic: c }: { cosmetic: Cosmetic }) {
-  const W = 180, H = 100;
+  const W = 220, H = 140;
   const cx = W / 2;
 
   // Shared defs
@@ -679,7 +718,7 @@ function CosmeticPreview({ cosmetic: c }: { cosmetic: Cosmetic }) {
   );
 
   if (c.type === "cape") return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
+    <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" style={{ display: "block" }}>
       {defs}
       <rect width={W} height={H} fill={`url(#bg-${c.id})`} />
       {/* Glow behind cape */}

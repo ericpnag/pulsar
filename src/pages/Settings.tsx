@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 interface Settings {
   ram: number;
@@ -10,12 +11,15 @@ interface Settings {
   discordRpc: boolean;
   reducedMotion: boolean;
   resolution: string;
+  colorblindMode: string;
+  streamerMode: boolean;
 }
 
 const DEFAULT: Settings = {
   ram: 2048, javaPath: "", javaArgs: "", closeOnLaunch: false,
   showSnapshots: false, showBetas: false, discordRpc: true,
   reducedMotion: false, resolution: "",
+  colorblindMode: "none", streamerMode: false,
 };
 
 function Toggle({ value, onChange, label, description }: { value: boolean; onChange: (v: boolean) => void; label: string; description?: string }) {
@@ -56,6 +60,14 @@ export function SettingsPage() {
     setSettings(updated);
     localStorage.setItem("pulsar-settings", JSON.stringify(updated));
   }
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("colorblind-deuteranopia", "colorblind-protanopia", "colorblind-tritanopia");
+    if (settings.colorblindMode === "deuteranopia") root.classList.add("colorblind-deuteranopia");
+    else if (settings.colorblindMode === "protanopia") root.classList.add("colorblind-protanopia");
+    else if (settings.colorblindMode === "tritanopia") root.classList.add("colorblind-tritanopia");
+  }, [settings.colorblindMode]);
 
   const ramGB = (settings.ram / 1024).toFixed(1).replace(/\.0$/, "");
   const ramWarning = settings.ram > 8192 ? "High RAM may cause GC pauses. 4-8 GB recommended for most setups." : "";
@@ -124,6 +136,21 @@ export function SettingsPage() {
           style={{ width: "100%", fontFamily: "monospace", fontSize: "12px" }}
         />
         <div style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "4px" }}>G1GC optimizations are included by default. Add extra flags if needed.</div>
+        {/* JVM Presets */}
+        <div style={{ display: "flex", gap: "6px", marginTop: "10px", flexWrap: "wrap" }}>
+          {[
+            { label: "Aikar's Flags", args: "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1" },
+            { label: "ZGC (Low latency)", args: "-XX:+UseZGC -XX:+ZGenerational" },
+            { label: "Default", args: "" },
+          ].map(preset => (
+            <button key={preset.label} className="pulsar-btn-ghost"
+              onClick={() => save({ javaArgs: preset.args })}
+              style={{ fontSize: "10px", padding: "4px 10px" }}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── Versions ── */}
@@ -143,6 +170,49 @@ export function SettingsPage() {
         value={settings.discordRpc} onChange={v => save({ discordRpc: v })} />
       <Toggle label="Reduced Motion" description="Disable animations for better performance"
         value={settings.reducedMotion} onChange={v => save({ reducedMotion: v })} />
+
+      {/* ── Accessibility ── */}
+      <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--pink)", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "8px", marginTop: "20px" }}>Accessibility</div>
+
+      <div className="pulsar-card" style={{ padding: "18px 20px", marginBottom: "10px" }}>
+        <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text)", display: "block", marginBottom: "8px" }}>
+          Colorblind Mode
+        </label>
+        <select className="pulsar-select" value={settings.colorblindMode}
+          onChange={e => save({ colorblindMode: e.target.value })}
+          style={{ width: "100%" }}
+        >
+          <option value="none">None</option>
+          <option value="deuteranopia">Deuteranopia (Red-Green)</option>
+          <option value="protanopia">Protanopia (Red-Green)</option>
+          <option value="tritanopia">Tritanopia (Blue-Yellow)</option>
+        </select>
+        <div style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "4px" }}>Remap accent colors for better visibility.</div>
+      </div>
+
+      <Toggle label="Streamer Mode" description="Hide personal info (username, IP in F3)"
+        value={settings.streamerMode} onChange={v => save({ streamerMode: v })} />
+
+      {/* ── Maintenance ── */}
+      <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--pink)", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "8px", marginTop: "20px" }}>Maintenance</div>
+
+      <div className="pulsar-card" style={{ padding: "18px 20px", marginBottom: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--text)" }}>Repair Game Files</div>
+            <div style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "2px" }}>Re-download version data, natives, and Pulsar mods</div>
+          </div>
+          <button className="pulsar-btn-ghost" style={{ fontSize: "11px", padding: "6px 14px" }}
+            onClick={async () => {
+              try {
+                const result = await invoke<string>("repair_game", { mcVersion: "1.21.11" });
+                alert(result);
+              } catch (e) { alert("Repair failed: " + e); }
+            }}>
+            Repair
+          </button>
+        </div>
+      </div>
 
       {/* About */}
       <div className="pulsar-card" style={{ padding: "20px", marginTop: "24px", marginBottom: "32px" }}>

@@ -32,6 +32,13 @@ public abstract class Module {
     public void toggle() {
         enabled = !enabled;
         if (enabled) onEnable(); else onDisable();
+        // Toast notification
+        try {
+            com.bloom.core.toast.ToastManager.show(
+                name + (enabled ? " enabled" : " disabled"),
+                enabled ? 0xFF34D399 : 0xFF9CA3AF
+            );
+        } catch (Exception ignored) {}
         // Auto-save config
         try {
             com.bloom.core.config.PulsarConfig.save(com.bloom.core.PulsarCore.MODULES);

@@ -10,6 +10,8 @@ use reqwest::blocking::Client;
 use serde::Deserialize;
 use tauri::{AppHandle, Emitter};
 
+pub fn game_dir_pub() -> PathBuf { game_dir() }
+
 fn game_dir() -> PathBuf {
     #[cfg(target_os = "macos")]
     {
@@ -403,11 +405,11 @@ fn install_mods(client: &Client, _game_dir: &PathBuf, mc_version: &str) -> Resul
     #[cfg(not(target_os = "windows"))]
     let pulsar_supported = ["1.21.11"];
 
-    // Clean old bloom-core JARs
+    // Clean old bloom-core / pulsar-core JARs (including pre-rename bloom-core)
     if let Ok(entries) = fs::read_dir(&mods_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
-            if name.starts_with("pulsar-core-") && name.ends_with(".jar") {
+            if (name.starts_with("pulsar-core-") || name.starts_with("bloom-core-")) && name.ends_with(".jar") {
                 let _ = fs::remove_file(entry.path());
             }
         }

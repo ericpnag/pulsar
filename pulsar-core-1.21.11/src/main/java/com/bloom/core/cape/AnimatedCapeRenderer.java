@@ -66,7 +66,7 @@ public class AnimatedCapeRenderer {
 
     private static void loadBaseImage(String capeFile) {
         try {
-            String path = "/assets/bloom-core/textures/cape/" + capeFile;
+            String path = "/assets/pulsar-core/textures/cape/" + capeFile;
             InputStream stream = AnimatedCapeRenderer.class.getResourceAsStream(path);
             if (stream == null) return;
 
@@ -83,7 +83,7 @@ public class AnimatedCapeRenderer {
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                     target.setColorArgb(x, y, baseImage.getColorArgb(x, y));
-            dynamicTexture = new NativeImageBackedTexture(() -> "bloom-core:animated_cape_dynamic", target);
+            dynamicTexture = new NativeImageBackedTexture(() -> "pulsar-core:animated_cape_dynamic", target);
             MinecraftClient.getInstance().getTextureManager().registerTexture(ANIMATED_CAPE_ID, dynamicTexture);
 
             loadedCapeFile = capeFile;

@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { TopNav } from "./components/TopNav";
 import { PetalCanvas } from "./components/PetalCanvas";
-import { HeroBanner } from "./components/HeroBanner";
+
 import { LoginModal } from "./components/LoginModal";
 import "./App.css";
 
@@ -24,10 +24,10 @@ export interface AccountInfo {
 
 type GameMode = "default" | "bedwars" | "speedrun";
 
-const GAME_MODES: { id: GameMode; name: string; icon: string; desc: string; version: string; server?: string }[] = [
-  { id: "default", name: "Minecraft", icon: "▶", desc: "Latest version", version: "1.21.11" },
-  { id: "bedwars", name: "1.8.9 Bedwars", icon: "🛏", desc: "Hypixel 1.8.9", version: "1.8.9", server: "mc.hypixel.net" },
-  { id: "speedrun", name: "Speedrun", icon: "⏱", desc: "1.16.1 + Timer", version: "1.16.1" },
+const GAME_MODES: { id: GameMode; name: string; sub: string; version: string; server?: string; gradient: string; accentBorder: string }[] = [
+  { id: "default", name: "Minecraft", sub: "Latest + 51 Pulsar Mods", version: "1.21.11", gradient: "linear-gradient(135deg, #0C0C18 0%, #12101E 40%, #1A1428 100%)", accentBorder: "rgba(198, 120, 221, 0.3)" },
+  { id: "bedwars", name: "Bedwars", sub: "Hypixel 1.8.9 PvP", version: "1.8.9", server: "mc.hypixel.net", gradient: "linear-gradient(135deg, #0C0810 0%, #1A0C14 40%, #241018 100%)", accentBorder: "rgba(232, 97, 77, 0.3)" },
+  { id: "speedrun", name: "Speedrun", sub: "1.16.1 + SpeedRunIGT", version: "1.16.1", gradient: "linear-gradient(135deg, #080C10 0%, #0C1418 40%, #101C20 100%)", accentBorder: "rgba(52, 211, 153, 0.3)" },
 ];
 
 export default function App() {
@@ -168,113 +168,136 @@ export default function App() {
       {/* Content */}
       <div style={{ flex: 1, overflow: "auto", position: "relative", zIndex: 1 }}>
         {page === "play" && (
-          <div className="fade-in" style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
-            {/* Hero Banner with animated planets */}
-            <HeroBanner
-              selectedVersion={selectedVersion}
-              versions={versions}
-              onVersionChange={setSelectedVersion}
-              onOpenPicker={() => setShowVersionPicker(true)}
-            />
+          <div className="fade-in" style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "12px", height: "100%" }}>
+            {/* ── Game Mode Cards ── */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+              {GAME_MODES.map((mode, idx) => {
+                const active = gameMode === mode.id;
+                const modeColors = { default: "#C678DD", bedwars: "#E8614D", speedrun: "#34D399" };
+                const col = modeColors[mode.id];
+                return (
+                  <div key={mode.id}
+                    className={`mode-card ${active ? "active" : ""} stagger-${idx + 1}`}
+                    onClick={() => { setGameMode(mode.id); setSelectedVersion(mode.version); }}
+                    style={{ background: mode.gradient, borderColor: active ? mode.accentBorder : undefined }}
+                  >
+                    {/* Top accent line */}
+                    <div style={{
+                      position: "absolute", top: 0, left: active ? "15%" : "30%", right: active ? "15%" : "30%",
+                      height: active ? "2px" : "1px", background: col,
+                      opacity: active ? 0.8 : 0.2, transition: "all 0.3s ease", borderRadius: "0 0 2px 2px",
+                    }} />
 
-            {/* Launch Button */}
+                    {/* Card content */}
+                    <div style={{ padding: "20px 16px 16px", position: "relative", zIndex: 1 }}>
+                      {/* Version badge */}
+                      <div className="mono" style={{
+                        fontSize: "10px", fontWeight: "600", color: col, opacity: 0.7,
+                        letterSpacing: "0.05em", marginBottom: "8px",
+                      }}>
+                        {mode.version} {mode.server ? `\u00B7 ${mode.server}` : "\u00B7 Fabric"}
+                      </div>
+
+                      {/* Mode name */}
+                      <div style={{
+                        fontSize: "16px", fontWeight: "800", color: active ? "#fff" : "var(--text-secondary)",
+                        letterSpacing: "-0.01em", transition: "color 0.2s",
+                      }}>
+                        {mode.name}
+                      </div>
+
+                      {/* Description */}
+                      <div style={{
+                        fontSize: "11px", color: active ? "var(--text-secondary)" : "var(--text-muted)",
+                        marginTop: "4px", transition: "color 0.2s",
+                      }}>
+                        {mode.sub}
+                      </div>
+
+                      {/* Active indicator */}
+                      {active && (
+                        <div style={{
+                          display: "inline-flex", alignItems: "center", gap: "4px",
+                          marginTop: "10px", fontSize: "9px", fontWeight: "700",
+                          color: col, letterSpacing: "0.08em", textTransform: "uppercase",
+                        }}>
+                          <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: col, boxShadow: `0 0 6px ${col}` }} />
+                          SELECTED
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Subtle background glow */}
+                    {active && <div style={{
+                      position: "absolute", bottom: "-20px", right: "-20px", width: "80px", height: "80px",
+                      borderRadius: "50%", background: col, opacity: 0.04, filter: "blur(20px)",
+                    }} />}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── Launch Button ── */}
             <button
+              className={`launch-btn ${canPlay ? "ready" : "disabled"}`}
               onClick={canPlay ? handleLaunch : undefined}
               disabled={!canPlay}
-              style={{
-                width: "100%", padding: "16px", border: "none", borderRadius: "var(--radius)",
-                background: canPlay
-                  ? "linear-gradient(135deg, var(--pink-300), var(--pink-400), var(--pink-500))"
-                  : "rgba(255,255,255,0.06)",
-                color: canPlay ? "#000000" : "var(--text-faint)",
-                fontSize: "13px", fontWeight: "800", letterSpacing: "0.14em",
-                cursor: canPlay ? "pointer" : "default",
-                boxShadow: canPlay ? "0 4px 20px var(--pink-glow)" : "none",
-                transition: "all 0.25s ease",
-                fontFamily: "inherit",
-                animation: phase === "idle" ? "pulse-glow 4s ease-in-out infinite" : "none",
-                textTransform: "uppercase",
-              }}
-              onMouseEnter={e => { if (canPlay) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(255,255,255,0.15)"; }}}
-              onMouseLeave={e => { if (canPlay) { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px var(--pink-glow)"; }}}
             >
               {phase === "done" ? "Minecraft is Running" : phase === "loading" ? "Launching..." : phase === "error" ? "Retry" : "Launch Game"}
             </button>
 
-            {/* Progress */}
+            {/* ── Progress ── */}
             {phase === "loading" && (
-              <div className="fade-in" style={{ padding: "0 2px" }}>
+              <div className="fade-in">
                 <div style={{ height: "3px", background: "rgba(255,255,255,0.03)", borderRadius: "4px", overflow: "hidden" }}>
                   <div style={{
                     height: "100%", width: `${progress}%`,
-                    background: "linear-gradient(90deg, var(--pink-400), var(--pink-200))",
-                    transition: "width 0.4s ease",
-                    borderRadius: "4px",
+                    background: "linear-gradient(90deg, var(--accent-soft), var(--accent))",
+                    transition: "width 0.4s ease", borderRadius: "4px",
                   }} />
                 </div>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "8px" }}>{status}</div>
+                <div className="mono" style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "8px" }}>{status}</div>
               </div>
             )}
 
-            {/* Error */}
+            {/* ── Error ── */}
             {phase === "error" && (
               <div className="fade-in" style={{
                 fontSize: "12px", color: "var(--accent-red)", padding: "12px 16px",
-                background: "rgba(255,80,80,0.04)", border: "1px solid rgba(255,80,80,0.1)",
+                background: "rgba(248,113,113,0.04)", border: "1px solid rgba(248,113,113,0.1)",
                 borderRadius: "var(--radius-sm)", lineHeight: 1.6,
               }}>
                 {status}
               </div>
             )}
 
-            {/* Game Mode Selector */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
-              {GAME_MODES.map(mode => {
-                const active = gameMode === mode.id;
-                return (
-                  <div key={mode.id} onClick={() => { setGameMode(mode.id); setSelectedVersion(mode.version); }} style={{
-                    padding: "12px 10px", borderRadius: "var(--radius-sm)",
-                    background: active ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.02)",
-                    border: `1px solid ${active ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.04)"}`,
-                    cursor: "pointer", transition: "all 0.15s", textAlign: "center",
-                    position: "relative", overflow: "hidden",
-                  }}
-                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}}
-                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.02)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.04)"; }}}
-                  >
-                    {active && <div style={{ position: "absolute", top: 0, left: "20%", right: "20%", height: "2px", background: "#fff", borderRadius: "0 0 2px 2px" }} />}
-                    <div style={{ fontSize: "16px", marginBottom: "4px" }}>{mode.icon}</div>
-                    <div style={{ fontSize: "11px", fontWeight: "700", color: active ? "#fff" : "var(--text-muted)", letterSpacing: "0.02em" }}>{mode.name}</div>
-                    <div style={{ fontSize: "9px", color: "var(--text-faint)", marginTop: "2px" }}>{mode.desc}</div>
-                  </div>
-                );
-              })}
-            </div>
-
+            {/* ── Mode Info Bar ── */}
             {gameMode !== "default" && (
-              <div style={{
+              <div className="mode-transition" style={{
                 padding: "10px 14px", borderRadius: "var(--radius-sm)",
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
+                background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 fontSize: "12px",
               }}>
                 <span style={{ color: "var(--text-secondary)" }}>
-                  {GAME_MODES.find(m => m.id === gameMode)?.icon} {GAME_MODES.find(m => m.id === gameMode)?.name} Mode — v{GAME_MODES.find(m => m.id === gameMode)?.version} — auto-join <span style={{ color: "#fff", fontWeight: "600" }}>{GAME_MODES.find(m => m.id === gameMode)?.server}</span>
+                  {GAME_MODES.find(m => m.id === gameMode)?.name} Mode — v{GAME_MODES.find(m => m.id === gameMode)?.version}
+                  {GAME_MODES.find(m => m.id === gameMode)?.server && <> — auto-join <span style={{ color: "#fff", fontWeight: "600" }}>{GAME_MODES.find(m => m.id === gameMode)?.server}</span></>}
                 </span>
-                <span style={{ color: "var(--accent-green)", fontWeight: "600", fontSize: "10px" }}>ACTIVE</span>
+                <span className="mono" style={{ color: "var(--accent-green)", fontWeight: "600", fontSize: "10px" }}>ACTIVE</span>
               </div>
             )}
 
-            {/* Daily Reward + Info cards */}
+            {/* ── Daily Reward ── */}
             <DailyReward />
 
+            {/* ── Info Cards ── */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
               <div className="pulsar-card" style={{ padding: "18px 20px" }}>
                 <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: "10px", textTransform: "uppercase" }}>
                   Pulsar Client
                 </div>
                 <div style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.7 }}>
-                  Press <span style={{ color: "#FFFFFF", fontWeight: "600", background: "rgba(255,255,255,0.08)", padding: "1px 6px", borderRadius: "4px", fontSize: "11px" }}>Right Shift</span> in-game for modules
+                  Press <span style={{ color: "#FFFFFF", fontWeight: "600", background: "rgba(255,255,255,0.08)", padding: "2px 7px", borderRadius: "4px", fontSize: "11px", fontFamily: "'JetBrains Mono', monospace", border: "1px solid rgba(255,255,255,0.1)" }}>R.Shift</span> for mods, <span style={{ color: "#FFFFFF", fontWeight: "600", background: "rgba(255,255,255,0.08)", padding: "2px 7px", borderRadius: "4px", fontSize: "11px", fontFamily: "'JetBrains Mono', monospace", border: "1px solid rgba(255,255,255,0.1)" }}>~</span> for HUD editor
                 </div>
               </div>
               <div className="pulsar-card" style={{ padding: "18px 20px" }}>
@@ -291,7 +314,7 @@ export default function App() {
                     padding: "3px 0",
                   }}>
                     <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>{s.name}</span>
-                    <span style={{ fontSize: "10px", color: "var(--accent-green)", fontWeight: "600", fontVariantNumeric: "tabular-nums" }}>{s.players}</span>
+                    <span className="mono" style={{ fontSize: "10px", color: "var(--accent-green)", fontWeight: "600" }}>{s.players}</span>
                   </div>
                 ))}
               </div>

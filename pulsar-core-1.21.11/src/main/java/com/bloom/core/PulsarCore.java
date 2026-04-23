@@ -4,6 +4,7 @@ import com.bloom.core.gui.HudEditorScreen;
 import com.bloom.core.gui.ModuleScreen;
 import com.bloom.core.module.Module;
 import com.bloom.core.module.ModuleManager;
+import com.bloom.core.toast.ToastManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -89,6 +90,9 @@ public class PulsarCore implements ClientModInitializer {
                     }
                 }
             }
+
+            // Render toast notifications on top
+            ToastManager.render(context, client);
         });
     }
 }

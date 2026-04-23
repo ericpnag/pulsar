@@ -2,7 +2,7 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "bloom-core:bloom_icon.png",
+      "file": "pulsar-core:bloom_icon.png",
       "ascent": 8,
       "height": 10,
       "chars": [

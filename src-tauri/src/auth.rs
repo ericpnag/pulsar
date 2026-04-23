@@ -5,15 +5,12 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, State};
 use std::sync::Mutex;
 
-// OAuth client ID — must be approved for Xbox Live/Minecraft auth
-// To use your own, apply at https://aka.ms/AppRegInfo
 const CLIENT_ID: &str = "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb";
 
 #[derive(Deserialize)]
 struct DeviceCodeResp {
     device_code: String,
     user_code: String,
-    // Live endpoint uses "verification_uri", older uses "verification_url"
     #[serde(alias = "verification_url")]
     verification_uri: String,
     interval: u64,
@@ -35,25 +32,16 @@ struct XblResp {
 }
 
 #[derive(Deserialize)]
-struct XblClaims {
-    xui: Vec<XblXui>,
-}
+struct XblClaims { xui: Vec<XblXui> }
 
 #[derive(Deserialize)]
-struct XblXui {
-    uhs: String,
-}
+struct XblXui { uhs: String }
 
 #[derive(Deserialize)]
-struct McTokenResp {
-    access_token: String,
-}
+struct McTokenResp { access_token: String }
 
 #[derive(Deserialize)]
-struct McProfile {
-    id: String,
-    name: String,
-}
+struct McProfile { id: String, name: String }
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
 pub struct Account {
@@ -63,49 +51,87 @@ pub struct Account {
     pub refresh_token: String,
 }
 
+/// Multi-account storage
+#[derive(Serialize, Deserialize, Clone, Default, Debug)]
+struct AccountStore {
+    accounts: Vec<Account>,
+    active: usize, // index of active account
+}
+
 pub struct AccountState(pub Mutex<Option<Account>>);
 
 fn account_path() -> PathBuf {
     #[cfg(target_os = "macos")]
-    {
-        let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-        PathBuf::from(home).join("Library/Application Support/bloom/account.json")
-    }
+    { PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| ".".to_string())).join("Library/Application Support/bloom/accounts.json") }
     #[cfg(target_os = "windows")]
-    {
-        let appdata = std::env::var("APPDATA").unwrap_or_else(|_| ".".to_string());
-        PathBuf::from(appdata).join("bloom/account.json")
-    }
+    { PathBuf::from(std::env::var("APPDATA").unwrap_or_else(|_| ".".to_string())).join("bloom/accounts.json") }
     #[cfg(target_os = "linux")]
-    {
-        let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-        PathBuf::from(home).join(".bloom/account.json")
+    { PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| ".".to_string())).join(".bloom/accounts.json") }
+}
+
+// Legacy single-account path for migration
+fn legacy_account_path() -> PathBuf {
+    #[cfg(target_os = "macos")]
+    { PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| ".".to_string())).join("Library/Application Support/bloom/account.json") }
+    #[cfg(target_os = "windows")]
+    { PathBuf::from(std::env::var("APPDATA").unwrap_or_else(|_| ".".to_string())).join("bloom/account.json") }
+    #[cfg(target_os = "linux")]
+    { PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| ".".to_string())).join(".bloom/account.json") }
+}
+
+fn load_store() -> AccountStore {
+    // Try new multi-account format first
+    if let Ok(data) = std::fs::read_to_string(account_path()) {
+        if let Ok(store) = serde_json::from_str::<AccountStore>(&data) {
+            return store;
+        }
     }
+    // Migrate from legacy single-account format
+    if let Ok(data) = std::fs::read_to_string(legacy_account_path()) {
+        if let Ok(account) = serde_json::from_str::<Account>(&data) {
+            let store = AccountStore { accounts: vec![account], active: 0 };
+            save_store(&store);
+            let _ = std::fs::remove_file(legacy_account_path());
+            return store;
+        }
+    }
+    AccountStore::default()
 }
 
-fn load_account() -> Option<Account> {
-    let path = account_path();
-    let data = std::fs::read_to_string(&path).ok()?;
-    serde_json::from_str(&data).ok()
-}
-
-fn save_account_to_disk(account: &Account) {
+fn save_store(store: &AccountStore) {
     let path = account_path();
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    let _ = std::fs::write(&path, serde_json::to_string_pretty(account).unwrap_or_default());
+    let _ = std::fs::write(&path, serde_json::to_string_pretty(store).unwrap_or_default());
+}
+
+fn load_account() -> Option<Account> {
+    let store = load_store();
+    store.accounts.get(store.active).cloned()
+}
+
+fn save_account_to_disk(account: &Account) {
+    let mut store = load_store();
+    // Update existing or add new
+    if let Some(existing) = store.accounts.iter_mut().find(|a| a.uuid == account.uuid) {
+        *existing = account.clone();
+    } else {
+        store.accounts.push(account.clone());
+        store.active = store.accounts.len() - 1;
+    }
+    save_store(&store);
 }
 
 fn delete_account_from_disk() {
     let _ = std::fs::remove_file(account_path());
+    let _ = std::fs::remove_file(legacy_account_path());
 }
 
 #[tauri::command]
 pub fn start_microsoft_login(app: AppHandle) -> Result<(), String> {
     let client = Client::new();
 
-    // Step 1: request device code
     let raw = client
         .post("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode")
         .form(&[("client_id", CLIENT_ID), ("scope", "XboxLive.signin offline_access")])
@@ -114,7 +140,6 @@ pub fn start_microsoft_login(app: AppHandle) -> Result<(), String> {
 
     let dc: DeviceCodeResp = serde_json::from_str(&raw)
         .map_err(|_| {
-            // Parse the error from Microsoft so we can show it
             let msg = serde_json::from_str::<serde_json::Value>(&raw)
                 .ok()
                 .and_then(|v| v["error_description"].as_str().map(|s| s.to_string()))
@@ -122,7 +147,6 @@ pub fn start_microsoft_login(app: AppHandle) -> Result<(), String> {
             format!("Microsoft error: {}", msg)
         })?;
 
-    // Tell the frontend to show the code
     let _ = app.emit("auth_code", serde_json::json!({
         "url": dc.verification_uri,
         "code": dc.user_code,
@@ -131,7 +155,6 @@ pub fn start_microsoft_login(app: AppHandle) -> Result<(), String> {
     let device_code = dc.device_code.clone();
     let interval = dc.interval.max(5);
 
-    // Poll in background thread
     std::thread::spawn(move || {
         let client = Client::new();
         loop {
@@ -159,14 +182,12 @@ pub fn start_microsoft_login(app: AppHandle) -> Result<(), String> {
             let ms_token = match resp.access_token { Some(t) => t, None => { let _ = app.emit("auth_error", "no ms token"); return; } };
             let refresh = resp.refresh_token.unwrap_or_default();
 
-            // XBL
             let xbl: XblResp = match client
                 .post("https://user.auth.xboxlive.com/user/authenticate")
                 .header("Accept", "application/json")
                 .json(&serde_json::json!({
                     "Properties": { "AuthMethod": "RPS", "SiteName": "user.auth.xboxlive.com", "RpsTicket": format!("d={}", ms_token) },
-                    "RelyingParty": "http://auth.xboxlive.com",
-                    "TokenType": "JWT"
+                    "RelyingParty": "http://auth.xboxlive.com", "TokenType": "JWT"
                 }))
                 .send().and_then(|r| r.json()) {
                     Ok(r) => r, Err(e) => { let _ = app.emit("auth_error", format!("xbl: {}", e)); return; }
@@ -174,20 +195,17 @@ pub fn start_microsoft_login(app: AppHandle) -> Result<(), String> {
 
             let uhs = match xbl.display_claims.xui.first() { Some(x) => x.uhs.clone(), None => { let _ = app.emit("auth_error", "no uhs"); return; } };
 
-            // XSTS
             let xsts: XblResp = match client
                 .post("https://xsts.auth.xboxlive.com/xsts/authorize")
                 .header("Accept", "application/json")
                 .json(&serde_json::json!({
                     "Properties": { "SandboxId": "RETAIL", "UserTokens": [xbl.token] },
-                    "RelyingParty": "rp://api.minecraftservices.com/",
-                    "TokenType": "JWT"
+                    "RelyingParty": "rp://api.minecraftservices.com/", "TokenType": "JWT"
                 }))
                 .send().and_then(|r| r.json()) {
                     Ok(r) => r, Err(e) => { let _ = app.emit("auth_error", format!("xsts: {}", e)); return; }
                 };
 
-            // Minecraft token
             let mc_raw = match client
                 .post("https://api.minecraftservices.com/authentication/login_with_xbox")
                 .header("Accept", "application/json")
@@ -200,7 +218,6 @@ pub fn start_microsoft_login(app: AppHandle) -> Result<(), String> {
                 Err(_) => { let _ = app.emit("auth_error", format!("mc token body: {}", &mc_raw[..mc_raw.len().min(400)])); return; }
             };
 
-            // Profile
             let profile: McProfile = match client
                 .get("https://api.minecraftservices.com/minecraft/profile")
                 .bearer_auth(&mc.access_token)
@@ -221,8 +238,6 @@ pub fn start_microsoft_login(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-/// Refresh the Minecraft access token using the saved refresh_token.
-/// This must be called before launching if the token may have expired.
 #[tauri::command]
 pub fn refresh_account(state: State<AccountState>) -> Result<Account, String> {
     let guard = state.0.lock().unwrap();
@@ -236,7 +251,6 @@ pub fn refresh_account(state: State<AccountState>) -> Result<Account, String> {
 
     let client = Client::new();
 
-    // Step 1: Refresh Microsoft token
     let ms_resp: MsTokenResp = client
         .post("https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
         .form(&[
@@ -255,33 +269,28 @@ pub fn refresh_account(state: State<AccountState>) -> Result<Account, String> {
     let ms_token = ms_resp.access_token.ok_or("No MS access token from refresh")?;
     let new_refresh = ms_resp.refresh_token.unwrap_or(account.refresh_token.clone());
 
-    // Step 2: XBL
     let xbl: XblResp = client
         .post("https://user.auth.xboxlive.com/user/authenticate")
         .header("Accept", "application/json")
         .json(&serde_json::json!({
             "Properties": { "AuthMethod": "RPS", "SiteName": "user.auth.xboxlive.com", "RpsTicket": format!("d={}", ms_token) },
-            "RelyingParty": "http://auth.xboxlive.com",
-            "TokenType": "JWT"
+            "RelyingParty": "http://auth.xboxlive.com", "TokenType": "JWT"
         }))
         .send().map_err(|e| format!("XBL: {}", e))?
         .json().map_err(|e| format!("XBL parse: {}", e))?;
 
     let uhs = xbl.display_claims.xui.first().map(|x| x.uhs.clone()).ok_or("No UHS")?;
 
-    // Step 3: XSTS
     let xsts: XblResp = client
         .post("https://xsts.auth.xboxlive.com/xsts/authorize")
         .header("Accept", "application/json")
         .json(&serde_json::json!({
             "Properties": { "SandboxId": "RETAIL", "UserTokens": [xbl.token] },
-            "RelyingParty": "rp://api.minecraftservices.com/",
-            "TokenType": "JWT"
+            "RelyingParty": "rp://api.minecraftservices.com/", "TokenType": "JWT"
         }))
         .send().map_err(|e| format!("XSTS: {}", e))?
         .json().map_err(|e| format!("XSTS parse: {}", e))?;
 
-    // Step 4: Minecraft token
     let mc: McTokenResp = client
         .post("https://api.minecraftservices.com/authentication/login_with_xbox")
         .header("Accept", "application/json")
@@ -289,7 +298,6 @@ pub fn refresh_account(state: State<AccountState>) -> Result<Account, String> {
         .send().map_err(|e| format!("MC token: {}", e))?
         .json().map_err(|e| format!("MC token parse: {}", e))?;
 
-    // Step 5: Get profile (username may have changed)
     let profile: McProfile = client
         .get("https://api.minecraftservices.com/minecraft/profile")
         .bearer_auth(&mc.access_token)
@@ -318,6 +326,49 @@ pub fn get_account(state: State<AccountState>) -> Option<Account> {
     guard.clone()
 }
 
+/// Get all saved accounts for the account switcher
+#[tauri::command]
+pub fn get_accounts() -> Vec<Account> {
+    let store = load_store();
+    // Return accounts without access tokens for security
+    store.accounts.iter().map(|a| Account {
+        username: a.username.clone(),
+        uuid: a.uuid.clone(),
+        access_token: String::new(), // Don't send tokens to frontend list
+        refresh_token: String::new(),
+    }).collect()
+}
+
+/// Switch to a different account by UUID
+#[tauri::command]
+pub fn switch_account(state: State<AccountState>, uuid: String) -> Result<Account, String> {
+    let mut store = load_store();
+    let idx = store.accounts.iter().position(|a| a.uuid == uuid)
+        .ok_or("Account not found")?;
+    store.active = idx;
+    save_store(&store);
+
+    let account = store.accounts[idx].clone();
+    *state.0.lock().unwrap() = Some(account.clone());
+    Ok(account)
+}
+
+/// Remove an account by UUID
+#[tauri::command]
+pub fn remove_account(state: State<AccountState>, uuid: String) -> Result<(), String> {
+    let mut store = load_store();
+    store.accounts.retain(|a| a.uuid != uuid);
+    if store.active >= store.accounts.len() {
+        store.active = store.accounts.len().saturating_sub(1);
+    }
+    save_store(&store);
+
+    // Update active state
+    let active = store.accounts.get(store.active).cloned();
+    *state.0.lock().unwrap() = active;
+    Ok(())
+}
+
 #[tauri::command]
 pub fn save_account(state: State<AccountState>, account: Account) {
     save_account_to_disk(&account);
@@ -326,6 +377,64 @@ pub fn save_account(state: State<AccountState>, account: Account) {
 
 #[tauri::command]
 pub fn logout(state: State<AccountState>) {
-    delete_account_from_disk();
-    *state.0.lock().unwrap() = None;
+    // Remove active account only, not all accounts
+    let mut store = load_store();
+    if store.active < store.accounts.len() {
+        store.accounts.remove(store.active);
+        if store.active >= store.accounts.len() {
+            store.active = store.accounts.len().saturating_sub(1);
+        }
+    }
+    save_store(&store);
+    let active = store.accounts.get(store.active).cloned();
+    *state.0.lock().unwrap() = active;
+}
+
+/// Get system RAM in MB for auto-allocation
+#[tauri::command]
+pub fn get_system_ram() -> u64 {
+    let info = sysinfo::System::new_all();
+    info.total_memory() / 1024 / 1024
+}
+
+/// Repair game files — delete version data and re-download on next launch
+#[tauri::command]
+pub fn repair_game(mc_version: String) -> Result<String, String> {
+    let game_dir = crate::launcher::game_dir_pub();
+    let ver_dir = game_dir.join(format!("versions/{}", mc_version));
+    let natives_dir = game_dir.join(format!("natives/{}", mc_version));
+    let mods_dir = game_dir.join(format!("profiles/{}/mods", mc_version));
+
+    let mut cleaned = Vec::new();
+
+    // Remove version JSON (will re-download)
+    if ver_dir.exists() {
+        let _ = std::fs::remove_dir_all(&ver_dir);
+        cleaned.push("version data");
+    }
+
+    // Remove natives (will re-extract)
+    if natives_dir.exists() {
+        let _ = std::fs::remove_dir_all(&natives_dir);
+        cleaned.push("native libraries");
+    }
+
+    // Remove pulsar-core and bloom-core jars (will re-install)
+    if mods_dir.exists() {
+        if let Ok(entries) = std::fs::read_dir(&mods_dir) {
+            for entry in entries.flatten() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if (name.starts_with("pulsar-core-") || name.starts_with("bloom-core-")) && name.ends_with(".jar") {
+                    let _ = std::fs::remove_file(entry.path());
+                    cleaned.push("pulsar-core mod");
+                }
+            }
+        }
+    }
+
+    if cleaned.is_empty() {
+        Ok("Nothing to repair — game files look clean".to_string())
+    } else {
+        Ok(format!("Repaired: {}. Launch the game to re-download.", cleaned.join(", ")))
+    }
 }
