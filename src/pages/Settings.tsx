@@ -238,6 +238,29 @@ export function SettingsPage() {
     about: { label: "Settings \u00b7 About", title: "About Pulsar", sub: "Version, source code, and maintenance." },
   };
 
+  // Update checker
+  const [updateStatus, setUpdateStatus] = useState<"idle" | "checking" | "up-to-date" | "update-available">("idle");
+  const [latestVersion, setLatestVersion] = useState("");
+  const [releaseUrl, setReleaseUrl] = useState("");
+
+  async function checkForUpdates() {
+    setUpdateStatus("checking");
+    try {
+      const res = await fetch("https://api.github.com/repos/ericpnag/pulsar/releases/latest");
+      const data = await res.json();
+      const tag = data.tag_name || "";
+      setLatestVersion(tag);
+      setReleaseUrl(data.html_url || "https://github.com/ericpnag/pulsar/releases");
+      if (tag === "v2.1.0") {
+        setUpdateStatus("up-to-date");
+      } else {
+        setUpdateStatus("update-available");
+      }
+    } catch {
+      setUpdateStatus("idle");
+    }
+  }
+
   const meta = sectionMeta[settingsSection];
 
   /* ── Section content renderers ── */
@@ -504,6 +527,47 @@ export function SettingsPage() {
                   borderRadius: "7px", color: "#C7C5DC", fontSize: "12px", cursor: "pointer",
                 }}
               >View source</button>
+            </div>
+          </Card>
+        </div>
+
+        {/* Update checker */}
+        <div style={{ marginBottom: "26px" }}>
+          <SectionHeader>Updates</SectionHeader>
+          <Card>
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "14px 18px", gap: "16px",
+            }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: "13px", fontWeight: 500, color: "#F0EEFC", margin: "0 0 2px" }}>Check for updates</p>
+                <p style={{ fontSize: "11px", color: "#8A88A8", margin: 0 }}>
+                  {updateStatus === "idle" && "Compare your version against the latest release."}
+                  {updateStatus === "checking" && "Checking..."}
+                  {updateStatus === "up-to-date" && (
+                    <span style={{ color: "#5DCAA5" }}>Up to date (v2.1.0)</span>
+                  )}
+                  {updateStatus === "update-available" && (
+                    <span>
+                      <span style={{ color: "#FAC775" }}>Update available: {latestVersion}</span>
+                      {" \u2014 "}
+                      <span
+                        onClick={() => window.open(releaseUrl, "_blank")}
+                        style={{ color: "#C4B5FD", cursor: "pointer", textDecoration: "underline" }}
+                      >View release</span>
+                    </span>
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={checkForUpdates}
+                disabled={updateStatus === "checking"}
+                style={{
+                  padding: "7px 14px", background: "#11111C", border: "0.5px solid #2A2A3E",
+                  borderRadius: "7px", color: "#C7C5DC", fontSize: "12px", cursor: "pointer",
+                  opacity: updateStatus === "checking" ? 0.5 : 1,
+                }}
+              >{updateStatus === "checking" ? "Checking..." : "Check now"}</button>
             </div>
           </Card>
         </div>

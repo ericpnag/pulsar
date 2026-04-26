@@ -61,6 +61,10 @@ public class PulsarCore implements ClientModInitializer {
                     com.bloom.core.config.PulsarConfig.load(MODULES);
                     configLoaded = true;
                 }
+
+                // Check for server changes and auto-switch HUD profiles
+                com.bloom.core.server.ServerProfiles.tick();
+
                 for (Module m : MODULES.getModules()) {
                     if (m.isEnabled()) {
                         m.onTick(client);

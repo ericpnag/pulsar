@@ -219,6 +219,31 @@ export function ShopPage() {
 
   const [shopTab, setShopTab] = useState<"shop" | "owned">("shop");
 
+  // Loadouts system
+  interface Loadout { name: string; equipped: Record<string, string>; }
+  const [loadouts, setLoadouts] = useState<Loadout[]>(() => {
+    try { return JSON.parse(localStorage.getItem("pulsar-loadouts") || "[]"); } catch { return []; }
+  });
+
+  function saveLoadouts(next: Loadout[]) {
+    setLoadouts(next);
+    localStorage.setItem("pulsar-loadouts", JSON.stringify(next));
+  }
+
+  function saveCurrentLoadout() {
+    const name = prompt("Loadout name:");
+    if (!name?.trim()) return;
+    saveLoadouts([...loadouts, { name: name.trim(), equipped: { ...equipped } }]);
+  }
+
+  function loadLoadout(l: Loadout) {
+    save(points, purchased, { ...l.equipped });
+  }
+
+  function deleteLoadout(idx: number) {
+    saveLoadouts(loadouts.filter((_, i) => i !== idx));
+  }
+
   const ownedCount = COSMETICS.filter(c => isOwned(c.id)).length;
   const availableCount = COSMETICS.filter(c => c.price >= 0).length;
   const buyableCapes = COSMETICS.filter(c => c.price > 0 && c.type === "cape");
@@ -530,6 +555,44 @@ export function ShopPage() {
       </div>
 
       <div style={{ height: "1px", background: "#1F1F2E" }} />
+
+      {/* Loadouts section — visible in owned tab */}
+      {shopTab === "owned" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "11px", fontWeight: "600", color: "#6B6985", letterSpacing: "0.08em", textTransform: "uppercase" }}>Loadouts</span>
+            <button onClick={saveCurrentLoadout} style={{
+              padding: "5px 14px", borderRadius: "8px", border: "0.5px solid #2A2A3E",
+              background: "#11111C", color: "#C4B5FD", fontSize: "11px", fontWeight: "600",
+              cursor: "pointer", fontFamily: "inherit",
+            }}>Save Current</button>
+          </div>
+          {loadouts.length === 0 && (
+            <span style={{ fontSize: "11px", color: "#5A5870" }}>No saved loadouts. Equip cosmetics and click "Save Current".</span>
+          )}
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+            {loadouts.map((l, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "6px 12px", borderRadius: "10px",
+                background: "#0D0D17", border: "0.5px solid #1F1F2E",
+              }}>
+                <span style={{ fontSize: "12px", color: "#F0EEFC", fontWeight: "600" }}>{l.name}</span>
+                <button onClick={() => loadLoadout(l)} style={{
+                  padding: "3px 10px", borderRadius: "6px", border: "0.5px solid #5B3FA6",
+                  background: "#5B3FA620", color: "#C4B5FD", fontSize: "10px", fontWeight: "600",
+                  cursor: "pointer", fontFamily: "inherit",
+                }}>Load</button>
+                <button onClick={() => deleteLoadout(i)} style={{
+                  padding: "3px 6px", borderRadius: "6px", border: "0.5px solid #401818",
+                  background: "transparent", color: "#E24B4A", fontSize: "10px",
+                  cursor: "pointer", fontFamily: "inherit", lineHeight: 1,
+                }}>x</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Category pills */}
       <div style={{ display: "flex", gap: "6px" }}>
