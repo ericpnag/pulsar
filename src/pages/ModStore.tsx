@@ -45,6 +45,10 @@ export function ModStorePage({ versions, selectedVersion }: Props) {
   const [installing, setInstalling] = useState<Record<string, "loading" | "done" | "error">>({});
   const [activeCategory, setActiveCategory] = useState("All");
   const [tab, setTab] = useState<"browse" | "installed" | "updates">("browse");
+  const [importExpanded, setImportExpanded] = useState(false);
+  const [importUrl, setImportUrl] = useState("");
+  const [importStatus, setImportStatus] = useState<"idle" | "searching" | "found" | "not_found" | "invalid">("idle");
+  const [importMod, setImportMod] = useState<Mod | null>(null);
 
   async function search(q?: string, ver?: string, cat?: string) {
     setLoading(true);
@@ -62,6 +66,25 @@ export function ModStorePage({ versions, selectedVersion }: Props) {
   }
 
   if (!loaded && !loading) search("");
+
+  async function handleImportUrl() {
+    const trimmed = importUrl.trim();
+    // Match CurseForge or Modrinth URLs
+    const cfMatch = trimmed.match(/curseforge\.com\/minecraft\/mc-mods\/([a-z0-9_-]+)/i);
+    const mrMatch = trimmed.match(/modrinth\.com\/mod\/([a-z0-9_-]+)/i);
+    const slug = cfMatch?.[1] ?? mrMatch?.[1];
+    if (!slug) { setImportStatus("invalid"); return; }
+    setImportStatus("searching");
+    setImportMod(null);
+    try {
+      const res = await axios.get(`https://api.modrinth.com/v2/project/${slug}`);
+      const p = res.data;
+      setImportMod({ slug: p.slug, project_id: p.id, title: p.title, description: p.description, downloads: p.downloads, icon_url: p.icon_url, author: p.team ?? "Unknown" });
+      setImportStatus("found");
+    } catch {
+      setImportStatus("not_found");
+    }
+  }
 
   async function handleInstall(mod: Mod) {
     setInstalling(prev => ({ ...prev, [mod.project_id]: "loading" }));
@@ -119,6 +142,98 @@ export function ModStorePage({ versions, selectedVersion }: Props) {
         </select>
       </div>
 
+      {/* Import from URL */}
+      <div style={{ marginBottom: "14px" }}>
+        <div
+          onClick={() => setImportExpanded(!importExpanded)}
+          style={{
+            display: "flex", alignItems: "center", gap: "8px", padding: "8px 12px",
+            background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: importExpanded ? "8px 8px 0 0" : "8px",
+            cursor: "pointer", transition: "all 150ms",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = "#2A2A3E"; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = "#1F1F2E"; }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5A5870" strokeWidth="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+          <span style={{ fontSize: "12px", color: "#8A88A8", flex: 1 }}>Import from CurseForge or Modrinth URL</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#5A5870" strokeWidth="2"
+            style={{ transform: importExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 150ms" }}>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+        {importExpanded && (
+          <div style={{
+            padding: "12px", background: "#0A0A14", border: "0.5px solid #1F1F2E", borderTop: "none",
+            borderRadius: "0 0 8px 8px",
+          }}>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <input
+                value={importUrl}
+                onChange={e => { setImportUrl(e.target.value); setImportStatus("idle"); }}
+                onKeyDown={e => e.key === "Enter" && handleImportUrl()}
+                placeholder="https://www.curseforge.com/minecraft/mc-mods/sodium"
+                style={{
+                  flex: 1, padding: "8px 10px", background: "#0D0D17", border: "0.5px solid #1F1F2E",
+                  borderRadius: "6px", color: "#E8E6F5", fontSize: "12px", fontFamily: "inherit", outline: "none",
+                }}
+              />
+              <button
+                onClick={handleImportUrl}
+                disabled={importStatus === "searching"}
+                style={{
+                  padding: "8px 14px", borderRadius: "6px", border: "0.5px solid #5B3FA6",
+                  background: "#1A1530", color: "#C4B5FD", fontSize: "12px", fontWeight: "500",
+                  cursor: importStatus === "searching" ? "default" : "pointer", fontFamily: "inherit",
+                }}
+              >
+                {importStatus === "searching" ? "..." : "Look up"}
+              </button>
+            </div>
+            {importStatus === "invalid" && (
+              <div style={{ fontSize: "11px", color: "#F0997B", marginTop: "8px" }}>
+                Paste a CurseForge or Modrinth mod URL (e.g. https://www.curseforge.com/minecraft/mc-mods/sodium)
+              </div>
+            )}
+            {importStatus === "not_found" && (
+              <div style={{ fontSize: "11px", color: "#F0997B", marginTop: "8px", lineHeight: 1.5 }}>
+                This mod isn't on Modrinth. Download the .jar manually from CurseForge and drop it in your mods folder.
+              </div>
+            )}
+            {importStatus === "found" && importMod && (
+              <div style={{
+                marginTop: "10px", display: "flex", alignItems: "center", gap: "10px",
+                padding: "10px 12px", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "8px",
+              }}>
+                {importMod.icon_url
+                  ? <img src={importMod.icon_url} alt="" style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} />
+                  : <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "linear-gradient(135deg, #1F3340, #16222A)", display: "flex", alignItems: "center", justifyContent: "center", color: "#5DCAA5", fontSize: "14px" }}>+</div>
+                }
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "13px", fontWeight: "500", color: "#F0EEFC" }}>{importMod.title}</div>
+                  <div style={{ fontSize: "11px", color: "#8A88A8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{importMod.description}</div>
+                </div>
+                <button
+                  onClick={() => handleInstall(importMod)}
+                  disabled={installing[importMod.project_id] === "loading" || installing[importMod.project_id] === "done"}
+                  style={{
+                    padding: "6px 14px", borderRadius: "6px", fontSize: "11px", fontWeight: "500", fontFamily: "inherit",
+                    cursor: installing[importMod.project_id] === "done" ? "default" : "pointer",
+                    background: installing[importMod.project_id] === "done" ? "#16222A" : "#1A1530",
+                    border: installing[importMod.project_id] === "done" ? "0.5px solid #1D9E75" : "0.5px solid #5B3FA6",
+                    color: installing[importMod.project_id] === "done" ? "#5DCAA5" : "#C4B5FD",
+                  }}
+                >
+                  {installing[importMod.project_id] === "done" ? "Installed" : installing[importMod.project_id] === "loading" ? "..." : "Install"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* 2-column: categories + mods */}
       <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: "18px" }}>
         {/* Category sidebar */}
@@ -153,6 +268,11 @@ export function ModStorePage({ versions, selectedVersion }: Props) {
               <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#5DCAA5" }} />
               <span style={{ fontSize: "12px", color: "#E8E6F5", flex: 1 }}>Modrinth</span>
               <span className="mono" style={{ fontSize: "11px", color: "#6B6985" }}>Active</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 0", opacity: 0.45 }}>
+              <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#F87A1A" }} />
+              <span style={{ fontSize: "12px", color: "#E8E6F5", flex: 1 }}>CurseForge</span>
+              <span className="mono" style={{ fontSize: "10px", color: "#6B6985" }}>Soon</span>
             </div>
           </div>
         </div>

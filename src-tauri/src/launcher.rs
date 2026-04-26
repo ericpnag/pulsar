@@ -1010,24 +1010,82 @@ fn do_launch(app: &AppHandle, version: &str, username: Option<String>, uuid: Opt
 }
 
 #[tauri::command]
-pub fn install_mod(project_id: String, mc_version: String) -> Result<String, String> {
+pub fn check_mod_dependencies(project_id: String, mc_version: String) -> Result<Vec<String>, String> {
     let client = Client::new();
-    let mods_dir = version_game_dir(&mc_version).join("mods");
-    fs::create_dir_all(&mods_dir).map_err(|e| e.to_string())?;
 
     let url = format!(
         "https://api.modrinth.com/v2/project/{}/version?game_versions=[\"{}\"]&loaders=[\"fabric\"]",
         project_id, mc_version
     );
+
+    #[derive(Deserialize)]
+    struct DepVersion { dependencies: Option<Vec<DepEntry>> }
+    #[derive(Deserialize)]
+    struct DepEntry { project_id: Option<String>, dependency_type: String }
+    #[derive(Deserialize)]
+    struct ProjectInfo { title: String }
+
+    let resp = match client.get(&url)
+        .header("User-Agent", "pulsar-launcher/1.0")
+        .send().and_then(|r| r.text())
+    {
+        Ok(r) => r,
+        Err(_) => return Ok(vec![]),
+    };
+
+    let versions: Vec<DepVersion> = match serde_json::from_str(&resp) {
+        Ok(v) => v,
+        Err(_) => return Ok(vec![]),
+    };
+
+    let ver = match versions.first() {
+        Some(v) => v,
+        None => return Ok(vec![]),
+    };
+
+    let deps = match &ver.dependencies {
+        Some(d) => d,
+        None => return Ok(vec![]),
+    };
+
+    let mut names = Vec::new();
+    for dep in deps {
+        if dep.dependency_type != "required" { continue; }
+        if let Some(ref dep_id) = dep.project_id {
+            let project_url = format!("https://api.modrinth.com/v2/project/{}", dep_id);
+            if let Ok(proj_resp) = client.get(&project_url)
+                .header("User-Agent", "pulsar-launcher/1.0")
+                .send().and_then(|r| r.text())
+            {
+                if let Ok(info) = serde_json::from_str::<ProjectInfo>(&proj_resp) {
+                    names.push(info.title);
+                }
+            }
+        }
+    }
+
+    Ok(names)
+}
+
+/// Helper: install a single mod by Modrinth project ID, returning the filename.
+/// Also auto-installs required dependencies that aren't already in the mods folder.
+fn install_mod_inner(client: &Client, project_id: &str, mc_version: &str, mods_dir: &PathBuf) -> Result<Option<String>, String> {
+    let url = format!(
+        "https://api.modrinth.com/v2/project/{}/version?game_versions=[\"{}\"]&loaders=[\"fabric\"]",
+        project_id, mc_version
+    );
+
+    #[derive(Deserialize)]
+    struct ModVersion { files: Vec<ModFile>, dependencies: Option<Vec<DepEntry>> }
+    #[derive(Deserialize)]
+    struct ModFile { url: String, filename: String }
+    #[derive(Deserialize)]
+    struct DepEntry { project_id: Option<String>, dependency_type: String }
+
     let resp = client.get(&url)
         .header("User-Agent", "pulsar-launcher/1.0")
         .send().map_err(|e| e.to_string())?
         .text().map_err(|e| e.to_string())?;
-
-    #[derive(Deserialize)]
-    struct ModVersion { files: Vec<ModFile> }
-    #[derive(Deserialize)]
-    struct ModFile { url: String, filename: String }
 
     let versions: Vec<ModVersion> = serde_json::from_str(&resp).map_err(|e| e.to_string())?;
     let ver = versions.first().ok_or("No version found for this Minecraft version")?;
@@ -1041,7 +1099,53 @@ pub fn install_mod(project_id: String, mc_version: String) -> Result<String, Str
         fs::write(&dest, &bytes).map_err(|e| e.to_string())?;
     }
 
-    Ok(file.filename.clone())
+    // Auto-install required dependencies
+    if let Some(ref deps) = ver.dependencies {
+        // Collect existing filenames in the mods folder
+        let existing: Vec<String> = fs::read_dir(mods_dir)
+            .map(|entries| entries.flatten()
+                .map(|e| e.file_name().to_string_lossy().to_string())
+                .collect())
+            .unwrap_or_default();
+
+        for dep in deps {
+            if dep.dependency_type != "required" { continue; }
+            if let Some(ref dep_id) = dep.project_id {
+                // Check if dependency is already installed by querying its expected filename
+                let dep_url = format!(
+                    "https://api.modrinth.com/v2/project/{}/version?game_versions=[\"{}\"]&loaders=[\"fabric\"]",
+                    dep_id, mc_version
+                );
+                let already_installed = client.get(&dep_url)
+                    .header("User-Agent", "pulsar-launcher/1.0")
+                    .send().and_then(|r| r.text())
+                    .ok()
+                    .and_then(|text| serde_json::from_str::<Vec<ModVersion>>(&text).ok())
+                    .and_then(|vs| vs.first().and_then(|v| v.files.first().map(|f| f.filename.clone())))
+                    .map(|fname| existing.contains(&fname))
+                    .unwrap_or(false);
+
+                if !already_installed {
+                    // Best-effort: don't block main install if a dependency fails
+                    let _ = install_mod_inner(client, dep_id, mc_version, mods_dir);
+                }
+            }
+        }
+    }
+
+    Ok(Some(file.filename.clone()))
+}
+
+#[tauri::command]
+pub fn install_mod(project_id: String, mc_version: String) -> Result<String, String> {
+    let client = Client::new();
+    let mods_dir = version_game_dir(&mc_version).join("mods");
+    fs::create_dir_all(&mods_dir).map_err(|e| e.to_string())?;
+
+    match install_mod_inner(&client, &project_id, &mc_version, &mods_dir)? {
+        Some(filename) => Ok(filename),
+        None => Err("No file installed".to_string()),
+    }
 }
 
 #[tauri::command]
@@ -1118,6 +1222,67 @@ pub fn install_resourcepack(project_id: String, mc_version: String) -> Result<St
     }
 
     Ok(file.filename.clone())
+}
+
+/// Check which mod loaders are available for a given Minecraft version.
+///
+/// Currently Pulsar only auto-installs Fabric. Forge and NeoForge are listed
+/// here for UI purposes so players know what exists for their version.
+///
+/// Future work for full Forge/NeoForge installation:
+///   - Forge: Download the installer JAR from https://files.minecraftforge.net,
+///     run it with `java -jar forge-installer.jar --installClient`, then merge
+///     the Forge version JSON (libraries, main class) into the launch command
+///     the same way we do for Fabric today.
+///   - NeoForge: Similar to Forge but uses https://maven.neoforged.net. The
+///     installer flow is nearly identical. NeoForge split from Forge at 1.20.2.
+///   - Both require patching the vanilla version JSON with extra libraries and
+///     a different main class, plus downloading the loader's own libraries from
+///     their Maven repositories.
+#[tauri::command]
+pub fn get_available_loaders(mc_version: String) -> Result<Vec<String>, String> {
+    let mut loaders: Vec<String> = Vec::new();
+
+    // Parse the MC version to extract minor and patch numbers
+    let parts: Vec<&str> = mc_version.split('.').collect();
+    let minor: u32 = parts.get(1).and_then(|s| s.parse().ok()).unwrap_or(0);
+    let patch: u32 = parts.get(2).and_then(|s| s.parse().ok()).unwrap_or(0);
+
+    // Fabric: check the Fabric meta API to see if loaders exist for this version
+    let client = Client::new();
+    let fabric_url = format!("https://meta.fabricmc.net/v2/versions/loader/{}", mc_version);
+    if let Ok(resp) = client.get(&fabric_url).send().and_then(|r| r.text()) {
+        if let Ok(versions) = serde_json::from_str::<Vec<FabricLoaderVersion>>(&resp) {
+            if !versions.is_empty() {
+                loaders.push("fabric".to_string());
+            }
+        }
+    }
+
+    // Legacy Fabric: for older versions not covered by regular Fabric
+    if loaders.iter().all(|l| l != "fabric") {
+        let legacy_url = format!("https://meta.legacyfabric.net/v2/versions/loader/{}", mc_version);
+        if let Ok(resp) = client.get(&legacy_url).send().and_then(|r| r.text()) {
+            if let Ok(versions) = serde_json::from_str::<Vec<FabricLoaderVersion>>(&resp) {
+                if !versions.is_empty() {
+                    loaders.push("legacy-fabric".to_string());
+                }
+            }
+        }
+    }
+
+    // Forge: available for 1.7.10+ (no real API to check per-version without
+    // parsing Maven metadata, so we use a version range heuristic)
+    if minor > 7 || (minor == 7 && patch >= 10) {
+        loaders.push("forge".to_string());
+    }
+
+    // NeoForge: forked from Forge starting at 1.20.2
+    if minor > 20 || (minor == 20 && patch >= 2) {
+        loaders.push("neoforge".to_string());
+    }
+
+    Ok(loaders)
 }
 
 fn cosmetics_path() -> PathBuf {

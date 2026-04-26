@@ -26,11 +26,13 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             launcher::launch_minecraft,
             launcher::get_versions,
+            launcher::check_mod_dependencies,
             launcher::install_mod,
             launcher::uninstall_mod,
             launcher::list_installed_mods,
             launcher::get_mod_hashes,
             launcher::install_resourcepack,
+            launcher::get_available_loaders,
             launcher::get_cosmetics,
             launcher::save_cosmetics,
             auth::start_microsoft_login,
