@@ -35,6 +35,10 @@ public class ModuleManager {
         modules.add(new SessionStats());
         modules.add(new ItemCounter());
         // Visual
+        modules.add(new HitColor());
+        modules.add(new BlockOverlay());
+        modules.add(new ParticleMultiplier());
+        modules.add(new CameraTweaks());
         modules.add(new Fullbright());
         modules.add(new FovChanger());
         modules.add(new TimeChanger());
@@ -47,6 +51,10 @@ public class ModuleManager {
         modules.add(new MotionBlur());
         modules.add(new CustomCrosshair());
         // Utility
+        modules.add(new AutoText());
+        modules.add(new AutoReconnect());
+        modules.add(new CoordinatesSaver());
+        modules.add(new WTapHelper());
         modules.add(new Zoom());
         modules.add(new Freelook());
         modules.add(new PerformanceBoost());

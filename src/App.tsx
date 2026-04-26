@@ -39,6 +39,7 @@ export default function App() {
   const [showVersionPicker, setShowVersionPicker] = useState(false);
   const [versionCategory, setVersionCategory] = useState<string | null>(null);
   const [gameMode, setGameMode] = useState<GameMode>("default"); // e.g. "1.21"
+  const [showAddFriend, setShowAddFriend] = useState(false);
 
   useEffect(() => {
     invoke<any>("get_account").then(a => {
@@ -357,14 +358,33 @@ export default function App() {
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
               <div><span style={{ fontSize: "16px", fontWeight: "500", color: "#F0EEFC" }}>Friends</span> <span style={{ color: "#8A88A8", fontSize: "13px" }}>(0 online)</span></div>
+              <div
+                onClick={() => setShowAddFriend(true)}
+                style={{
+                  fontSize: "11px", fontWeight: "600", color: "#C4B5FD", cursor: "pointer",
+                  padding: "4px 10px", borderRadius: "6px", background: "rgba(139,92,246,0.08)",
+                  border: "0.5px solid rgba(139,92,246,0.2)", transition: "all 150ms",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(139,92,246,0.15)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(139,92,246,0.08)"; }}
+              >Add</div>
             </div>
-            {[0,1,2,3].map(i => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 4px" }}>
-                <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#11111C", flexShrink: 0 }} />
-                <div style={{ flex: 1, height: "8px", background: "#11111C", borderRadius: "4px" }} />
-                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#11111C" }} />
-              </div>
-            ))}
+            {/* Empty state */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 12px", gap: "10px" }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2A2A3E" strokeWidth="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <div style={{ fontSize: "13px", fontWeight: "500", color: "#5A5870", textAlign: "center" }}>Add your first friend</div>
+              <div style={{ fontSize: "11px", color: "#3A3850", textAlign: "center", lineHeight: 1.5 }}>See what your friends are playing and join their games.</div>
+              <div onClick={() => setShowAddFriend(true)} style={{
+                fontSize: "11px", fontWeight: "600", color: "#C4B5FD", cursor: "pointer",
+                padding: "6px 14px", borderRadius: "8px", background: "#1A1530",
+                border: "0.5px solid #5B3FA6", marginTop: "4px", transition: "all 150ms",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#221A40"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "#1A1530"; }}
+              >Add Friend</div>
+            </div>
           </div>
 
           {/* Equipped Cosmetic */}
@@ -497,6 +517,59 @@ export default function App() {
         );
       })()}
       {loginModal && <LoginModal {...loginModal} onClose={() => setLoginModal(null)} />}
+      {showAddFriend && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 99,
+        }} onClick={() => setShowAddFriend(false)}>
+          <div onClick={e => e.stopPropagation()} className="fade-in" style={{
+            background: "#0D0D17", border: "1px solid #1F1F2E", borderRadius: "14px",
+            padding: "24px 28px", width: "min(360px, 85vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
+          }}>
+            <div style={{ fontSize: "15px", fontWeight: "600", color: "#F0EEFC", marginBottom: "14px" }}>Add Friend</div>
+            <input
+              type="text"
+              placeholder="Enter username..."
+              autoFocus
+              style={{
+                width: "100%", padding: "10px 14px", borderRadius: "8px", border: "0.5px solid #1F1F2E",
+                background: "#08080F", color: "#F0EEFC", fontSize: "13px", outline: "none",
+                fontFamily: "inherit", boxSizing: "border-box",
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = "#5B3FA6"; }}
+              onBlur={e => { e.currentTarget.style.borderColor = "#1F1F2E"; }}
+              onKeyDown={e => {
+                if (e.key === "Enter") {
+                  alert("Friends system coming soon \u2014 stay tuned!");
+                  setShowAddFriend(false);
+                }
+              }}
+            />
+            <div style={{ display: "flex", gap: "8px", marginTop: "14px", justifyContent: "flex-end" }}>
+              <div
+                onClick={() => setShowAddFriend(false)}
+                style={{
+                  padding: "8px 16px", borderRadius: "8px", fontSize: "12px", fontWeight: "600",
+                  color: "#8A88A8", cursor: "pointer", background: "rgba(255,255,255,0.04)",
+                  transition: "background 150ms",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+              >Cancel</div>
+              <div
+                onClick={() => { alert("Friends system coming soon \u2014 stay tuned!"); setShowAddFriend(false); }}
+                style={{
+                  padding: "8px 16px", borderRadius: "8px", fontSize: "12px", fontWeight: "600",
+                  color: "#FFFFFF", cursor: "pointer", background: "linear-gradient(135deg, #7C5DC4, #5B3FA6)",
+                  border: "0.5px solid #C4B5FD", transition: "opacity 150ms",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+              >Send Request</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
