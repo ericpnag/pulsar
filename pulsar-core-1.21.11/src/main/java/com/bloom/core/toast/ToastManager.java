@@ -3,7 +3,6 @@ package com.bloom.core.toast;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -45,14 +44,8 @@ public class ToastManager {
         int screenW = client.getWindow().getScaledWidth();
         long now = System.currentTimeMillis();
 
-        // Remove expired toasts
-        Iterator<Toast> it = toasts.iterator();
-        while (it.hasNext()) {
-            Toast t = it.next();
-            if (now - t.createdAt > DISPLAY_MS + FADE_OUT_MS) {
-                it.remove();
-            }
-        }
+        // Remove expired toasts (CopyOnWriteArrayList doesn't support Iterator.remove)
+        toasts.removeIf(t -> now - t.createdAt > DISPLAY_MS + FADE_OUT_MS);
 
         int visibleIdx = 0;
         for (int i = toasts.size() - 1; i >= 0 && visibleIdx < MAX_VISIBLE; i--, visibleIdx++) {

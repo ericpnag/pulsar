@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 interface Props {
@@ -6,113 +6,22 @@ interface Props {
   selectedVersion: string;
 }
 
-// Cache: hash → icon_url (null = not on Modrinth)
-const hashIconCache: Record<string, string | null> = {};
-
-async function fetchIconsForHashes(
-  hashMap: Record<string, string> // filename → sha1
-): Promise<Record<string, string | null>> {
-  const hashes = Object.values(hashMap);
-  if (hashes.length === 0) return {};
-
-  // Step 1: batch hash lookup → { hash: { project_id } }
-  let versionFiles: Record<string, { project_id: string }> = {};
-  try {
-    const res = await fetch("https://api.modrinth.com/v2/version_files", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "PulsarClient/1.0",
-      },
-      body: JSON.stringify({ hashes, algorithm: "sha1" }),
-    });
-    if (res.ok) versionFiles = await res.json();
-  } catch {}
-
-  // Collect unique project IDs
-  const projectIds = [...new Set(Object.values(versionFiles).map(v => v.project_id))];
-  if (projectIds.length === 0) {
-    // Nothing matched — mark all as null
-    const result: Record<string, string | null> = {};
-    for (const [filename] of Object.entries(hashMap)) result[filename] = null;
-    return result;
-  }
-
-  // Step 2: batch project info → icon_url
-  let projects: { id: string; icon_url?: string }[] = [];
-  try {
-    const res = await fetch(
-      `https://api.modrinth.com/v2/projects?ids=${encodeURIComponent(JSON.stringify(projectIds))}`,
-      { headers: { "User-Agent": "PulsarClient/1.0" } }
-    );
-    if (res.ok) projects = await res.json();
-  } catch {}
-
-  const projectIconMap: Record<string, string | null> = {};
-  for (const p of projects) projectIconMap[p.id] = p.icon_url ?? null;
-
-  // Build filename → icon_url map
-  const result: Record<string, string | null> = {};
-  for (const [filename, hash] of Object.entries(hashMap)) {
-    const projectId = versionFiles[hash]?.project_id;
-    result[filename] = projectId ? (projectIconMap[projectId] ?? null) : null;
-    hashIconCache[hash] = result[filename];
-  }
-  return result;
-}
-
-function ModIcon({ iconUrl }: { filename?: string; iconUrl: string | null | undefined; isCore: boolean }) {
-  if (iconUrl === undefined) {
-    return (
-      <div style={{
-        width: "28px", height: "28px", borderRadius: "6px",
-        background: "rgba(255,255,255,0.07)",
-        animation: "pulse-glow 2s ease-in-out infinite",
-      }} />
-    );
-  }
-
-  if (iconUrl) {
-    return (
-      <img
-        src={iconUrl}
-        alt=""
-        width={28}
-        height={28}
-        style={{ borderRadius: "6px", objectFit: "cover", display: "block" }}
-      />
-    );
-  }
-
-  // Fallback: generic cube/mod icon
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.3 }}>
-      <path d="M12 2L2 7v10l10 5 10-5V7L12 2z" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round"/>
-      <path d="M2 7l10 5 10-5" stroke="#fff" strokeWidth="1.5"/>
-      <path d="M12 12v10" stroke="#fff" strokeWidth="1.5"/>
-    </svg>
-  );
-}
-
-function CoreIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" fill="#000"/>
-      <circle cx="12" cy="12" r="8" fill="none" stroke="#fff" strokeWidth="0.5" opacity="0.3"/>
-      <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="#fff" strokeWidth="1.5" opacity="0.6"/>
-      <circle cx="12" cy="12" r="4" fill="#000"/>
-      <circle cx="12" cy="12" r="3" fill="none" stroke="#fff" strokeWidth="0.3" opacity="0.5"/>
-    </svg>
-  );
-}
+const MOD_COLORS = ["teal", "purple", "coral", "amber", "blue", "pink"];
+const COLOR_BG: Record<string, string> = {
+  teal: "linear-gradient(135deg, #1F3340, #16222A)", purple: "linear-gradient(135deg, #2A1F4D, #1A1530)",
+  coral: "linear-gradient(135deg, #401F2D, #2A1620)", amber: "linear-gradient(135deg, #3D2D14, #2A2010)",
+  blue: "linear-gradient(135deg, #182F45, #0D1F2E)", pink: "linear-gradient(135deg, #401C30, #2A1820)",
+};
+const COLOR_FG: Record<string, string> = {
+  teal: "#5DCAA5", purple: "#C4B5FD", coral: "#F0997B", amber: "#FAC775", blue: "#85B7EB", pink: "#F4C0D1",
+};
 
 export function InstalledModsPage({ versions, selectedVersion }: Props) {
   const [mods, setMods] = useState<string[]>([]);
   const [ver, setVer] = useState(selectedVersion);
   const [removing, setRemoving] = useState<Record<string, boolean>>({});
   const [icons, setIcons] = useState<Record<string, string | null | undefined>>({});
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [filter, setFilter] = useState("");
 
   useEffect(() => { loadMods(); }, [ver]);
 
@@ -126,37 +35,31 @@ export function InstalledModsPage({ versions, selectedVersion }: Props) {
   }
 
   async function loadIcons(modList: string[]) {
-    const nonCoreMods = modList.filter(m => !m.includes("pulsar-core"));
-    if (nonCoreMods.length === 0) return;
-
-    let hashMap: Record<string, string> = {};
+    const nonCore = modList.filter(m => !m.includes("pulsar-core"));
+    if (!nonCore.length) return;
     try {
-      hashMap = await invoke<Record<string, string>>("get_mod_hashes", { mcVersion: ver });
-    } catch { return; }
-
-    // Only look up mods we don't have cached yet
-    const uncached: Record<string, string> = {};
-    const preloaded: Record<string, string | null> = {};
-    for (const filename of nonCoreMods) {
-      const hash = hashMap[filename];
-      if (!hash) continue;
-      if (hash in hashIconCache) {
-        preloaded[filename] = hashIconCache[hash];
-      } else {
-        uncached[filename] = hash;
+      const hashMap = await invoke<Record<string, string>>("get_mod_hashes", { mcVersion: ver });
+      const hashes = Object.values(hashMap);
+      if (!hashes.length) return;
+      const res = await fetch("https://api.modrinth.com/v2/version_files", {
+        method: "POST", headers: { "Content-Type": "application/json", "User-Agent": "PulsarClient/1.0" },
+        body: JSON.stringify({ hashes, algorithm: "sha1" }),
+      });
+      if (!res.ok) return;
+      const vf: Record<string, { project_id: string }> = await res.json();
+      const pids = [...new Set(Object.values(vf).map(v => v.project_id))];
+      if (!pids.length) return;
+      const pres = await fetch(`https://api.modrinth.com/v2/projects?ids=${encodeURIComponent(JSON.stringify(pids))}`, { headers: { "User-Agent": "PulsarClient/1.0" } });
+      if (!pres.ok) return;
+      const projects: { id: string; icon_url?: string }[] = await pres.json();
+      const pmap: Record<string, string | null> = {};
+      for (const p of projects) pmap[p.id] = p.icon_url ?? null;
+      const result: Record<string, string | null> = {};
+      for (const [fn, hash] of Object.entries(hashMap)) {
+        result[fn] = vf[hash] ? (pmap[vf[hash].project_id] ?? null) : null;
       }
-    }
-
-    // Apply cached results immediately
-    if (Object.keys(preloaded).length > 0) {
-      setIcons(prev => ({ ...prev, ...preloaded }));
-    }
-
-    // Fetch the rest
-    if (Object.keys(uncached).length > 0) {
-      const fetched = await fetchIconsForHashes(uncached);
-      setIcons(prev => ({ ...prev, ...fetched }));
-    }
+      setIcons(result);
+    } catch {}
   }
 
   async function removeMod(filename: string) {
@@ -164,146 +67,121 @@ export function InstalledModsPage({ versions, selectedVersion }: Props) {
     try {
       await invoke("uninstall_mod", { filename, mcVersion: ver });
       setMods(prev => prev.filter(m => m !== filename));
-    } catch (e) { console.error(e); }
+    } catch {}
     setRemoving(prev => ({ ...prev, [filename]: false }));
   }
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
+  function displayName(filename: string): string {
+    return filename.replace(/\.jar$/i, "").replace(/-mc\d[\d.]*.*$/i, "").replace(/\+mc\d[\d.]*.*$/i, "")
+      .replace(/-\d[\d.]*.*$/, "").replace(/-/g, " ");
+  }
+
+  const filtered = mods.filter(m => !filter || displayName(m).toLowerCase().includes(filter.toLowerCase()));
+  const coreCount = mods.filter(m => m.includes("pulsar-core")).length;
 
   return (
-    <div className="fade-in" style={{ display: "flex", flexDirection: "column", height: "100%", padding: "28px", gap: "16px", overflowY: "auto" }}>
-      {/* Header row */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div className="fade-in" style={{ padding: "22px 26px", height: "100%", overflowY: "auto" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "16px", marginBottom: "16px" }}>
         <div>
-          <h2 className="page-title" style={{ marginBottom: "2px" }}>Installed Mods</h2>
-          <p className="page-subtitle" style={{ margin: 0 }}>
-            {mods.length > 0 ? `${mods.length} mod${mods.length !== 1 ? "s" : ""}` : "No mods installed"}
+          <div style={{ fontSize: "10px", fontWeight: "500", color: "#6B6985", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "8px" }}>
+            Mods · {ver}
+          </div>
+          <h1 style={{ fontSize: "22px", fontWeight: "500", color: "#F0EEFC", margin: "0 0 4px", letterSpacing: "-0.3px" }}>Installed mods</h1>
+          <p style={{ fontSize: "13px", color: "#8A88A8", margin: 0 }}>
+            {mods.length} mod{mods.length !== 1 ? "s" : ""} · loaded with Fabric.
           </p>
         </div>
+        {/* Version selector */}
+        <select value={ver} onChange={e => setVer(e.target.value)}
+          style={{
+            padding: "6px 12px", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "6px",
+            color: "#C7C5DC", fontSize: "12px", cursor: "pointer", outline: "none", fontFamily: "inherit",
+          }}>
+          {versions.map(v => <option key={v} value={v} style={{ background: "#08080F" }}>{v}</option>)}
+        </select>
+      </div>
 
-        {/* Custom version picker */}
-        <div ref={dropdownRef} style={{ position: "relative" }}>
-          <button
-            onClick={() => setDropdownOpen(o => !o)}
-            style={{
-              display: "flex", alignItems: "center", gap: "10px",
-              background: dropdownOpen ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)",
-              border: `1px solid ${dropdownOpen ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)"}`,
-              borderRadius: "10px", padding: "9px 14px",
-              color: "#fff", cursor: "pointer", fontFamily: "inherit",
-              transition: "all 0.15s",
-              fontSize: "13px", fontWeight: "600",
-              minWidth: "140px", justifyContent: "space-between",
-            }}
-            onMouseEnter={e => { if (!dropdownOpen) { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; }}}
-            onMouseLeave={e => { if (!dropdownOpen) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}}
-          >
-            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              {/* Minecraft grass block icon */}
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ opacity: 0.7 }}>
-                <rect x="1" y="5" width="14" height="10" rx="1" fill="#7b5c3c"/>
-                <rect x="1" y="1" width="14" height="5" rx="1" fill="#4a8c3f"/>
-                <rect x="1" y="4" width="14" height="3" fill="#5fa34a"/>
-              </svg>
-              {ver}
-            </span>
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
-              style={{ opacity: 0.5, transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s" }}>
-              <path d="M2 3.5L5 6.5L8 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+      {/* Search */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "8px", marginBottom: "16px" }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5A5870" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input value={filter} onChange={e => setFilter(e.target.value)} placeholder="Search installed mods..."
+          style={{ background: "transparent", border: 0, outline: 0, color: "#E8E6F5", fontSize: "13px", flex: 1, fontFamily: "inherit", padding: 0 }} />
+      </div>
 
-          {dropdownOpen && (
-            <div style={{
-              position: "absolute", top: "calc(100% + 6px)", right: 0,
-              background: "rgba(10,10,10,0.97)", border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "10px", padding: "4px",
-              minWidth: "140px", zIndex: 50,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-              backdropFilter: "blur(12px)",
-            }}>
-              {versions.map(v => (
-                <button key={v} onClick={() => { setVer(v); setDropdownOpen(false); }} style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  width: "100%", padding: "8px 12px", borderRadius: "7px",
-                  background: v === ver ? "rgba(255,255,255,0.08)" : "transparent",
-                  border: "none", color: v === ver ? "#fff" : "var(--text-secondary)",
-                  fontSize: "13px", fontWeight: v === ver ? "700" : "500",
-                  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-                  transition: "all 0.1s",
-                }}
-                onMouseEnter={e => { if (v !== ver) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
-                onMouseLeave={e => { if (v !== ver) e.currentTarget.style.background = "transparent"; }}
-                >
-                  {v}
-                  {v === ver && (
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Stats row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "18px" }}>
+        <div style={{ padding: "12px 14px", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "10px" }}>
+          <div style={{ fontSize: "11px", color: "#8A88A8", marginBottom: "4px" }}>Total installed</div>
+          <div className="mono" style={{ fontSize: "20px", fontWeight: "500", color: "#F0EEFC" }}>{mods.length} <span style={{ fontSize: "11px", color: "#6B6985" }}>mods</span></div>
+        </div>
+        <div style={{ padding: "12px 14px", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "10px" }}>
+          <div style={{ fontSize: "11px", color: "#8A88A8", marginBottom: "4px" }}>Pulsar Core</div>
+          <div className="mono" style={{ fontSize: "20px", fontWeight: "500", color: "#5DCAA5" }}>{coreCount > 0 ? "Active" : "—"}</div>
+        </div>
+        <div style={{ padding: "12px 14px", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "10px" }}>
+          <div style={{ fontSize: "11px", color: "#8A88A8", marginBottom: "4px" }}>External</div>
+          <div className="mono" style={{ fontSize: "20px", fontWeight: "500", color: "#C4B5FD" }}>{mods.length - coreCount}</div>
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        {mods.length === 0 && (
-          <div className="pulsar-empty">No mods installed for {ver}</div>
+      {/* Mod rows */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {filtered.length === 0 && (
+          <div style={{ textAlign: "center", padding: "64px 20px", color: "#6B6985", fontSize: "13px" }}>
+            {mods.length === 0 ? "No mods installed" : "No mods match your search"}
+          </div>
         )}
-        {mods.map(mod => {
+        {filtered.map((mod, i) => {
           const isCore = mod.includes("pulsar-core");
-          const displayName = mod
-            .replace(/\.jar$/i, "")
-            .replace(/-mc\d[\d.]*.*$/i, "")
-            .replace(/\+mc\d[\d.]*.*$/i, "")
-            .replace(/-\d[\d.]*.*$/, "")
-            .replace(/-/g, " ");
+          const name = displayName(mod);
+          const color = MOD_COLORS[i % MOD_COLORS.length];
+          const iconUrl = icons[mod];
 
           return (
-            <div key={mod} className="pulsar-list-item">
-              <div style={{
-                width: "36px", height: "36px", flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: "rgba(255,255,255,0.04)", borderRadius: "8px",
-                border: "1px solid rgba(255,255,255,0.06)",
-                overflow: "hidden",
-              }}>
-                {isCore
-                  ? <CoreIcon />
-                  : <ModIcon filename={mod} iconUrl={icons[mod]} isCore={false} />
-                }
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: "600", fontSize: "13px", color: "var(--text-primary)", textTransform: "capitalize" }}>
-                  {displayName}
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--text-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {mod}
-                </div>
-              </div>
-              {isCore ? (
-                <span style={{ fontSize: "11px", color: "var(--text-faint)", padding: "4px 10px" }}>Core</span>
+            <div key={mod} style={{
+              display: "grid", gridTemplateColumns: "36px 1fr auto", gap: "12px", alignItems: "center",
+              padding: "12px 14px", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "10px",
+              transition: "all 150ms", opacity: removing[mod] ? 0.4 : 1,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "#2A2A3E"; e.currentTarget.style.background = "#11111C"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "#1F1F2E"; e.currentTarget.style.background = "#0D0D17"; }}
+            >
+              {/* Icon */}
+              {iconUrl ? (
+                <img src={iconUrl} alt="" style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} />
               ) : (
-                <button
-                  className="pulsar-btn-ghost"
-                  onClick={() => removeMod(mod)}
-                  disabled={removing[mod]}
-                  style={{ borderColor: "rgba(255,80,80,0.15)", color: "var(--accent-red)", fontSize: "11px", padding: "5px 12px" }}
-                >
-                  {removing[mod] ? "..." : "Remove"}
-                </button>
+                <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: COLOR_BG[color], display: "flex", alignItems: "center", justifyContent: "center", color: COLOR_FG[color], fontSize: "14px" }}>
+                  {isCore ? "◉" : "◆"}
+                </div>
               )}
+
+              {/* Info */}
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px" }}>
+                  <span style={{ fontSize: "13px", fontWeight: "500", color: "#F0EEFC", textTransform: "capitalize" }}>{name}</span>
+                  {isCore && <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", background: "rgba(196,181,253,0.12)", color: "#C4B5FD", letterSpacing: "0.3px", fontWeight: "500" }}>CORE</span>}
+                  <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "3px", background: "rgba(93,202,165,0.12)", color: "#5DCAA5", letterSpacing: "0.3px", fontWeight: "500" }}>Modrinth</span>
+                </div>
+                <div style={{ fontSize: "11px", color: "#6B6985", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{mod}</div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                {!isCore && (
+                  <button onClick={() => removeMod(mod)} disabled={removing[mod]}
+                    style={{
+                      width: "28px", height: "28px", borderRadius: "7px", background: "transparent",
+                      border: "0.5px solid #1F1F2E", color: "#8A88A8", display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer", transition: "all 150ms",
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.color = "#E24B4A"; e.currentTarget.style.borderColor = "#79271F"; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = "#8A88A8"; e.currentTarget.style.borderColor = "#1F1F2E"; }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}

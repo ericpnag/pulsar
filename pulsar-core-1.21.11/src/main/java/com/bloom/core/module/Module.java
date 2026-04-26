@@ -2,6 +2,8 @@ package com.bloom.core.module;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class Module {
     private final String name;
@@ -55,4 +57,5 @@ public abstract class Module {
     public boolean hasHud() { return false; }
     public int getHudHeight() { return 12; }
     public void renderHud(DrawContext context, MinecraftClient client, int y) {}
+    public List<ModuleSetting> getSettings() { return Collections.emptyList(); }
 }

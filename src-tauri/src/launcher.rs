@@ -453,6 +453,7 @@ fn install_mods(client: &Client, _game_dir: &PathBuf, mc_version: &str) -> Resul
     // Auto-install popular performance & utility mods from Modrinth
     let mut bundled_mods: Vec<(&str, &str)> = vec![
         ("AANobbMI", "sodium.jar"),         // Sodium (rendering optimization, 2x FPS)
+        ("YL57xq9U", "iris.jar"),           // Iris Shaders (shader pack support, works with Sodium)
         ("gvQqBUqZ", "lithium.jar"),        // Lithium (game logic optimization)
         ("NNAgCjsB", "entityculling.jar"),   // Entity Culling (skip rendering hidden entities)
         ("5ZwdcRci", "immediatelyfast.jar"), // ImmediatelyFast (HUD, text, entity rendering)

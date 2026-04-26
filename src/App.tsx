@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { TopNav } from "./components/TopNav";
-import { PetalCanvas } from "./components/PetalCanvas";
-
 import { LoginModal } from "./components/LoginModal";
 import "./App.css";
 
@@ -150,175 +147,198 @@ export default function App() {
 
   const canPlay = phase === "idle" || phase === "error";
 
+  // Sidebar icons for navigation
+  const SIDE_ICONS: { id: Page; svg: string }[] = [
+    { id: "play", svg: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>' },
+    { id: "mods", svg: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="7.5 4.21 12 6.81 16.5 4.21"/>' },
+    { id: "installed", svg: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>' },
+    { id: "shaders", svg: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' },
+    { id: "texturepacks", svg: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
+    { id: "shop", svg: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>' },
+  ];
+  const SIDE_BOTTOM: { id: Page; svg: string }[] = [
+    { id: "console", svg: '<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>' },
+    { id: "settings", svg: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9"/>' },
+  ];
+
+  const modeColors: Record<string, string> = { default: "#C4B5FD", bedwars: "#F0997B", speedrun: "#5DCAA5" };
+  const currentMode = GAME_MODES.find(m => m.id === gameMode)!;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", width: "100vw", position: "relative" }}>
-      {/* Subtle star animation */}
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0.25 }}>
-        <PetalCanvas />
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", width: "100vw", background: "#08080F" }}>
+      {/* ── Top Bar ── */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: "14px", padding: "10px 14px",
+        borderBottom: "0.5px solid #1A1A28", background: "#0A0A14", fontSize: "12px",
+        // @ts-ignore - Tauri window drag
+        WebkitAppRegion: "drag", minHeight: "42px",
+      }}>
+        {/* Traffic lights spacer (macOS) */}
+        <div style={{ width: "54px" }} />
+        {/* Version pill */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: "8px", padding: "5px 10px",
+          background: "#11111C", border: "0.5px solid #1F1F2E", borderRadius: "6px",
+          // @ts-ignore
+          WebkitAppRegion: "no-drag", cursor: "pointer",
+        }} onClick={() => setShowVersionPicker(true)}>
+          <div style={{ width: "14px", height: "14px", borderRadius: "50%", background: "radial-gradient(circle at 35% 35%, #8B5CF6 0%, #4C1D95 50%, #08080F 80%)" }} />
+          <span style={{ color: "#E8E6F5" }}>Pulsar Client</span>
+          <span style={{ color: "#5A5870" }}>▾</span>
+        </div>
+        {/* Online badge */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#8A88A8" }}>
+          <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#5DCAA5", boxShadow: "0 0 8px rgba(93,202,165,0.6)" }} />
+          Online
+        </div>
+        <div style={{ flex: 1 }} />
+        {/* User pill */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: "8px", padding: "4px 10px 4px 4px",
+          background: "#11111C", border: "0.5px solid #2A1A4D", borderRadius: "6px",
+          cursor: "pointer", // @ts-ignore
+          WebkitAppRegion: "no-drag",
+        }} onClick={account ? () => { invoke("logout"); setAccount(null); } : handleLogin}>
+          <div style={{ width: "20px", height: "20px", borderRadius: "4px", background: account ? "linear-gradient(135deg, #8B5CF6, #4C1D95)" : "#1A1530" }} />
+          <span style={{ color: "#E8E6F5", fontSize: "12px" }}>{account?.username || "Sign In"}</span>
+          <span style={{ color: "#8A88A8", fontSize: "11px" }}>▾</span>
+        </div>
       </div>
 
-      <TopNav
-        page={page}
-        onNavigate={setPage}
-        account={account}
-        onLogin={handleLogin}
-        onLogout={() => { invoke("logout"); setAccount(null); }}
-      />
+      {/* ── Body: 3-column ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "56px 1fr 260px", flex: 1, overflow: "hidden" }}>
 
-      {/* Content */}
-      <div style={{ flex: 1, overflow: "auto", position: "relative", zIndex: 1 }}>
+        {/* ── Left Sidebar (icons) ── */}
+        <div style={{ background: "#08080F", borderRight: "0.5px solid #1A1A28", padding: "14px 0", display: "flex", flexDirection: "column", gap: "4px", alignItems: "center" }}>
+          {SIDE_ICONS.map(({ id, svg }) => (
+            <div key={id} onClick={() => setPage(id)}
+              style={{
+                width: "38px", height: "38px", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", transition: "all 150ms",
+                background: page === id ? "#1A1530" : "transparent",
+                color: page === id ? "#C4B5FD" : "#5A5870",
+              }}
+              onMouseEnter={e => { if (page !== id) { e.currentTarget.style.background = "#11111C"; e.currentTarget.style.color = "#C7C5DC"; }}}
+              onMouseLeave={e => { if (page !== id) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#5A5870"; }}}
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" dangerouslySetInnerHTML={{ __html: svg }} />
+            </div>
+          ))}
+          <div style={{ width: "24px", height: "1px", background: "#1F1F2E", margin: "4px 0" }} />
+          <div style={{ flex: 1 }} />
+          {SIDE_BOTTOM.map(({ id, svg }) => (
+            <div key={id} onClick={() => setPage(id)}
+              style={{
+                width: "38px", height: "38px", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", transition: "all 150ms",
+                background: page === id ? "#1A1530" : "transparent",
+                color: page === id ? "#C4B5FD" : "#5A5870",
+              }}
+              onMouseEnter={e => { if (page !== id) { e.currentTarget.style.background = "#11111C"; e.currentTarget.style.color = "#C7C5DC"; }}}
+              onMouseLeave={e => { if (page !== id) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#5A5870"; }}}
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" dangerouslySetInnerHTML={{ __html: svg }} />
+            </div>
+          ))}
+        </div>
+
+        {/* ── Main Content ── */}
+        <div style={{ overflow: "auto", position: "relative" }}>
         {page === "play" && (
-          <div className="fade-in" style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "12px", height: "100%" }}>
-            {/* ── Game Mode Cards ── */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-              {GAME_MODES.map((mode, idx) => {
+          <div className="fade-in" style={{ padding: "22px 24px", display: "flex", flexDirection: "column", gap: "18px" }}>
+            {/* Welcome */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "18px", fontWeight: "500", color: "#F0EEFC" }}>
+              Welcome back, traveler
+              {account && <div style={{
+                display: "flex", alignItems: "center", gap: "6px", padding: "4px 10px",
+                background: "#11111C", border: "0.5px solid #2A1A4D", borderRadius: "6px", fontSize: "14px",
+              }}>
+                <div style={{ width: "18px", height: "18px", borderRadius: "4px", background: "linear-gradient(135deg, #8B5CF6, #4C1D95)" }} />
+                {account.username}
+              </div>}
+            </div>
+
+            {/* ── Hero with Launch Button ── */}
+            <div style={{
+              position: "relative", height: "280px", borderRadius: "14px", overflow: "hidden",
+              background: "radial-gradient(ellipse at 30% 50%, #1A0F3A 0%, #0D0D1F 40%, #08080F 80%)",
+              border: "0.5px solid #1F1F2E", display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {/* Stars */}
+              {[[15,12,1],[28,78,2],[65,22,1.5],[42,88,1],[80,65,1],[20,50,2],[75,35,1.5],[50,8,1]].map(([t,l,s],i) => (
+                <div key={i} style={{ position: "absolute", top: `${t}%`, left: `${l}%`, width: `${s}px`, height: `${s}px`, background: "#fff", borderRadius: "50%", opacity: 0.4 + (i%3)*0.15 }} />
+              ))}
+
+              {/* Black hole */}
+              <div style={{ position: "absolute", left: "12%", top: "50%", transform: "translateY(-50%)", width: "110px", height: "110px" }}>
+                <div style={{ position: "absolute", inset: "-30%", borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 60%)" }} />
+                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "conic-gradient(from 0deg, #C4B5FD, #8B5CF6, #4C1D95, #1A0F3A, #4C1D95, #8B5CF6, #C4B5FD)", animation: "spin 8s linear infinite", opacity: 0.85, filter: "blur(2px)" }} />
+                <div style={{ position: "absolute", inset: "22%", borderRadius: "50%", background: "#08080F", boxShadow: "0 0 30px rgba(0,0,0,0.9)" }} />
+              </div>
+
+              {/* Launch button — centered in hero */}
+              <div onClick={canPlay ? handleLaunch : undefined} style={{
+                position: "relative", zIndex: 5, display: "flex", alignItems: "center", gap: "14px",
+                padding: "16px 28px 16px 24px", borderRadius: "12px", cursor: canPlay ? "pointer" : "default",
+                background: canPlay ? "linear-gradient(135deg, #7C5DC4 0%, #5B3FA6 100%)" : "rgba(255,255,255,0.06)",
+                border: canPlay ? "0.5px solid #C4B5FD" : "0.5px solid #1F1F2E",
+                boxShadow: canPlay ? "0 0 30px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.15)" : "none",
+                animation: canPlay && phase === "idle" ? "pulse 3s ease-in-out infinite" : "none",
+                minWidth: "300px", transition: "all 0.25s",
+              }}>
+                <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(255,255,255,0.95)", color: "#4C1D95", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "17px", fontWeight: "500", color: "#FFFFFF", letterSpacing: "0.5px", margin: "0 0 3px" }}>
+                    {phase === "done" ? "RUNNING" : phase === "loading" ? "LAUNCHING..." : phase === "error" ? "RETRY" : "LAUNCH GAME"}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#E0D7FF" }}>
+                    <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "radial-gradient(circle at 35% 35%, #C4B5FD 0%, #5B3FA6 70%)" }} />
+                    Pulsar {currentMode.version} with <span style={{ color: "#fff", fontWeight: "500" }}>Fabric</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress */}
+            {phase === "loading" && (
+              <div>
+                <div style={{ height: "3px", background: "rgba(255,255,255,0.03)", borderRadius: "4px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg, #5B3FA6, #C4B5FD)", transition: "width 0.4s ease", borderRadius: "4px" }} />
+                </div>
+                <div className="mono" style={{ fontSize: "11px", color: "#8A88A8", marginTop: "6px" }}>{status}</div>
+              </div>
+            )}
+            {phase === "error" && (
+              <div style={{ fontSize: "12px", color: "#F0997B", padding: "10px 14px", background: "rgba(240,153,123,0.06)", border: "0.5px solid rgba(240,153,123,0.15)", borderRadius: "8px" }}>{status}</div>
+            )}
+
+            {/* ── Game Mode Tabs ── */}
+            <div style={{ display: "flex", gap: "6px", padding: "8px", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "12px" }}>
+              {GAME_MODES.map(mode => {
                 const active = gameMode === mode.id;
-                const modeColors = { default: "#C678DD", bedwars: "#E8614D", speedrun: "#34D399" };
                 const col = modeColors[mode.id];
                 return (
-                  <div key={mode.id}
-                    className={`mode-card ${active ? "active" : ""} stagger-${idx + 1}`}
-                    onClick={() => { setGameMode(mode.id); setSelectedVersion(mode.version); }}
-                    style={{ background: mode.gradient, borderColor: active ? mode.accentBorder : undefined }}
+                  <div key={mode.id} onClick={() => { setGameMode(mode.id); setSelectedVersion(mode.version); }}
+                    style={{
+                      flex: 1, height: "56px", borderRadius: "8px", cursor: "pointer", transition: "all 200ms",
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px",
+                      background: active ? "#1A1530" : "transparent",
+                      boxShadow: active ? "inset 0 0 0 0.5px #5B3FA6" : "none",
+                    }}
+                    onMouseEnter={e => { if (!active) e.currentTarget.style.background = "#11111C"; }}
+                    onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
                   >
-                    {/* Top accent line */}
-                    <div style={{
-                      position: "absolute", top: 0, left: active ? "15%" : "30%", right: active ? "15%" : "30%",
-                      height: active ? "2px" : "1px", background: col,
-                      opacity: active ? 0.8 : 0.2, transition: "all 0.3s ease", borderRadius: "0 0 2px 2px",
-                    }} />
-
-                    {/* Card content */}
-                    <div style={{ padding: "20px 16px 16px", position: "relative", zIndex: 1 }}>
-                      {/* Version badge */}
-                      <div className="mono" style={{
-                        fontSize: "10px", fontWeight: "600", color: col, opacity: 0.7,
-                        letterSpacing: "0.05em", marginBottom: "8px",
-                      }}>
-                        {mode.version} {mode.server ? `\u00B7 ${mode.server}` : "\u00B7 Fabric"}
-                      </div>
-
-                      {/* Mode name */}
-                      <div style={{
-                        fontSize: "16px", fontWeight: "800", color: active ? "#fff" : "var(--text-secondary)",
-                        letterSpacing: "-0.01em", transition: "color 0.2s",
-                      }}>
-                        {mode.name}
-                      </div>
-
-                      {/* Description */}
-                      <div style={{
-                        fontSize: "11px", color: active ? "var(--text-secondary)" : "var(--text-muted)",
-                        marginTop: "4px", transition: "color 0.2s",
-                      }}>
-                        {mode.sub}
-                      </div>
-
-                      {/* Active indicator */}
-                      {active && (
-                        <div style={{
-                          display: "inline-flex", alignItems: "center", gap: "4px",
-                          marginTop: "10px", fontSize: "9px", fontWeight: "700",
-                          color: col, letterSpacing: "0.08em", textTransform: "uppercase",
-                        }}>
-                          <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: col, boxShadow: `0 0 6px ${col}` }} />
-                          SELECTED
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Subtle background glow */}
-                    {active && <div style={{
-                      position: "absolute", bottom: "-20px", right: "-20px", width: "80px", height: "80px",
-                      borderRadius: "50%", background: col, opacity: 0.04, filter: "blur(20px)",
-                    }} />}
+                    <div style={{ fontSize: "13px", fontWeight: "600", color: active ? col : "#5A5870", transition: "color 200ms" }}>{mode.name}</div>
+                    <div className="mono" style={{ fontSize: "9px", color: active ? "#8A88A8" : "#2A2A3E" }}>{mode.version}</div>
                   </div>
                 );
               })}
             </div>
 
-            {/* ── Launch Button ── */}
-            <button
-              className={`launch-btn ${canPlay ? "ready" : "disabled"}`}
-              onClick={canPlay ? handleLaunch : undefined}
-              disabled={!canPlay}
-            >
-              {phase === "done" ? "Minecraft is Running" : phase === "loading" ? "Launching..." : phase === "error" ? "Retry" : "Launch Game"}
-            </button>
-
-            {/* ── Progress ── */}
-            {phase === "loading" && (
-              <div className="fade-in">
-                <div style={{ height: "3px", background: "rgba(255,255,255,0.03)", borderRadius: "4px", overflow: "hidden" }}>
-                  <div style={{
-                    height: "100%", width: `${progress}%`,
-                    background: "linear-gradient(90deg, var(--accent-soft), var(--accent))",
-                    transition: "width 0.4s ease", borderRadius: "4px",
-                  }} />
-                </div>
-                <div className="mono" style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "8px" }}>{status}</div>
-              </div>
-            )}
-
-            {/* ── Error ── */}
-            {phase === "error" && (
-              <div className="fade-in" style={{
-                fontSize: "12px", color: "var(--accent-red)", padding: "12px 16px",
-                background: "rgba(248,113,113,0.04)", border: "1px solid rgba(248,113,113,0.1)",
-                borderRadius: "var(--radius-sm)", lineHeight: 1.6,
-              }}>
-                {status}
-              </div>
-            )}
-
-            {/* ── Mode Info Bar ── */}
-            {gameMode !== "default" && (
-              <div className="mode-transition" style={{
-                padding: "10px 14px", borderRadius: "var(--radius-sm)",
-                background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                fontSize: "12px",
-              }}>
-                <span style={{ color: "var(--text-secondary)" }}>
-                  {GAME_MODES.find(m => m.id === gameMode)?.name} Mode — v{GAME_MODES.find(m => m.id === gameMode)?.version}
-                  {GAME_MODES.find(m => m.id === gameMode)?.server && <> — auto-join <span style={{ color: "#fff", fontWeight: "600" }}>{GAME_MODES.find(m => m.id === gameMode)?.server}</span></>}
-                </span>
-                <span className="mono" style={{ color: "var(--accent-green)", fontWeight: "600", fontSize: "10px" }}>ACTIVE</span>
-              </div>
-            )}
-
             {/* ── Daily Reward ── */}
             <DailyReward />
-
-            {/* ── Info Cards ── */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div className="pulsar-card" style={{ padding: "18px 20px" }}>
-                <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: "10px", textTransform: "uppercase" }}>
-                  Pulsar Client
-                </div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.7 }}>
-                  Press <span style={{ color: "#FFFFFF", fontWeight: "600", background: "rgba(255,255,255,0.08)", padding: "2px 7px", borderRadius: "4px", fontSize: "11px", fontFamily: "'JetBrains Mono', monospace", border: "1px solid rgba(255,255,255,0.1)" }}>R.Shift</span> for mods, <span style={{ color: "#FFFFFF", fontWeight: "600", background: "rgba(255,255,255,0.08)", padding: "2px 7px", borderRadius: "4px", fontSize: "11px", fontFamily: "'JetBrains Mono', monospace", border: "1px solid rgba(255,255,255,0.1)" }}>~</span> for HUD editor
-                </div>
-              </div>
-              <div className="pulsar-card" style={{ padding: "18px 20px" }}>
-                <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: "10px", textTransform: "uppercase" }}>
-                  Servers
-                </div>
-                {[
-                  { name: "Hypixel", players: "45,231" },
-                  { name: "BedWars Practice", players: "2,104" },
-                  { name: "PvP Legacy", players: "891" },
-                ].map((s, i) => (
-                  <div key={i} style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    padding: "3px 0",
-                  }}>
-                    <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>{s.name}</span>
-                    <span className="mono" style={{ fontSize: "10px", color: "var(--accent-green)", fontWeight: "600" }}>{s.players}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
@@ -329,6 +349,52 @@ export default function App() {
         {page === "shop" && <LazyPage name="Shop" />}
         {page === "console" && <LazyPage name="Console" />}
         {page === "settings" && <LazyPage name="Settings" />}
+        </div>
+
+        {/* ── Right Column ── */}
+        <div style={{ background: "#08080F", borderLeft: "0.5px solid #1A1A28", padding: "22px 18px", display: "flex", flexDirection: "column", gap: "16px", overflow: "auto" }}>
+          {/* Friends */}
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+              <div><span style={{ fontSize: "16px", fontWeight: "500", color: "#F0EEFC" }}>Friends</span> <span style={{ color: "#8A88A8", fontSize: "13px" }}>(0 online)</span></div>
+            </div>
+            {[0,1,2,3].map(i => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 4px" }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#11111C", flexShrink: 0 }} />
+                <div style={{ flex: 1, height: "8px", background: "#11111C", borderRadius: "4px" }} />
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#11111C" }} />
+              </div>
+            ))}
+          </div>
+
+          {/* Equipped Cosmetic */}
+          <div style={{ marginTop: "auto", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "12px", overflow: "hidden" }}>
+            <div style={{
+              height: "160px", position: "relative", overflow: "hidden",
+              background: "radial-gradient(ellipse at center, #1A0F3A 0%, #08080F 70%)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <div style={{ position: "absolute", inset: "-40%", background: "radial-gradient(circle at center, rgba(139,92,246,0.25) 0%, transparent 50%)", animation: "spin 16s linear infinite" }} />
+              <div style={{ position: "relative", width: "50px", height: "80px", zIndex: 2 }}>
+                <div style={{
+                  position: "absolute", inset: 0, borderRadius: "6px 6px 14px 14px",
+                  background: "radial-gradient(ellipse at 40% 25%, #4C1D95 0%, #1A0F3A 60%, #08080F 90%)",
+                  border: "0.5px solid #5B3FA6", boxShadow: "0 0 20px rgba(139,92,246,0.3)",
+                }}>
+                  <div style={{ position: "absolute", inset: "12px", border: "0.5px solid rgba(196,181,253,0.4)", borderRadius: "3px" }} />
+                </div>
+              </div>
+            </div>
+            <div style={{ padding: "12px 14px" }}>
+              <div style={{ fontSize: "10px", color: "#6B6985", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px" }}>Equipped Cape</div>
+              <div style={{ fontSize: "14px", fontWeight: "500", color: "#F0EEFC", display: "flex", justifyContent: "space-between" }}>
+                <span>OG Pulsar</span>
+                <span style={{ fontSize: "11px", color: "#C4B5FD", cursor: "pointer" }} onClick={() => setPage("shop")}>Change</span>
+              </div>
+              <div className="mono" style={{ fontSize: "11px", color: "#C4B5FD", marginTop: "2px" }}>Limited · v2.1.0</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {showVersionPicker && (() => {

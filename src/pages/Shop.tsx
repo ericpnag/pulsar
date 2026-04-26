@@ -217,30 +217,155 @@ export function ShopPage() {
     setRedeemLoading(false);
   }
 
+  const [shopTab, setShopTab] = useState<"shop" | "owned">("shop");
+
+  const ownedCount = COSMETICS.filter(c => isOwned(c.id)).length;
+  const availableCount = COSMETICS.filter(c => c.price >= 0).length;
+  const buyableCapes = COSMETICS.filter(c => c.price > 0 && c.type === "cape");
+  const featuredCape = buyableCapes.find(c => c.id === "cape_blackhole") || buyableCapes[0];
+
+  const displayedCapes = shopTab === "owned"
+    ? filtered.filter(c => isOwned(c.id))
+    : filtered;
+
   return (
-    <div className="fade-in" style={{ display: "flex", flexDirection: "column", height: "100%", padding: "28px", gap: "16px", overflowY: "auto" }}>
+    <div className="fade-in" style={{ display: "flex", flexDirection: "column", height: "100%", padding: "28px", gap: "18px", overflowY: "auto" }}>
+      <style>{PREVIEW_ANIMATIONS}</style>
+      <style>{`
+        @keyframes hero-float { 0%,100%{transform:translateY(0) rotate(-6deg)} 50%{transform:translateY(-8px) rotate(-6deg)} }
+        @keyframes hero-star { 0%,100%{opacity:0.2} 50%{opacity:0.8} }
+      `}</style>
+
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <h2 className="page-title">Cosmetics Shop</h2>
-          <p className="page-subtitle">Customize your character</p>
+          <div style={{ fontSize: "11px", fontWeight: "600", color: "#6B6985", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "4px" }}>Cosmetics</div>
+          <h2 style={{ fontSize: "22px", fontWeight: "800", color: "#F0EEFC", margin: 0, letterSpacing: "-0.02em" }}>Wardrobe</h2>
+          <p style={{ fontSize: "12px", color: "#6B6985", margin: "4px 0 0 0" }}>
+            {ownedCount} owned &middot; {availableCount} available
+          </p>
         </div>
-        <div className="pulsar-card" style={{
-          padding: "10px 18px", display: "flex", alignItems: "center", gap: "8px",
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" fill="#000000"/>
-            <circle cx="12" cy="12" r="8" fill="none" stroke="#ffffff" strokeWidth="0.5" opacity="0.3"/>
-            <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="#ffffff" strokeWidth="1.5" opacity="0.6"/>
-            <circle cx="12" cy="12" r="4" fill="#000000"/>
-            <circle cx="12" cy="12" r="3" fill="none" stroke="#ffffff" strokeWidth="0.3" opacity="0.5"/>
-          </svg>
-          <span style={{ fontSize: "18px", fontWeight: "800", color: "#FFFFFF" }}>{points}</span>
-          <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>points</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* Shop / Owned tabs */}
+          <div style={{ display: "flex", gap: "2px", background: "#0D0D17", borderRadius: "10px", padding: "3px", border: "0.5px solid #1F1F2E" }}>
+            {(["shop", "owned"] as const).map(tab => (
+              <button key={tab} onClick={() => setShopTab(tab)} style={{
+                padding: "6px 16px", borderRadius: "8px", border: "none",
+                background: shopTab === tab ? "#5B3FA6" : "transparent",
+                color: shopTab === tab ? "#F0EEFC" : "#6B6985",
+                fontSize: "12px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit",
+                transition: "all 0.15s", textTransform: "capitalize",
+              }}>
+                {tab}
+              </button>
+            ))}
+          </div>
+          {/* Points badge */}
+          <div style={{
+            padding: "8px 16px", display: "flex", alignItems: "center", gap: "8px",
+            background: "#0D0D17", borderRadius: "10px", border: "0.5px solid #1F1F2E",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="#000000"/>
+              <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="#C4B5FD" strokeWidth="1.5" opacity="0.6"/>
+              <circle cx="12" cy="12" r="4" fill="#000000"/>
+              <circle cx="12" cy="12" r="3" fill="none" stroke="#C4B5FD" strokeWidth="0.3" opacity="0.5"/>
+            </svg>
+            <span style={{ fontSize: "16px", fontWeight: "800", color: "#F0EEFC", fontFamily: "monospace" }}>{points}</span>
+          </div>
         </div>
       </div>
 
-      {/* OG Cape — Limited Edition — top of shop until sold out */}
+      {/* Hero Banner — featured cape */}
+      {featuredCape && (
+        <div style={{
+          position: "relative", height: "220px", borderRadius: "16px", overflow: "hidden",
+          background: `linear-gradient(135deg, ${featuredCape.color}18, #0D0D17 60%, ${featuredCape.color2}10)`,
+          border: "0.5px solid #1F1F2E",
+        }}>
+          {/* Stars in background */}
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={i} style={{
+              position: "absolute",
+              left: `${5 + (i * 37) % 90}%`,
+              top: `${8 + (i * 23) % 80}%`,
+              width: `${1 + (i % 3)}px`,
+              height: `${1 + (i % 3)}px`,
+              borderRadius: "50%",
+              background: "#C4B5FD",
+              opacity: 0.15 + (i % 4) * 0.1,
+              animation: `hero-star ${2 + (i % 3)}s ease-in-out ${i * 0.3}s infinite`,
+            }} />
+          ))}
+          {/* Content */}
+          <div style={{
+            position: "relative", zIndex: 1, padding: "32px 36px", height: "100%",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "10px", fontWeight: "700", color: "#C4B5FD", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "8px" }}>
+                Featured
+              </div>
+              <div style={{ fontSize: "28px", fontWeight: "800", color: "#F0EEFC", letterSpacing: "-0.02em", marginBottom: "6px" }}>
+                {featuredCape.name}
+              </div>
+              <div style={{ fontSize: "13px", color: "#8A88A8", marginBottom: "20px", maxWidth: "280px" }}>
+                {featuredCape.description}
+              </div>
+              {isOwned(featuredCape.id) ? (
+                <button onClick={() => equip(featuredCape)} style={{
+                  padding: "10px 28px", borderRadius: "10px",
+                  border: isEquipped(featuredCape.id) ? "none" : "0.5px solid #5B3FA6",
+                  background: isEquipped(featuredCape.id) ? "linear-gradient(135deg, #5B3FA6, #7C5FD6)" : "rgba(91,63,166,0.2)",
+                  color: "#F0EEFC", fontSize: "13px", fontWeight: "700", cursor: "pointer",
+                  fontFamily: "inherit", transition: "all 0.15s",
+                }}>
+                  {isEquipped(featuredCape.id) ? "Equipped" : "Equip"}
+                </button>
+              ) : (
+                <button onClick={() => buy(featuredCape)} disabled={featuredCape.price > points} style={{
+                  padding: "10px 28px", borderRadius: "10px", border: "none",
+                  background: featuredCape.price <= points ? "linear-gradient(135deg, #5B3FA6, #7C5FD6)" : "rgba(91,63,166,0.15)",
+                  color: featuredCape.price <= points ? "#F0EEFC" : "#6B6985",
+                  fontSize: "13px", fontWeight: "700", cursor: featuredCape.price <= points ? "pointer" : "not-allowed",
+                  fontFamily: "inherit", transition: "all 0.15s",
+                  display: "flex", alignItems: "center", gap: "6px",
+                }}>
+                  <span style={{ fontFamily: "monospace" }}>{featuredCape.price}</span> points
+                </button>
+              )}
+            </div>
+            {/* Cape preview on right */}
+            <div style={{
+              width: "160px", height: "160px", position: "relative", flexShrink: 0,
+              animation: "hero-float 4s ease-in-out infinite",
+            }}>
+              <div style={{
+                width: "120px", height: "150px", margin: "5px auto",
+                borderRadius: "16px",
+                background: `linear-gradient(180deg, ${featuredCape.color}, ${featuredCape.color2})`,
+                border: "2px solid rgba(255,255,255,0.08)",
+                boxShadow: `0 8px 40px ${featuredCape.color}40, 0 0 80px ${featuredCape.color}15`,
+                position: "relative", overflow: "hidden",
+              }}>
+                {/* Inner border */}
+                <div style={{
+                  position: "absolute", inset: "4px", borderRadius: "12px",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }} />
+                {/* Shine */}
+                <div style={{
+                  position: "absolute", top: 0, left: 0, right: "50%", bottom: 0,
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.12), transparent)",
+                  borderRadius: "14px 0 0 14px",
+                }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OG Cape — Limited Edition */}
       <OGCapeSection onClaim={() => {
         if (!purchased.includes("cape_og")) {
           save(points, [...purchased, "cape_og"], equipped);
@@ -250,35 +375,36 @@ export function ShopPage() {
       {/* Points Store */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
         {POINT_TIERS.map((tier, i) => (
-          <div key={i} className="pulsar-card" onClick={() => {
+          <div key={i} onClick={() => {
             setPurchaseModal(tier);
             setPurchasePhase("confirm");
           }} style={{
             padding: "14px", textAlign: "center", cursor: "pointer",
             position: "relative", transition: "all 0.15s",
-            border: tier.popular ? "1px solid rgba(255,255,255,0.2)" : undefined,
-            background: tier.popular ? "rgba(255,255,255,0.05)" : undefined,
+            background: tier.popular ? "rgba(91,63,166,0.08)" : "#0D0D17",
+            borderRadius: "12px",
+            border: tier.popular ? "0.5px solid #5B3FA6" : "0.5px solid #1F1F2E",
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(255,255,255,0.08)"; }}
+          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(91,63,166,0.15)"; }}
           onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
           >
             {tier.popular && (
               <div style={{
                 position: "absolute", top: "-8px", left: "50%", transform: "translateX(-50%)",
-                background: "linear-gradient(135deg, #FFFFFF, #C0C0C0)", color: "#000000",
+                background: "linear-gradient(135deg, #5B3FA6, #7C5FD6)", color: "#F0EEFC",
                 fontSize: "9px", fontWeight: "800", padding: "2px 10px", borderRadius: "8px",
                 letterSpacing: "0.05em", textTransform: "uppercase",
               }}>Popular</div>
             )}
-            <div style={{ fontSize: "10px", fontWeight: "700", color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "6px" }}>
+            <div style={{ fontSize: "10px", fontWeight: "700", color: "#6B6985", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "6px" }}>
               Pulsar Points
             </div>
-            <div style={{ fontSize: "22px", fontWeight: "800", color: "#FFFFFF", marginBottom: "2px" }}>
+            <div style={{ fontSize: "22px", fontWeight: "800", color: "#F0EEFC", marginBottom: "2px", fontFamily: "monospace" }}>
               {tier.amount.toLocaleString()}
             </div>
             <div style={{
-              fontSize: "13px", fontWeight: "700", color: "var(--text-primary)",
-              background: "rgba(255,255,255,0.06)", borderRadius: "6px", padding: "4px 12px",
+              fontSize: "13px", fontWeight: "700", color: "#F0EEFC",
+              background: "rgba(91,63,166,0.12)", borderRadius: "6px", padding: "4px 12px",
               display: "inline-block", marginTop: "6px",
             }}>{tier.price}</div>
           </div>
@@ -288,9 +414,9 @@ export function ShopPage() {
       {/* Redeem Code */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <button onClick={() => setShowRedeem(!showRedeem)} style={{
-          background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+          background: "#0D0D17", border: "0.5px solid #1F1F2E",
           borderRadius: "8px", padding: "7px 14px", fontSize: "12px", fontWeight: "600",
-          color: "var(--text-secondary)", cursor: "pointer", fontFamily: "inherit",
+          color: "#8A88A8", cursor: "pointer", fontFamily: "inherit",
           transition: "all 0.15s",
         }}>
           Redeem Code
@@ -303,9 +429,9 @@ export function ShopPage() {
               onChange={e => { setRedeemCode(e.target.value); setRedeemMsg(null); }}
               onKeyDown={e => e.key === "Enter" && redeemPoints()}
               placeholder="Enter code..."
-              style={{ flex: 1, padding: "7px 12px", fontSize: "12px" }}
+              style={{ flex: 1, padding: "7px 12px", fontSize: "12px", background: "#0D0D17", border: "0.5px solid #1F1F2E", borderRadius: "8px", color: "#F0EEFC" }}
             />
-            <button onClick={redeemPoints} className="pulsar-btn" style={{ padding: "7px 16px", fontSize: "12px" }}>
+            <button onClick={redeemPoints} className="pulsar-btn" style={{ padding: "7px 16px", fontSize: "12px", background: "#5B3FA6", border: "none", borderRadius: "8px", color: "#F0EEFC", cursor: "pointer", fontFamily: "inherit", fontWeight: "600" }}>
               Redeem
             </button>
           </>
@@ -317,7 +443,7 @@ export function ShopPage() {
         )}
       </div>
 
-      <div style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
+      <div style={{ height: "1px", background: "#1F1F2E" }} />
 
       {/* Creators Section */}
       <div>
@@ -325,7 +451,7 @@ export function ShopPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ fontSize: "16px" }}>⭐</span>
             <span style={{ fontSize: "14px", fontWeight: "800", color: "#FFD700", letterSpacing: "0.04em" }}>VERIFIED CREATORS</span>
-            <span style={{ fontSize: "11px", color: "var(--text-faint)" }}>Exclusive capes for verified partners</span>
+            <span style={{ fontSize: "11px", color: "#6B6985" }}>Exclusive capes for verified partners</span>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "10px" }}>
@@ -336,8 +462,9 @@ export function ShopPage() {
           ].map(creator => {
             const cape = COSMETICS.find(c => c.id === creator.cape);
             return (
-            <div key={creator.name} className="pulsar-card" style={{
+            <div key={creator.name} style={{
               padding: "0", overflow: "hidden", transition: "all 0.2s",
+              background: "#0D0D17", borderRadius: "12px", border: "0.5px solid #1F1F2E",
             }}>
               {/* Banner with cape preview */}
               <div style={{
@@ -348,7 +475,7 @@ export function ShopPage() {
                 <div style={{
                   position: "absolute", bottom: "-16px", left: "14px",
                   width: "36px", height: "36px", borderRadius: "10px",
-                  border: "2px solid #111", overflow: "hidden",
+                  border: "2px solid #0D0D17", overflow: "hidden",
                   background: "#1a1a1a",
                 }}>
                   <img
@@ -369,10 +496,10 @@ export function ShopPage() {
               </div>
               {/* Info */}
               <div style={{ padding: "22px 14px 14px" }}>
-                <div style={{ fontSize: "13px", fontWeight: "700", color: "#fff", marginBottom: "2px" }}>
+                <div style={{ fontSize: "13px", fontWeight: "700", color: "#F0EEFC", marginBottom: "2px" }}>
                   {creator.name}
                 </div>
-                <div style={{ fontSize: "10px", color: "var(--text-faint)", marginBottom: "10px" }}>
+                <div style={{ fontSize: "10px", color: "#6B6985", marginBottom: "10px" }}>
                   {creator.role}
                 </div>
                 {/* Social + Verified badge */}
@@ -402,139 +529,128 @@ export function ShopPage() {
         </div>
       </div>
 
-      <div style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
+      <div style={{ height: "1px", background: "#1F1F2E" }} />
 
-      {/* Filter tabs */}
-      <div style={{ display: "flex", gap: "4px" }}>
-        {["all", "cape"].map(t => (
-          <button key={t} onClick={() => setFilter(t)} style={{
-            padding: "7px 16px", borderRadius: "8px",
-            background: filter === t ? "rgba(255,255,255,0.08)" : "transparent",
-            border: filter === t ? "1px solid rgba(255,255,255,0.15)" : "1px solid transparent",
-            color: filter === t ? "#FFFFFF" : "var(--text-muted)",
-            fontSize: "12px", fontWeight: "600", cursor: "pointer",
-            transition: "all 0.15s", fontFamily: "inherit",
-          }}
-          onMouseEnter={e => { if (filter !== t) e.currentTarget.style.color = "var(--text)"; }}
-          onMouseLeave={e => { if (filter !== t) e.currentTarget.style.color = "var(--text-dim)"; }}
-          >
-            {t === "all" ? "All" : TYPE_LABELS[t]}
-          </button>
-        ))}
+      {/* Category pills */}
+      <div style={{ display: "flex", gap: "6px" }}>
+        {["all", "cape"].map(t => {
+          const count = t === "all" ? COSMETICS.length : COSMETICS.filter(c => c.type === t).length;
+          return (
+            <button key={t} onClick={() => setFilter(t)} style={{
+              padding: "7px 18px", borderRadius: "20px",
+              background: filter === t ? "#5B3FA6" : "#0D0D17",
+              border: filter === t ? "0.5px solid #5B3FA6" : "0.5px solid #1F1F2E",
+              color: filter === t ? "#F0EEFC" : "#6B6985",
+              fontSize: "12px", fontWeight: "600", cursor: "pointer",
+              transition: "all 0.15s", fontFamily: "inherit",
+              display: "flex", alignItems: "center", gap: "6px",
+            }}>
+              {t === "all" ? "All Capes" : TYPE_LABELS[t]}
+              <span style={{
+                fontSize: "10px", fontWeight: "700",
+                background: filter === t ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.06)",
+                padding: "1px 6px", borderRadius: "10px",
+                color: filter === t ? "#F0EEFC" : "#6B6985",
+              }}>{count}</span>
+            </button>
+          );
+        })}
       </div>
 
-      <style>{PREVIEW_ANIMATIONS}</style>
-      {/* Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "12px" }}>
-        {filtered.map(c => {
+      {/* Cape Grid — 4 columns */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+        {displayedCapes.map(c => {
           const own = isOwned(c.id);
           const eq = isEquipped(c.id);
+          const isFree = c.price === 0;
+          const isLimited = c.price === -2;
           return (
             <div key={c.id} style={{
               position: "relative", borderRadius: "14px", overflow: "hidden",
-              border: eq ? "1px solid rgba(198,120,221,0.35)" : "1px solid rgba(255,255,255,0.06)",
-              background: "rgba(255,255,255,0.02)",
+              border: eq ? "0.5px solid #5B3FA6" : "0.5px solid #1F1F2E",
+              background: "#0D0D17",
               transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
               cursor: "pointer",
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 8px 30px rgba(0,0,0,0.4)`; e.currentTarget.style.borderColor = eq ? "rgba(198,120,221,0.5)" : "rgba(255,255,255,0.12)"; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = eq ? "rgba(198,120,221,0.35)" : "rgba(255,255,255,0.06)"; }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = `0 8px 30px rgba(91,63,166,0.2)`;
+              e.currentTarget.style.borderColor = "#5B3FA6";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "";
+              e.currentTarget.style.boxShadow = "";
+              e.currentTarget.style.borderColor = eq ? "#5B3FA6" : "#1F1F2E";
+            }}
+            onClick={() => { if (own) equip(c); else if (c.price >= 0) buy(c); }}
             >
-              {/* Preview — fills the top of the card */}
+              {/* Preview area — square aspect ratio */}
               <div style={{
-                width: "100%", height: "140px", position: "relative",
-                filter: own ? "none" : "grayscale(0.7) brightness(0.5)",
+                width: "100%", aspectRatio: "1", position: "relative",
+                background: `radial-gradient(circle at center, ${c.color}20, transparent 70%)`,
+                overflow: "hidden",
+                filter: own ? "none" : "grayscale(0.6) brightness(0.5)",
                 transition: "filter 0.3s",
               }}>
                 <CosmeticPreview cosmetic={c} />
-                {/* Gradient overlay for text readability */}
-                <div style={{
-                  position: "absolute", bottom: 0, left: 0, right: 0, height: "60px",
-                  background: "linear-gradient(transparent, rgba(6,6,12,0.95))",
-                  pointerEvents: "none",
-                }} />
-                {/* Name overlaid on preview */}
-                <div style={{
-                  position: "absolute", bottom: "8px", left: "12px", right: "12px",
-                  display: "flex", justifyContent: "space-between", alignItems: "flex-end",
-                }}>
-                  <div>
-                    <div style={{ fontSize: "14px", fontWeight: "800", color: "#fff", letterSpacing: "-0.01em" }}>{c.name}</div>
-                    <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", marginTop: "1px" }}>{c.description}</div>
-                  </div>
-                  {eq && <div style={{
-                    fontSize: "8px", fontWeight: "700", color: "#C678DD", letterSpacing: "0.08em",
-                    background: "rgba(198,120,221,0.15)", padding: "2px 6px", borderRadius: "4px",
-                  }}>EQUIPPED</div>}
-                </div>
-                {/* Price badge */}
-                {!own && c.price >= 0 && (
+
+                {/* Equipped badge — top right */}
+                {eq && (
                   <div style={{
                     position: "absolute", top: "8px", right: "8px",
-                    fontSize: "11px", fontWeight: "700",
-                    background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
-                    padding: "3px 8px", borderRadius: "6px",
-                    color: c.price > points ? "rgba(255,255,255,0.3)" : "#fff",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                  }}>
-                    {c.price === 0 ? "FREE" : `${c.price}`}
-                  </div>
+                    fontSize: "9px", fontWeight: "700", color: "#C4B5FD", letterSpacing: "0.06em",
+                    background: "rgba(91,63,166,0.25)", padding: "3px 8px", borderRadius: "6px",
+                    border: "0.5px solid rgba(91,63,166,0.4)",
+                  }}>EQUIPPED</div>
+                )}
+
+                {/* FREE or LIMITED badge — top left */}
+                {isFree && !own && (
+                  <div style={{
+                    position: "absolute", top: "8px", left: "8px",
+                    fontSize: "9px", fontWeight: "700", color: "#4CAF50",
+                    background: "rgba(76,175,80,0.15)", padding: "3px 8px", borderRadius: "6px",
+                    border: "0.5px solid rgba(76,175,80,0.25)",
+                  }}>FREE</div>
+                )}
+                {isLimited && (
+                  <div style={{
+                    position: "absolute", top: "8px", left: "8px",
+                    fontSize: "9px", fontWeight: "700", color: "#C4B5FD",
+                    background: "rgba(91,63,166,0.15)", padding: "3px 8px", borderRadius: "6px",
+                    border: "0.5px solid rgba(91,63,166,0.25)",
+                  }}>LIMITED</div>
                 )}
                 {c.price === -1 && (
                   <div style={{
-                    position: "absolute", top: "8px", right: "8px",
-                    fontSize: "10px", fontWeight: "700", color: "#FFD700",
+                    position: "absolute", top: "8px", left: "8px",
+                    fontSize: "9px", fontWeight: "700", color: "#FFD700",
                     background: "rgba(255,215,0,0.1)", padding: "3px 8px", borderRadius: "6px",
-                    border: "1px solid rgba(255,215,0,0.2)",
+                    border: "0.5px solid rgba(255,215,0,0.2)",
                   }}>VERIFIED</div>
-                )}
-                {c.price === -2 && (
-                  <div style={{
-                    position: "absolute", top: "8px", right: "8px",
-                    fontSize: "10px", fontWeight: "700", color: "#C678DD",
-                    background: "rgba(198,120,221,0.1)", padding: "3px 8px", borderRadius: "6px",
-                    border: "1px solid rgba(198,120,221,0.2)",
-                  }}>LIMITED</div>
                 )}
               </div>
 
-              {/* Action bar */}
-              <div style={{ padding: "8px 12px 10px" }}>
-              {own ? (
-                <button onClick={() => equip(c)} style={{
-                  width: "100%", padding: "7px", border: "none", borderRadius: "8px",
-                  background: eq ? "linear-gradient(135deg, #C678DD, #A855F7)" : "rgba(255,255,255,0.04)",
-                  color: eq ? "#fff" : "var(--text-muted)",
-                  fontSize: "11px", fontWeight: "700", cursor: "pointer", fontFamily: "inherit",
-                  transition: "all 0.2s", letterSpacing: "0.02em",
-                }}>
-                  {eq ? "Equipped" : "Equip"}
-                </button>
-              ) : (
-                <button onClick={() => { if (c.price >= 0) buy(c); }} disabled={c.price < 0 || c.price > points}
-                  style={{
-                    width: "100%", padding: "7px", borderRadius: "8px",
-                    background: c.price >= 0 && c.price <= points ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    color: c.price < 0 ? "var(--text-faint)" : c.price > points ? "var(--text-faint)" : "#fff",
-                    cursor: c.price < 0 ? "default" : c.price > points ? "not-allowed" : "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "5px",
-                    fontSize: "11px", fontWeight: "600", fontFamily: "inherit", transition: "all 0.15s",
-                  }}
-                >
-                  {c.price === -1 ? (
-                    <><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Verified Only</>
-                  ) : c.price === -2 ? (
-                    <>Limited Edition</>
-                  ) : (
-                    <><svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.6"/>
-                      <ellipse cx="12" cy="6" rx="2.5" ry="3.5" fill="currentColor" opacity="0.4"/>
-                      <ellipse cx="17" cy="10" rx="2.5" ry="3.5" fill="currentColor" opacity="0.3" transform="rotate(72 12 12)"/>
-                    </svg>{c.price}</>
-                  )}
-                </button>
-              )}
+              {/* Name + price row */}
+              <div style={{ padding: "10px 12px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: "700", color: "#F0EEFC", letterSpacing: "-0.01em" }}>{c.name}</div>
+                  <div style={{ fontSize: "10px", color: "#6B6985", marginTop: "2px" }}>{c.description}</div>
+                </div>
+                {!own && c.price >= 0 && (
+                  <div style={{
+                    fontSize: "12px", fontWeight: "700", color: c.price > points ? "#6B6985" : "#F0EEFC",
+                    fontFamily: "monospace", flexShrink: 0, marginLeft: "8px",
+                  }}>
+                    {c.price === 0 ? "Free" : c.price}
+                  </div>
+                )}
+                {own && !eq && (
+                  <div style={{
+                    fontSize: "10px", fontWeight: "600", color: "#8A88A8",
+                    flexShrink: 0, marginLeft: "8px",
+                  }}>Owned</div>
+                )}
               </div>
             </div>
           );
@@ -548,16 +664,16 @@ export function ShopPage() {
           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999,
         }} onClick={() => { if (purchasePhase !== "processing") setPurchaseModal(null); }}>
           <div onClick={e => e.stopPropagation()} className="fade-in" style={{
-            background: "rgba(0,0,0,0.97)", border: "1px solid rgba(255,255,255,0.1)",
+            background: "#0D0D17", border: "0.5px solid #1F1F2E",
             borderRadius: "16px", padding: "32px 36px", width: "min(400px, 90vw)",
             boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
           }}>
             {purchasePhase === "confirm" && (<>
               <div style={{ textAlign: "center", marginBottom: "24px" }}>
-                <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.12em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
+                <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.12em", color: "#6B6985", textTransform: "uppercase", marginBottom: "8px" }}>
                   Purchase Pulsar Points
                 </div>
-                <div style={{ fontSize: "42px", fontWeight: "800", color: "#FFFFFF", lineHeight: 1 }}>
+                <div style={{ fontSize: "42px", fontWeight: "800", color: "#F0EEFC", lineHeight: 1, fontFamily: "monospace" }}>
                   {purchaseModal.amount.toLocaleString()}
                 </div>
                 {purchaseModal.bonus && (
@@ -565,16 +681,16 @@ export function ShopPage() {
                     {purchaseModal.bonus}
                   </div>
                 )}
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "12px" }}>Pulsar Points</div>
+                <div style={{ fontSize: "11px", color: "#6B6985", marginTop: "12px" }}>Pulsar Points</div>
               </div>
 
               <div style={{
-                background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)",
+                background: "rgba(255,255,255,0.02)", border: "0.5px solid #1F1F2E",
                 borderRadius: "10px", padding: "16px", marginBottom: "20px",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{purchaseModal.amount.toLocaleString()} Pulsar Points</span>
-                  <span style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: "600" }}>{purchaseModal.price}</span>
+                  <span style={{ fontSize: "12px", color: "#8A88A8" }}>{purchaseModal.amount.toLocaleString()} Pulsar Points</span>
+                  <span style={{ fontSize: "12px", color: "#F0EEFC", fontWeight: "600" }}>{purchaseModal.price}</span>
                 </div>
                 {purchaseModal.bonus && (
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
@@ -582,44 +698,43 @@ export function ShopPage() {
                     <span style={{ fontSize: "12px", color: "var(--accent-green)", fontWeight: "600" }}>FREE</span>
                   </div>
                 )}
-                <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", margin: "8px 0" }} />
+                <div style={{ height: "1px", background: "#1F1F2E", margin: "8px 0" }} />
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "13px", color: "var(--text-primary)", fontWeight: "700" }}>Total</span>
-                  <span style={{ fontSize: "13px", color: "#FFFFFF", fontWeight: "800" }}>{purchaseModal.price}</span>
+                  <span style={{ fontSize: "13px", color: "#F0EEFC", fontWeight: "700" }}>Total</span>
+                  <span style={{ fontSize: "13px", color: "#F0EEFC", fontWeight: "800" }}>{purchaseModal.price}</span>
                 </div>
               </div>
 
               <button onClick={() => {
-                // Open Stripe payment link in the browser
                 openBrowser(purchaseModal.payUrl);
                 setPurchasePhase("paying");
               }} style={{
                 width: "100%", padding: "14px", border: "none", borderRadius: "10px",
-                background: "linear-gradient(135deg, #FFFFFF, #C0C0C0)",
-                color: "#000000", fontSize: "13px", fontWeight: "800", cursor: "pointer",
+                background: "linear-gradient(135deg, #5B3FA6, #7C5FD6)",
+                color: "#F0EEFC", fontSize: "13px", fontWeight: "800", cursor: "pointer",
                 fontFamily: "inherit", letterSpacing: "0.06em",
-                boxShadow: "0 4px 20px rgba(255,255,255,0.12)",
+                boxShadow: "0 4px 20px rgba(91,63,166,0.3)",
                 transition: "all 0.2s",
               }}
-              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(255,255,255,0.18)"; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(255,255,255,0.12)"; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(91,63,166,0.4)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(91,63,166,0.3)"; }}
               >
                 PAY {purchaseModal.price}
               </button>
 
               <button onClick={() => setPurchaseModal(null)} style={{
                 width: "100%", padding: "10px", border: "none", borderRadius: "8px",
-                background: "transparent", color: "var(--text-muted)", fontSize: "12px",
+                background: "transparent", color: "#6B6985", fontSize: "12px",
                 cursor: "pointer", fontFamily: "inherit", marginTop: "8px",
               }}>Cancel</button>
             </>)}
 
             {purchasePhase === "paying" && (
               <div style={{ textAlign: "center", padding: "10px 0" }}>
-                <div style={{ fontSize: "14px", color: "#FFFFFF", fontWeight: "600", marginBottom: "8px" }}>
+                <div style={{ fontSize: "14px", color: "#F0EEFC", fontWeight: "600", marginBottom: "8px" }}>
                   Complete payment in your browser
                 </div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "20px", lineHeight: 1.6 }}>
+                <div style={{ fontSize: "12px", color: "#8A88A8", marginBottom: "20px", lineHeight: 1.6 }}>
                   A payment page has opened in your browser.<br/>
                   After completing your purchase, click the button below.
                 </div>
@@ -633,10 +748,10 @@ export function ShopPage() {
                   }, 1200);
                 }} style={{
                   width: "100%", padding: "14px", border: "none", borderRadius: "10px",
-                  background: "linear-gradient(135deg, #FFFFFF, #C0C0C0)",
-                  color: "#000000", fontSize: "13px", fontWeight: "800", cursor: "pointer",
+                  background: "linear-gradient(135deg, #5B3FA6, #7C5FD6)",
+                  color: "#F0EEFC", fontSize: "13px", fontWeight: "800", cursor: "pointer",
                   fontFamily: "inherit", letterSpacing: "0.06em",
-                  boxShadow: "0 4px 20px rgba(255,255,255,0.12)",
+                  boxShadow: "0 4px 20px rgba(91,63,166,0.3)",
                 }}>
                   I'VE COMPLETED PAYMENT
                 </button>
@@ -645,13 +760,13 @@ export function ShopPage() {
                   openBrowser(purchaseModal!.payUrl);
                 }} style={{
                   width: "100%", padding: "10px", border: "none", borderRadius: "8px",
-                  background: "rgba(255,255,255,0.04)", color: "var(--text-secondary)", fontSize: "12px",
+                  background: "rgba(91,63,166,0.1)", color: "#8A88A8", fontSize: "12px",
                   cursor: "pointer", fontFamily: "inherit", marginTop: "8px",
                 }}>Reopen payment page</button>
 
                 <button onClick={() => { setPurchasePhase("confirm"); }} style={{
                   width: "100%", padding: "10px", border: "none", borderRadius: "8px",
-                  background: "transparent", color: "var(--text-faint)", fontSize: "11px",
+                  background: "transparent", color: "#6B6985", fontSize: "11px",
                   cursor: "pointer", fontFamily: "inherit", marginTop: "4px",
                 }}>Cancel</button>
               </div>
@@ -659,12 +774,12 @@ export function ShopPage() {
 
             {purchasePhase === "processing" && (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
-                <div style={{ fontSize: "14px", color: "#FFFFFF", fontWeight: "600", marginBottom: "16px" }}>
+                <div style={{ fontSize: "14px", color: "#F0EEFC", fontWeight: "600", marginBottom: "16px" }}>
                   Processing payment...
                 </div>
                 <div style={{
                   width: "40px", height: "40px", margin: "0 auto",
-                  border: "3px solid rgba(255,255,255,0.08)", borderTopColor: "#FFFFFF",
+                  border: "3px solid #1F1F2E", borderTopColor: "#C4B5FD",
                   borderRadius: "50%", animation: "spin 0.8s linear infinite",
                 }} />
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -682,7 +797,7 @@ export function ShopPage() {
                 <div style={{ fontSize: "16px", color: "var(--accent-green)", fontWeight: "700", marginBottom: "6px" }}>
                   Payment Successful!
                 </div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                <div style={{ fontSize: "12px", color: "#8A88A8" }}>
                   +{purchaseModal.amount.toLocaleString()} Pulsar Points added
                 </div>
               </div>

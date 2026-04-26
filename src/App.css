@@ -335,6 +335,8 @@ body { margin: 0; overflow: hidden; }
   0%, 100% { box-shadow: 0 4px 20px rgba(198, 120, 221, 0.1); }
   50% { box-shadow: 0 4px 32px rgba(198, 120, 221, 0.2); }
 }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }

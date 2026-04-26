@@ -2,6 +2,7 @@ package com.bloom.core.config;
 
 import com.bloom.core.module.Module;
 import com.bloom.core.module.ModuleManager;
+import com.bloom.core.module.ModuleSetting;
 import com.bloom.core.module.modules.CosmeticsCape;
 import net.minecraft.client.MinecraftClient;
 
@@ -35,6 +36,14 @@ public class PulsarConfig {
                     String prefix = "hud." + m.getName().replace(" ", "_");
                     props.setProperty(prefix + ".x", String.valueOf(m.getHudX()));
                     props.setProperty(prefix + ".y", String.valueOf(m.getHudY()));
+                }
+            }
+
+            // Save module settings (sliders, toggles)
+            for (Module m : modules.getModules()) {
+                for (ModuleSetting s : m.getSettings()) {
+                    String key = "setting." + m.getName().replace(" ", "_") + "." + s.name.replace(" ", "_");
+                    props.setProperty(key, String.valueOf(s.getter.get()));
                 }
             }
 
@@ -86,6 +95,16 @@ public class PulsarConfig {
                             m.setHudX(Integer.parseInt(xVal));
                             m.setHudY(Integer.parseInt(yVal));
                         } catch (NumberFormatException ignored2) {}
+                    }
+                }
+            }
+            // Load module settings
+            for (Module m : modules.getModules()) {
+                for (ModuleSetting s : m.getSettings()) {
+                    String key = "setting." + m.getName().replace(" ", "_") + "." + s.name.replace(" ", "_");
+                    String val = props.getProperty(key);
+                    if (val != null) {
+                        try { s.setter.accept(Float.parseFloat(val)); } catch (Exception ignored2) {}
                     }
                 }
             }
