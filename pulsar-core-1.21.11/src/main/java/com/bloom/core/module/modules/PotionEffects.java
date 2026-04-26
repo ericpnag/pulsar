@@ -15,7 +15,7 @@ public class PotionEffects extends Module {
 
     @Override
     public void renderHud(DrawContext context, MinecraftClient client, int y) {
-        if (client.player == null) return;
+        if (client.player == null || client.getWindow() == null) return;
         int screenW = client.getWindow().getScaledWidth();
         int drawY = 4;
         for (StatusEffectInstance effect : client.player.getStatusEffects()) {

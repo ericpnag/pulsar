@@ -20,7 +20,7 @@ public class ArmorStatus extends Module {
 
     @Override
     public void renderHud(DrawContext context, MinecraftClient client, int y) {
-        if (client.player == null) return;
+        if (client.player == null || client.getWindow() == null) return;
         int screenW = client.getWindow().getScaledWidth();
         int drawY = client.getWindow().getScaledHeight() / 2 - 40;
 

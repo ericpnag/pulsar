@@ -3,12 +3,12 @@ package com.bloom.core.toast;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ToastManager {
-    private static final List<Toast> toasts = new ArrayList<>();
+    private static final List<Toast> toasts = new CopyOnWriteArrayList<>();
     private static final int MAX_VISIBLE = 4;
     private static final int TOAST_WIDTH = 180;
     private static final int TOAST_HEIGHT = 28;
